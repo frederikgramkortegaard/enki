@@ -347,6 +347,10 @@ inline void from_json(const json &j, std::shared_ptr<Statement> &stmt) {
     auto block = std::make_shared<Block>();
     from_json(j, *block);
     stmt = block;
+  } else if (type == "WhileLoop") {
+    auto while_stmt = std::make_shared<WhileLoop>();
+    from_json(j, *while_stmt);
+    stmt = while_stmt;
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }
