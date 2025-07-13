@@ -3,6 +3,7 @@
 #include <format>
 #include <iostream>
 #include <magic_enum/magic_enum.hpp>
+#include <spdlog/spdlog.h>
 #include <vector>
 
 TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
@@ -35,8 +36,8 @@ std::vector<Token> lex(const std::string_view &source,
     std::string_view value_view = source.substr(start.pos, cursor - start.pos);
     tokens.push_back(Token{
         type, value_view, {start, Location{row, col, cursor, file_name}}});
-    std::cout << std::format("Created token of type {} with value '{}'\n",
-                             magic_enum::enum_name(type), value_view);
+    spdlog::debug("Created token of type {} with value '{}'",
+                  magic_enum::enum_name(type), value_view);
   };
   // Increment the cursor and the column
   auto increment = [&](int amount = 1) {

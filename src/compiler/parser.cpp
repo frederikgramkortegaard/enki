@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include <format>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
@@ -32,9 +33,8 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
              ctx.current_token().type != TokenType::RParens) {
         auto arg = parse_expression(ctx);
         if (!arg) {
-          std::cerr << std::format(
-              "Expected Expression at {} but couldn't find one\n",
-              std::string(ctx.current_token().span.start.to_string()));
+          spdlog::error("Expected Expression at {} but couldn't find one",
+                        std::string(ctx.current_token().span.start.to_string()));
           std::exit(1);
         }
         call_expr->arguments.push_back(arg);
@@ -78,9 +78,9 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
 
     const Token &ident_tok = ctx.current_token();
     if (ident_tok.type != TokenType::Identifier) {
-      std::cerr << std::format("Expected Identifier at {} but got {}\n",
-                               ident_tok.span.start.to_string(),
-                               magic_enum::enum_name(ident_tok.type));
+      spdlog::error("Expected Identifier at {} but got {}",
+                    ident_tok.span.start.to_string(),
+                    magic_enum::enum_name(ident_tok.type));
       std::exit(1);
     }
 
@@ -95,14 +95,12 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
     const Span &equals_span = ctx.current_token().span;
     auto expr = parse_expression(ctx);
     if (!expr) {
-      std::cerr << std::format(
-          "Expected Expression at {} but couldn't find one\n",
-          equals_span.start.to_string());
+      spdlog::error("Expected Expression at {} but couldn't find one",
+                    equals_span.start.to_string());
       std::exit(1);
     }
-
     let_stmt->expression = expr;
-    let_stmt->span() = Span(statement_start.start, expr->span().end);
+    let_stmt->span() = {statement_start.start, expr->span().end};
 
     // Symbols
     ctx.program->symbols[ident_expr->name] =
@@ -136,18 +134,16 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
 
     auto condition = parse_expression(ctx);
     if (!condition) {
-      std::cerr << std::format(
-          "Expected condition expression at {} but couldn't find one\n",
-          ctx.current_token().span.start.to_string());
+      spdlog::error("Expected condition expression at {} but couldn't find one",
+                    ctx.current_token().span.start.to_string());
       std::exit(1);
     }
     if_stmt->condition = condition;
 
     auto then_branch = parse_statement(ctx);
     if (!then_branch) {
-      std::cerr << std::format(
-          "Expected then branch statement at {} but couldn't find one\n",
-          ctx.current_token().span.start.to_string());
+      spdlog::error("Expected then branch statement at {} but couldn't find one",
+                    ctx.current_token().span.start.to_string());
       std::exit(1);
     }
     if_stmt->then_branch = then_branch;
@@ -157,9 +153,8 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
       ctx.consume();
       auto else_branch = parse_statement(ctx);
       if (!else_branch) {
-        std::cerr << std::format(
-            "Expected else branch statement at {} but couldn't find one\n",
-            ctx.current_token().span.start.to_string());
+        spdlog::error("Expected else branch statement at {} but couldn't find one",
+                      ctx.current_token().span.start.to_string());
         std::exit(1);
       }
       if_stmt->else_branch = else_branch;
@@ -172,24 +167,38 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
   // Maybe its a dangling expression
   auto expr = parse_expression(ctx);
   if (expr) {
-    return std::make_shared<ExpressionStatement>(expr);
+    auto expr_stmt = std::make_shared<ExpressionStatement>();
+    expr_stmt->expression = expr;
+    expr_stmt->span() = expr->span();
+    return expr_stmt;
   }
 
   return nullptr;
 }
 
-std::shared_ptr<Program> parse(std::vector<Token> tokens) {
-  auto ctx = ParserContext{std::make_shared<Program>(), tokens, 0};
+std::shared_ptr<Program> parse(const std::vector<Token> &tokens) {
+  auto program = std::make_shared<Program>();
+  ParserContext ctx(program, tokens);
 
-  // @TODO : In the future we add blocks/scopes
-  while (ctx.current < ctx.tokens.size()) {
+  while (ctx.current < tokens.size()) {
     auto stmt = parse_statement(ctx);
     if (stmt) {
-      ctx.program->statements.push_back(stmt);
+      program->statements.push_back(stmt);
     } else {
-      break; // error handling or end
+      spdlog::error("Couldn't parse statement at {}",
+                    ctx.current_token().span.start.to_string());
+      std::exit(1);
     }
   }
 
-  return ctx.program;
-};
+  return program;
+}
+
+void ParserContext::consume_assert(TokenType type, const std::string &message) {
+  if (current_token().type != type) {
+    spdlog::error("{}, got {} instead", message,
+                  magic_enum::enum_name(current_token().type));
+    std::exit(1);
+  }
+  consume();
+}

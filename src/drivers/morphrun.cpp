@@ -1,11 +1,13 @@
-
 #include "../compiler/lexer.hpp"
 #include "../compiler/parser.hpp"
 #include "../interpreter/eval.hpp"
 #include "../runtime/builtins.hpp"
+#include "../utils/logging.hpp"
 #include <fstream>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <sstream>
+#include <vector>
 
 std::shared_ptr<Program> compile(const std::string &source,
                                  const std::string &filename) {
@@ -14,27 +16,43 @@ std::shared_ptr<Program> compile(const std::string &source,
 }
 
 int main(int argc, char *argv[]) {
+  logging::setup();
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <filename>\n";
+    spdlog::error("Usage: {} <filename>", argv[0]);
     return 1;
   }
 
-  std::string filename = argv[1];
-  std::ifstream file(filename);
-  if (!file.is_open()) {
-    std::cerr << "Could not open file: " << filename << std::endl;
-    return 1;
+  std::string filename;
+  bool from_file = false;
+  for (int i = 1; i < argc; i++) {
+    if (std::string(argv[i]) == "-f") {
+      if (argc < i + 2) {
+        spdlog::error("Usage: {} -f <filename>", argv[0]);
+        return 1;
+      }
+      filename = argv[i + 1];
+      from_file = true;
+      i++;
+    }
   }
 
-  std::stringstream buffer;
-  buffer << file.rdbuf();
-  std::string source = buffer.str();
+  if (from_file) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+      spdlog::error("Could not open file: {}", filename);
+      return 1;
+    }
 
-  auto program = compile(source, filename);
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string source = buffer.str();
 
-  register_builtins();
-  EvalContext ctx(*program);
-  interpret(ctx);
+    auto program = compile(source, filename);
+
+    register_builtins();
+    EvalContext ctx(*program);
+    interpret(ctx);
+  }
 
   return 0;
 }

@@ -1,9 +1,11 @@
 #include "../compiler/lexer.hpp"
 #include "../compiler/parser.hpp"
 #include "../definitions/serializations.hpp"
+#include "../utils/logging.hpp"
 #include "nlohmann/json.hpp"
 #include <fstream>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <vector>
 
@@ -15,8 +17,10 @@ std::shared_ptr<Program> compile(const std::string &source,
 
 
 int main(int argc, char *argv[]) {
+  logging::setup();
+
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <filename>\n";
+    spdlog::error("Usage: {} <filename>", argv[0]);
     return 1;
   }
 
@@ -31,7 +35,7 @@ int main(int argc, char *argv[]) {
   for (int i = 1; i < argc; i++) {
     if (std::string(argv[i]) == "-i") {
       if (argc < i + 2) {
-        std::cerr << "Usage: " << argv[0] << " -i <filename>\n";
+        spdlog::error("Usage: {} -i <filename>", argv[0]);
         return 1;
       }
       input_filename = argv[i + 1];
@@ -39,14 +43,14 @@ int main(int argc, char *argv[]) {
     }
     if (std::string(argv[i]) == "-o") {
       if (argc < i + 2) {
-        std::cerr << "Usage: " << argv[0] << " -o <filename>\n";
+        spdlog::error("Usage: {} -o <filename>", argv[0]);
         return 1;
       }
       output_filename = argv[i + 1];
     }
     if (std::string(argv[i]) == "-l") {
       if (argc < i + 2) {
-        std::cerr << "Usage: " << argv[0] << " -l <filename>\n";
+        spdlog::error("Usage: {} -l <filename>", argv[0]);
         return 1;
       }
       load_filename = argv[i + 1];
@@ -59,8 +63,8 @@ int main(int argc, char *argv[]) {
        input_filename == output_filename) ||
       (!input_filename.empty() && !load_filename.empty() &&
        input_filename == load_filename)) {
-    std::cerr
-        << "Error: Do not use the same file for both input, output, or load.\n";
+    spdlog::error(
+        "Error: Do not use the same file for both input, output, or load.");
     return 1;
   }
   if (!output_filename.empty())
@@ -75,7 +79,7 @@ int main(int argc, char *argv[]) {
     ast_file >> ast_json;
     // program = ast_json.get<std::shared_ptr<Program>>(); // This line was
     // removed as per the new_code
-    std::cout << "Loaded AST from " << load_filename << std::endl;
+    spdlog::info("Loaded AST from {}", load_filename);
     return 0;
   }
   std::shared_ptr<Program> program;

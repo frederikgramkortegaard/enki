@@ -7,38 +7,38 @@
 #include "nlohmann/json.hpp"
 #include <fstream>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <vector>
 
 std::shared_ptr<ValueBase>
 eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
-  std::cout << "Evaluating expression" << std::endl;
+  spdlog::debug("Evaluating expression");
 
   if (expr->ast_type == ASTType::FunctionCall) {
-    std::cout << "Expression is a function call" << std::endl;
+    spdlog::debug("Expression is a function call");
     auto call = std::dynamic_pointer_cast<CallExpression>(expr);
     std::vector<std::shared_ptr<ValueBase>> args;
     for (auto arg : call->arguments) {
       args.push_back(eval_expression(ctx, arg));
     }
-    std::cout << "Arguments: " << args.size() << std::endl;
+    spdlog::debug("Arguments: {}", args.size());
 
     // To find the name, i guess we hae to evaluate the callee
-    std::cout << "Evaluating callee: " << std::endl;
+    spdlog::debug("Evaluating callee: ");
     auto callee = eval_expression(ctx, call->callee);
-    std::cout << "Callee type: " << callee->type_name() << std::endl;
-    std::cout << "Callee name: " << std::string(callee->type_name())
-              << std::endl;
+    spdlog::debug("Callee type: {}", callee->type_name());
+    spdlog::debug("Callee name: {}", std::string(callee->type_name()));
 
     if (std::string(callee->type_name()) != "string") {
       throw std::runtime_error("Callee is not a string");
     }
 
     auto str_val = std::dynamic_pointer_cast<StringValue>(callee);
-    std::cout << "Callee string value: " << str_val->value << std::endl;
+    spdlog::debug("Callee string value: {}", str_val->value);
 
     if (builtin_functions.find(str_val->value) != builtin_functions.end()) {
-      std::cout << "Builtin function found" << std::endl;
+      spdlog::debug("Builtin function found");
       auto builtin = builtin_functions[str_val->value];
       if (args.size() < builtin.min_args || args.size() > builtin.max_args)
         throw std::runtime_error(
@@ -55,9 +55,9 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
   }
 
   if (expr->ast_type == ASTType::Literal) {
-    std::cout << "Expression is a literal" << std::endl;
+    spdlog::debug("Expression is a literal");
     auto lit = std::dynamic_pointer_cast<Literal>(expr);
-    std::cout << "Literal value: " << lit->value << std::endl;
+    spdlog::debug("Literal value: {}", lit->value);
 
     std::shared_ptr<ValueBase> inter_value;
     switch (lit->type.base_type) {
@@ -77,14 +77,14 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     default:
       throw std::runtime_error("Unknown literal type");
     }
-    inter_value->print(std::cout);
+    // inter_value->print(std::cout);
     return inter_value;
   }
 
   if (expr->ast_type == ASTType::Identifier) {
-    std::cout << "Expression is an identifier" << std::endl;
+    spdlog::debug("Expression is an identifier");
     auto ident = std::dynamic_pointer_cast<Identifier>(expr);
-    std::cout << "Identifier: " << ident->name << std::endl;
+    spdlog::debug("Identifier: {}", ident->name);
     if (ctx.values.find(std::string(ident->name)) != ctx.values.end()) {
       return ctx.values[std::string(ident->name)];
     } else {
@@ -92,60 +92,59 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     }
   }
 
-  std::cout << "Unknown expression type" << std::endl;
+  spdlog::warn("Unknown expression type");
 
   return nullptr;
 }
 
 void eval_statement(EvalContext &ctx, const std::shared_ptr<Statement> &stmt) {
-    // TODO: Move these into virtual eval(EvalContext &ctx) functions for AST nodes
-    if (auto let = std::dynamic_pointer_cast<LetStatement>(stmt)) {
+  if (auto let = std::dynamic_pointer_cast<LetStatement>(stmt)) {
 
       std::shared_ptr<ValueBase> value = eval_expression(ctx, let->expression);
-      std::cout << "evaluated let expression" << std::endl;
+      spdlog::debug("evaluated let expression");
 
       auto ident = std::dynamic_pointer_cast<Identifier>(let->identifier);
-      std::cout << "identifier: " << ident->name << std::endl;
+      spdlog::debug("identifier: {}", ident->name);
       ctx.values[std::string(ident->name)] = value;
-      std::cout << "d" << std::endl;
+      spdlog::debug("d" );
       return;
     }
 
     if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStatement>(stmt)) {
-      std::cout << "evaluating expression statement" << std::endl;
+      spdlog::debug("evaluating expression statement");
       auto value = eval_expression(ctx, expr_stmt->expression);
-      std::cout << "evaluated expression statement" << std::endl;
+      spdlog::debug("evaluated expression statement");
       return;
     }
 
     if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
-      std::cout << "evaluating if statement" << std::endl;
+      spdlog::debug("evaluating if statement");
       auto condition = eval_expression(ctx, if_stmt->condition);
-      std::cout << "evaluated if statement" << std::endl;
+      spdlog::debug("evaluated if statement");
       if (condition->type_name() != "bool") {
         throw std::runtime_error("Condition is not a boolean");
       }
       auto bool_value = std::dynamic_pointer_cast<BoolValue>(condition);
       if (bool_value->value) {
-        std::cout << "Condition is true, evaluating then branch" << std::endl;
+        spdlog::debug("Condition is true, evaluating then branch");
         eval_statement(ctx, if_stmt->then_branch);
       } else if (if_stmt->else_branch) {
-        std::cout << "Condition is false, evaluating else branch" << std::endl;
+        spdlog::debug("Condition is false, evaluating else branch");
         eval_statement(ctx, if_stmt->else_branch);
       }
       return;
     }
 
     if (auto block_stmt = std::dynamic_pointer_cast<Block>(stmt)) {
-      std::cout << "evaluating block statement" << std::endl;
+      spdlog::debug("evaluating block statement");
       for (const auto &inner_stmt : block_stmt->statements) {
         eval_statement(ctx, inner_stmt);
       }
-      std::cout << "evaluated block statement" << std::endl;
+      spdlog::debug("evaluated block statement");
       return;
     }
 
-    std::cout << "Unknown statement type at " << stmt->span().start.to_string() << std::endl;
+    spdlog::warn("Unknown statement type at {}", stmt->span().start.to_string());
     std::exit(1);
 }
 

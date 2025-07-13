@@ -14,7 +14,8 @@ MorphIR is a C++-based interpreter and runtime for a custom programming language
 ```
 MorphIR/
 ├── src/
-│   ├── compiler/        # Lexer, parser, and compiler entry point
+│   ├── drivers/         # Entry points for all executables
+│   ├── compiler/        # Lexer, parser
 │   ├── definitions/     # AST, types, serialization
 │   ├── interpreter/     # Interpreter logic and value system
 │   ├── runtime/         # Builtin functions and runtime support
@@ -29,6 +30,12 @@ Requirements:
 - C++20 compiler (e.g., g++)
 - [nlohmann/json](https://github.com/nlohmann/json)
 - [magic_enum](https://github.com/Neargye/magic_enum) (header-only)
+- [spdlog](https://github.com/gabime/spdlog)
+
+On MacOS:
+```
+brew install spdlog nlohmann-json magic_enum
+```
 
 To build both the compiler and interpreter:
 ```sh
@@ -36,6 +43,7 @@ make
 ```
 - `morphir`    — Compiler: parses `.morph` files and outputs JSON AST
 - `morpheval`  — Interpreter: loads JSON AST and executes it
+- `morphrun`   — Utility to compiler and directly interpret `.morph` files
 
 To clean build artifacts:
 ```sh
@@ -67,6 +75,7 @@ save(greyscale_image, "greyscale.bmp")
 
 ## Language Features
 - **let statements:** Variable binding
+- **Control flow:** `if` and `else` statements
 - **Function calls:** User and builtin functions
 - **Literals:** Int, float, string
 - **Identifiers:** Variable and function names
