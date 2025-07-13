@@ -1,17 +1,4 @@
 CC        = g++
-<<<<<<< HEAD
-OBJ       = build
-SRCS = $(wildcard src/*.cpp) $(wildcard src/compiler/*.cpp) $(wildcard src/runtime/*.cpp)
-EVAL_SRCS = src/interpreter/eval.cpp src/runtime/impls.cpp
-EVAL_EXE = enkieval
-DEPDIR   := $(OBJ)/deps
-DEPFILES := $(patsubst src/%.cpp,$(DEPDIR)/%.d,$(SRCS))
-OBJS      = $(patsubst src/%.cpp,$(OBJ)/%.o,$(SRCS))
-DEPFLAGS  = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
-EXE       = enki
-CFLAGS = -I/opt/homebrew/include -g -std=c++20 -Wall -Wpedantic -I/opt/homebrew/include/nlohmann 
-LDLIBS    = -lm -lstdc++ 
-=======
 OBJ_DIR   = build
 # All source files for the core library
 CORE_SRCS = $(wildcard src/compiler/*.cpp)
@@ -20,15 +7,14 @@ CORE_SRCS += $(wildcard src/interpreter/*.cpp)
 CORE_SRCS += $(wildcard src/definitions/*.cpp)
 CORE_SRCS += $(wildcard src/utils/*.cpp)
 CORE_OBJS = $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(CORE_SRCS))
->>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
 
 # Driver object file
-MORPH_SRC = src/morph.cpp
-MORPH_EXE = morph
+MORPH_SRC = src/enki.cpp
+MORPH_EXE = enki
 
 # Dependency tracking
 DEPDIR   := $(OBJ_DIR)/deps
-DEPFILES := $(patsubst src/%.cpp,$(DEPDIR)/%.d,$(CORE_SRCS)) $(DEPDIR)/morph.d
+DEPFILES := $(patsubst src/%.cpp,$(DEPDIR)/%.d,$(CORE_SRCS)) $(DEPDIR)/enki.d
 DEPFLAGS  = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 # Compiler and linker flags
@@ -70,7 +56,7 @@ install: $(MORPH_EXE)
 clean:
 	@echo "Cleaning build artifacts"
 	rm -rf $(OBJ_DIR) $(MORPH_EXE)
-	rm -f morphir morpheval morphrun
+	rm -f enki enkieval enkirun
 
 # Include all dependency files for header dependency tracking
 -include $(wildcard $(DEPFILES))

@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-enum class ExpressionType {
+enum class ASTType {
   StringLiteral,
   FloatLiteral,
   IntLiteral,
@@ -31,13 +31,13 @@ struct Statement : Spanned {
 };
 
 struct Expression : Spanned {
-  ExpressionType expr_type;
+  ASTType expr_type;
   virtual ~Expression() = default;
 };
 
 struct Identifier : Expression {
   std::string_view name;
-  Identifier() { expr_type = ExpressionType::Identifier; }
+  Identifier() { expr_type = ASTType::Identifier; }
 };
 
 
@@ -53,7 +53,7 @@ struct ExternStatement : Statement {
 struct CallExpression : Expression {
   std::shared_ptr<Expression> callee;
   std::vector<std::shared_ptr<Expression>> arguments;
-  CallExpression() { expr_type = ExpressionType::FunctionCall; }
+  CallExpression() { expr_type = ASTType::FunctionCall; }
 };
 
 enum class BinaryOpType {
@@ -77,7 +77,7 @@ struct BinaryOp : Expression {
   std::shared_ptr<Expression> left;
   std::shared_ptr<Expression> right;
   BinaryOpType op;
-  BinaryOp() { expr_type = ExpressionType::BinaryOp; }
+  BinaryOp() { expr_type = ASTType::BinaryOp; }
 };
 
 struct LetStatement : Statement {
@@ -103,7 +103,7 @@ struct Block : Statement {
 struct Literal : Expression {
   Type type;
   std::string value;
-  Literal() { expr_type = ExpressionType::Literal; }
+  Literal() { expr_type = ASTType::Literal; }
 };
 
 struct Program : Spanned {

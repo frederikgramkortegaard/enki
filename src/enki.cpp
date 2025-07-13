@@ -24,9 +24,9 @@ std::shared_ptr<Program> compile(const std::string &source,
 void print_global_usage(const char *prog_name) {
   fmt::println("Usage: {} <command> [options] [arguments]", prog_name);
   fmt::println("Commands:");
-  fmt::println("  compile: Compile a Morph source file to AST JSON");
+  fmt::println("  compile: Compile a enki source file to AST JSON");
   fmt::println("  eval: Evaluate a compiled AST JSON file");
-  fmt::println("  run: Compile and run a Morph source file");
+  fmt::println("  run: Compile and run a enki source file");
   fmt::println("");
   fmt::println("Run '{} <command> -h' for more information on a specific command", prog_name);
 }
@@ -51,7 +51,7 @@ void print_eval_usage(const char *prog_name) {
 }
 
 void print_run_usage(const char *prog_name) {
-  fmt::println("Usage: {} run [options] <morph-file>", prog_name);
+  fmt::println("Usage: {} run [options] <enki-file>", prog_name);
   fmt::println("Options:");
   fmt::println("  -h: Show this help message");
 }
@@ -252,6 +252,7 @@ int eval_command(int argc, char *argv[]) {
 
   auto program_ptr = ast_json.get<std::shared_ptr<Program>>();
 
+  register_builtins();
   EvalContext ctx(*program_ptr);
   spdlog::debug("Program: {} statements", program_ptr->statements.size());
   interpret(ctx);

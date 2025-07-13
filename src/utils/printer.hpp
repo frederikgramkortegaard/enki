@@ -72,8 +72,21 @@ inline void print_ast(const std::shared_ptr<Expression> &expr, int depth,
     }
     return;
   }
+  // BinaryOp
+  if (auto bin_op = std::dynamic_pointer_cast<BinaryOp>(expr)) {
+    print_indent(depth);
+    std::cout << "BinaryOp: " << magic_enum::enum_name(bin_op->op) << std::endl;
+    print_indent(depth + 1);
+    std::cout << "left:" << std::endl;
+    print_ast(bin_op->left, depth + 2, max_depth);
+    print_indent(depth + 1);
+    std::cout << "right:" << std::endl;
+    print_ast(bin_op->right, depth + 2, max_depth);
+    return;
+  }
   // Unknown type
   print_indent(depth);
+  std::cout << magic_enum::enum_name(expr->expr_type) << std::endl;
   std::cout << "<Unknown Expression Type>" << std::endl;
 }
 
@@ -129,8 +142,47 @@ inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
     std::cout << "span: ..." << std::endl;
     return;
   }
+  // IfStatement
+  if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
+    print_indent(depth);
+    std::cout << "IfStatement:" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "condition:" << std::endl;
+    print_ast(if_stmt->condition, depth + 2, max_depth);
+    print_indent(depth + 1);
+    std::cout << "then_branch:" << std::endl;
+    print_ast(if_stmt->then_branch, depth + 2, max_depth);
+    if (if_stmt->else_branch) {
+      print_indent(depth + 1);
+      std::cout << "else_branch:" << std::endl;
+      print_ast(if_stmt->else_branch, depth + 2, max_depth);
+    }
+    return;
+  }
+  // WhileLoop
+  if (auto while_stmt = std::dynamic_pointer_cast<WhileLoop>(stmt)) {
+    print_indent(depth);
+    std::cout << "WhileLoop:" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "condition:" << std::endl;
+    print_ast(while_stmt->condition, depth + 2, max_depth);
+    print_indent(depth + 1);
+    std::cout << "body:" << std::endl;
+    print_ast(while_stmt->body, depth + 2, max_depth);
+    return;
+  }
+  // Block
+  if (auto block = std::dynamic_pointer_cast<Block>(stmt)) {
+    print_indent(depth);
+    std::cout << "Block:" << std::endl;
+    for (const auto &inner_stmt : block->statements) {
+      print_ast(inner_stmt, depth + 1, max_depth);
+    }
+    return;
+  }
   // Unknown type
   print_indent(depth);
+  std::cout << magic_enum::enum_name(stmt->ast_type) << std::endl;
   std::cout << "<Unknown Statement Type>" << std::endl;
 }
 
@@ -156,6 +208,15 @@ inline void print_ast(const Program &program, int depth, int max_depth) {
       // Optionally print value, etc.
     }
   }
+}
+
+// Utility to print a Value (shared_ptr<ValueBase>)
+inline void print_value(const Value& val, std::ostream& os = std::cout) {
+    if (val) {
+        val->print(os);
+    } else {
+        os << "<null>";
+    }
 }
 
 } // namespace ast

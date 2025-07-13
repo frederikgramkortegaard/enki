@@ -12,15 +12,12 @@ enum class TokenType {
 
   // Keywords
   Let,
-<<<<<<< HEAD
   Extern,
-=======
   If,
   Else,
   True,
   False,
   While,
->>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
 
   // Characters
   LParens,

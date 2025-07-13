@@ -1,0 +1,1399 @@
+{
+  "span": {
+    "end": {
+      "col": 0,
+      "file_name": "",
+      "pos": 0,
+      "row": 0
+    },
+    "start": {
+      "col": 0,
+      "file_name": "",
+      "pos": 0,
+      "row": 0
+    }
+  },
+  "statements": [
+    {
+      "expression": {
+        "left": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 11,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 11,
+              "row": 0
+            },
+            "start": {
+              "col": 9,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 9,
+              "row": 0
+            }
+          },
+          "type": "Literal",
+          "value": "10"
+        },
+        "op": "Add",
+        "right": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 16,
+              "row": 0
+            },
+            "start": {
+              "col": 14,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 14,
+              "row": 0
+            }
+          },
+          "type": "Literal",
+          "value": "11"
+        },
+        "span": {
+          "end": {
+            "col": 16,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 16,
+            "row": 0
+          },
+          "start": {
+            "col": 9,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 9,
+            "row": 0
+          }
+        },
+        "type": "BinaryOp"
+      },
+      "identifier": {
+        "name": "a0",
+        "span": {
+          "end": {
+            "col": 6,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 6,
+            "row": 0
+          },
+          "start": {
+            "col": 4,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 4,
+            "row": 0
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 16,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 16,
+          "row": 0
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 0,
+          "row": 0
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "a0",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 25,
+                "row": 1
+              },
+              "start": {
+                "col": 6,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 23,
+                "row": 1
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "print",
+          "span": {
+            "end": {
+              "col": 5,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 22,
+              "row": 1
+            },
+            "start": {
+              "col": 0,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 17,
+              "row": 1
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 5,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 22,
+            "row": 1
+          },
+          "start": {
+            "col": 0,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 17,
+            "row": 1
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 5,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 22,
+          "row": 1
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 17,
+          "row": 1
+        }
+      },
+      "type": "ExpressionStatement"
+    },
+    {
+      "expression": {
+        "left": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 11,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 38,
+              "row": 2
+            },
+            "start": {
+              "col": 9,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 36,
+              "row": 2
+            }
+          },
+          "type": "Literal",
+          "value": "10"
+        },
+        "op": "Subtract",
+        "right": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 43,
+              "row": 2
+            },
+            "start": {
+              "col": 14,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 41,
+              "row": 2
+            }
+          },
+          "type": "Literal",
+          "value": "11"
+        },
+        "span": {
+          "end": {
+            "col": 16,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 43,
+            "row": 2
+          },
+          "start": {
+            "col": 9,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 36,
+            "row": 2
+          }
+        },
+        "type": "BinaryOp"
+      },
+      "identifier": {
+        "name": "a1",
+        "span": {
+          "end": {
+            "col": 6,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 33,
+            "row": 2
+          },
+          "start": {
+            "col": 4,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 31,
+            "row": 2
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 16,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 43,
+          "row": 2
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 27,
+          "row": 2
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "a1",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 52,
+                "row": 3
+              },
+              "start": {
+                "col": 6,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 50,
+                "row": 3
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "print",
+          "span": {
+            "end": {
+              "col": 5,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 49,
+              "row": 3
+            },
+            "start": {
+              "col": 0,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 44,
+              "row": 3
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 5,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 49,
+            "row": 3
+          },
+          "start": {
+            "col": 0,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 44,
+            "row": 3
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 5,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 49,
+          "row": 3
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 44,
+          "row": 3
+        }
+      },
+      "type": "ExpressionStatement"
+    },
+    {
+      "expression": {
+        "left": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 11,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 65,
+              "row": 4
+            },
+            "start": {
+              "col": 9,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 63,
+              "row": 4
+            }
+          },
+          "type": "Literal",
+          "value": "10"
+        },
+        "op": "Divide",
+        "right": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 70,
+              "row": 4
+            },
+            "start": {
+              "col": 14,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 68,
+              "row": 4
+            }
+          },
+          "type": "Literal",
+          "value": "11"
+        },
+        "span": {
+          "end": {
+            "col": 16,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 70,
+            "row": 4
+          },
+          "start": {
+            "col": 9,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 63,
+            "row": 4
+          }
+        },
+        "type": "BinaryOp"
+      },
+      "identifier": {
+        "name": "a2",
+        "span": {
+          "end": {
+            "col": 6,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 60,
+            "row": 4
+          },
+          "start": {
+            "col": 4,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 58,
+            "row": 4
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 16,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 70,
+          "row": 4
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 54,
+          "row": 4
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "a2",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 79,
+                "row": 5
+              },
+              "start": {
+                "col": 6,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 77,
+                "row": 5
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "print",
+          "span": {
+            "end": {
+              "col": 5,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 76,
+              "row": 5
+            },
+            "start": {
+              "col": 0,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 71,
+              "row": 5
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 5,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 76,
+            "row": 5
+          },
+          "start": {
+            "col": 0,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 71,
+            "row": 5
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 5,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 76,
+          "row": 5
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 71,
+          "row": 5
+        }
+      },
+      "type": "ExpressionStatement"
+    },
+    {
+      "expression": {
+        "left": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 11,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 92,
+              "row": 6
+            },
+            "start": {
+              "col": 9,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 90,
+              "row": 6
+            }
+          },
+          "type": "Literal",
+          "value": "10"
+        },
+        "op": "Multiply",
+        "right": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 97,
+              "row": 6
+            },
+            "start": {
+              "col": 14,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 95,
+              "row": 6
+            }
+          },
+          "type": "Literal",
+          "value": "11"
+        },
+        "span": {
+          "end": {
+            "col": 16,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 97,
+            "row": 6
+          },
+          "start": {
+            "col": 9,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 90,
+            "row": 6
+          }
+        },
+        "type": "BinaryOp"
+      },
+      "identifier": {
+        "name": "a3",
+        "span": {
+          "end": {
+            "col": 6,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 87,
+            "row": 6
+          },
+          "start": {
+            "col": 4,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 85,
+            "row": 6
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 16,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 97,
+          "row": 6
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 81,
+          "row": 6
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "a3",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 106,
+                "row": 7
+              },
+              "start": {
+                "col": 6,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 104,
+                "row": 7
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "print",
+          "span": {
+            "end": {
+              "col": 5,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 103,
+              "row": 7
+            },
+            "start": {
+              "col": 0,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 98,
+              "row": 7
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 5,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 103,
+            "row": 7
+          },
+          "start": {
+            "col": 0,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 98,
+            "row": 7
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 5,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 103,
+          "row": 7
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 98,
+          "row": 7
+        }
+      },
+      "type": "ExpressionStatement"
+    },
+    {
+      "expression": {
+        "left": {
+          "left": {
+            "base_type": "Int",
+            "span": {
+              "end": {
+                "col": 11,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 119,
+                "row": 8
+              },
+              "start": {
+                "col": 9,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 117,
+                "row": 8
+              }
+            },
+            "type": "Literal",
+            "value": "10"
+          },
+          "op": "Divide",
+          "right": {
+            "base_type": "Int",
+            "span": {
+              "end": {
+                "col": 16,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 124,
+                "row": 8
+              },
+              "start": {
+                "col": 14,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 122,
+                "row": 8
+              }
+            },
+            "type": "Literal",
+            "value": "11"
+          },
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 124,
+              "row": 8
+            },
+            "start": {
+              "col": 9,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 117,
+              "row": 8
+            }
+          },
+          "type": "BinaryOp"
+        },
+        "op": "Multiply",
+        "right": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 21,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 129,
+              "row": 8
+            },
+            "start": {
+              "col": 19,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 127,
+              "row": 8
+            }
+          },
+          "type": "Literal",
+          "value": "12"
+        },
+        "span": {
+          "end": {
+            "col": 21,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 129,
+            "row": 8
+          },
+          "start": {
+            "col": 9,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 117,
+            "row": 8
+          }
+        },
+        "type": "BinaryOp"
+      },
+      "identifier": {
+        "name": "a4",
+        "span": {
+          "end": {
+            "col": 6,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 114,
+            "row": 8
+          },
+          "start": {
+            "col": 4,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 112,
+            "row": 8
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 21,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 129,
+          "row": 8
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 108,
+          "row": 8
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "a4",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 138,
+                "row": 9
+              },
+              "start": {
+                "col": 6,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 136,
+                "row": 9
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "print",
+          "span": {
+            "end": {
+              "col": 5,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 135,
+              "row": 9
+            },
+            "start": {
+              "col": 0,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 130,
+              "row": 9
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 5,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 135,
+            "row": 9
+          },
+          "start": {
+            "col": 0,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 130,
+            "row": 9
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 5,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 135,
+          "row": 9
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 130,
+          "row": 9
+        }
+      },
+      "type": "ExpressionStatement"
+    },
+    {
+      "expression": {
+        "left": {
+          "left": {
+            "base_type": "Int",
+            "span": {
+              "end": {
+                "col": 11,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 151,
+                "row": 10
+              },
+              "start": {
+                "col": 9,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 149,
+                "row": 10
+              }
+            },
+            "type": "Literal",
+            "value": "10"
+          },
+          "op": "Add",
+          "right": {
+            "base_type": "Int",
+            "span": {
+              "end": {
+                "col": 16,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 156,
+                "row": 10
+              },
+              "start": {
+                "col": 14,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 154,
+                "row": 10
+              }
+            },
+            "type": "Literal",
+            "value": "11"
+          },
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 156,
+              "row": 10
+            },
+            "start": {
+              "col": 9,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 149,
+              "row": 10
+            }
+          },
+          "type": "BinaryOp"
+        },
+        "op": "Multiply",
+        "right": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 21,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 161,
+              "row": 10
+            },
+            "start": {
+              "col": 19,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 159,
+              "row": 10
+            }
+          },
+          "type": "Literal",
+          "value": "12"
+        },
+        "span": {
+          "end": {
+            "col": 21,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 161,
+            "row": 10
+          },
+          "start": {
+            "col": 9,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 149,
+            "row": 10
+          }
+        },
+        "type": "BinaryOp"
+      },
+      "identifier": {
+        "name": "a5",
+        "span": {
+          "end": {
+            "col": 6,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 146,
+            "row": 10
+          },
+          "start": {
+            "col": 4,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 144,
+            "row": 10
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 21,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 161,
+          "row": 10
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 140,
+          "row": 10
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "a5",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 170,
+                "row": 11
+              },
+              "start": {
+                "col": 6,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 168,
+                "row": 11
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "print",
+          "span": {
+            "end": {
+              "col": 5,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 167,
+              "row": 11
+            },
+            "start": {
+              "col": 0,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 162,
+              "row": 11
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 5,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 167,
+            "row": 11
+          },
+          "start": {
+            "col": 0,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 162,
+            "row": 11
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 5,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 167,
+          "row": 11
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 162,
+          "row": 11
+        }
+      },
+      "type": "ExpressionStatement"
+    },
+    {
+      "expression": {
+        "left": {
+          "base_type": "Int",
+          "span": {
+            "end": {
+              "col": 11,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 183,
+              "row": 12
+            },
+            "start": {
+              "col": 9,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 181,
+              "row": 12
+            }
+          },
+          "type": "Literal",
+          "value": "10"
+        },
+        "op": "Multiply",
+        "right": {
+          "left": {
+            "base_type": "Int",
+            "span": {
+              "end": {
+                "col": 16,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 188,
+                "row": 12
+              },
+              "start": {
+                "col": 14,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 186,
+                "row": 12
+              }
+            },
+            "type": "Literal",
+            "value": "11"
+          },
+          "op": "Add",
+          "right": {
+            "base_type": "Int",
+            "span": {
+              "end": {
+                "col": 21,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 193,
+                "row": 12
+              },
+              "start": {
+                "col": 19,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 191,
+                "row": 12
+              }
+            },
+            "type": "Literal",
+            "value": "12"
+          },
+          "span": {
+            "end": {
+              "col": 21,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 193,
+              "row": 12
+            },
+            "start": {
+              "col": 14,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 186,
+              "row": 12
+            }
+          },
+          "type": "BinaryOp"
+        },
+        "span": {
+          "end": {
+            "col": 21,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 193,
+            "row": 12
+          },
+          "start": {
+            "col": 9,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 181,
+            "row": 12
+          }
+        },
+        "type": "BinaryOp"
+      },
+      "identifier": {
+        "name": "a6",
+        "span": {
+          "end": {
+            "col": 6,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 178,
+            "row": 12
+          },
+          "start": {
+            "col": 4,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 176,
+            "row": 12
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 21,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 193,
+          "row": 12
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 172,
+          "row": 12
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "a6",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 202,
+                "row": 13
+              },
+              "start": {
+                "col": 6,
+                "file_name": "examples/binary_ops.enki",
+                "pos": 200,
+                "row": 13
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "print",
+          "span": {
+            "end": {
+              "col": 5,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 199,
+              "row": 13
+            },
+            "start": {
+              "col": 0,
+              "file_name": "examples/binary_ops.enki",
+              "pos": 194,
+              "row": 13
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 5,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 199,
+            "row": 13
+          },
+          "start": {
+            "col": 0,
+            "file_name": "examples/binary_ops.enki",
+            "pos": 194,
+            "row": 13
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 5,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 199,
+          "row": 13
+        },
+        "start": {
+          "col": 0,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 194,
+          "row": 13
+        }
+      },
+      "type": "ExpressionStatement"
+    }
+  ],
+  "symbols": {
+    "a0": {
+      "name": "a0",
+      "span": {
+        "end": {
+          "col": 6,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 6,
+          "row": 0
+        },
+        "start": {
+          "col": 4,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 4,
+          "row": 0
+        }
+      },
+      "type": null
+    },
+    "a1": {
+      "name": "a1",
+      "span": {
+        "end": {
+          "col": 6,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 33,
+          "row": 2
+        },
+        "start": {
+          "col": 4,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 31,
+          "row": 2
+        }
+      },
+      "type": null
+    },
+    "a2": {
+      "name": "a2",
+      "span": {
+        "end": {
+          "col": 6,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 60,
+          "row": 4
+        },
+        "start": {
+          "col": 4,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 58,
+          "row": 4
+        }
+      },
+      "type": null
+    },
+    "a3": {
+      "name": "a3",
+      "span": {
+        "end": {
+          "col": 6,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 87,
+          "row": 6
+        },
+        "start": {
+          "col": 4,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 85,
+          "row": 6
+        }
+      },
+      "type": null
+    },
+    "a4": {
+      "name": "a4",
+      "span": {
+        "end": {
+          "col": 6,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 114,
+          "row": 8
+        },
+        "start": {
+          "col": 4,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 112,
+          "row": 8
+        }
+      },
+      "type": null
+    },
+    "a5": {
+      "name": "a5",
+      "span": {
+        "end": {
+          "col": 6,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 146,
+          "row": 10
+        },
+        "start": {
+          "col": 4,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 144,
+          "row": 10
+        }
+      },
+      "type": null
+    },
+    "a6": {
+      "name": "a6",
+      "span": {
+        "end": {
+          "col": 6,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 178,
+          "row": 12
+        },
+        "start": {
+          "col": 4,
+          "file_name": "examples/binary_ops.enki",
+          "pos": 176,
+          "row": 12
+        }
+      },
+      "type": null
+    }
+  },
+  "type": "Program"
+}

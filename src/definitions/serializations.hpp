@@ -305,11 +305,9 @@ inline void to_json(json &j, const std::shared_ptr<Statement> &stmt) {
                  std::dynamic_pointer_cast<ExpressionStatement>(stmt)) {
     to_json(j, *expr_stmt);
     j["type"] = "ExpressionStatement";
-<<<<<<< HEAD
   } else if (auto ext = std::dynamic_pointer_cast<ExternStatement>(stmt)) {
     to_json(j, *ext);
     j["type"] = "ExternStatement";
-=======
   } else if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
     to_json(j, *if_stmt);
     j["type"] = "IfStatement";
@@ -319,7 +317,6 @@ inline void to_json(json &j, const std::shared_ptr<Statement> &stmt) {
   } else if (auto block = std::dynamic_pointer_cast<Block>(stmt)) {
     to_json(j, *block);
     j["type"] = "Block";
->>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -338,12 +335,10 @@ inline void from_json(const json &j, std::shared_ptr<Statement> &stmt) {
     auto expr_stmt = std::make_shared<ExpressionStatement>();
     from_json(j, *expr_stmt);
     stmt = expr_stmt;
-<<<<<<< HEAD
   } else if (type == "ExternStatement") {
     auto ext = std::make_shared<ExternStatement>();
     from_json(j, *ext);
     stmt = ext;
-=======
   } else if (type == "IfStatement") {
     auto if_stmt = std::make_shared<IfStatement>();
     from_json(j, *if_stmt);
@@ -352,7 +347,6 @@ inline void from_json(const json &j, std::shared_ptr<Statement> &stmt) {
     auto block = std::make_shared<Block>();
     from_json(j, *block);
     stmt = block;
->>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }

@@ -69,7 +69,6 @@ std::shared_ptr<Expression> parse_atom(ParserContext &ctx) {
   return nullptr;
 }
 
-<<<<<<< HEAD
 std::shared_ptr<Type> parse_type(ParserContext &ctx) {
   return nullptr;
 }
@@ -87,7 +86,8 @@ std::shared_ptr<Identifier> parse_identifier(ParserContext &ctx) {
   ident->span() = tok.span;
   ctx.consume();
   return ident;
-=======
+}
+
 std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
   auto left = parse_atom(ctx);
   if (!left)
@@ -148,7 +148,6 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
   }
 
   return output.size() == 1 ? output[0] : nullptr;
->>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
 }
 
 std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {

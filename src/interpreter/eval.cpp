@@ -12,15 +12,95 @@
 #include <vector>
 
 std::shared_ptr<ValueBase>
+eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr);
+
+std::shared_ptr<ValueBase> eval_binary_op(EvalContext &ctx, const std::shared_ptr<BinaryOp> &bin_op) {
+  auto left = eval_expression(ctx, bin_op->left);
+  auto right = eval_expression(ctx, bin_op->right);
+
+
+  if (left->type_name() == "int" && right->type_name() == "int") {
+    auto int_left = std::dynamic_pointer_cast<IntValue>(left);
+    auto int_right = std::dynamic_pointer_cast<IntValue>(right);
+    switch (bin_op->op) {
+      case BinaryOpType::Add:
+        return std::make_shared<IntValue>(int_left->value + int_right->value);
+      case BinaryOpType::Subtract:
+        return std::make_shared<IntValue>(int_left->value - int_right->value);
+      case BinaryOpType::Multiply:
+        return std::make_shared<IntValue>(int_left->value * int_right->value);
+      case BinaryOpType::Divide:
+        return std::make_shared<IntValue>(int_left->value / int_right->value);
+      default:
+        throw std::runtime_error(std::format("Binary Operation {} not implemented for ints", magic_enum::enum_name(bin_op->op)));
+    }
+  } else if (left->type_name() == "float" && right->type_name() == "float") {
+    auto float_left = std::dynamic_pointer_cast<DoubleValue>(left);
+    auto float_right = std::dynamic_pointer_cast<DoubleValue>(right);
+    switch (bin_op->op) {
+      case BinaryOpType::Add:
+        return std::make_shared<DoubleValue>(float_left->value + float_right->value);
+      case BinaryOpType::Subtract:
+        return std::make_shared<DoubleValue>(float_left->value - float_right->value);
+      case BinaryOpType::Multiply:
+        return std::make_shared<DoubleValue>(float_left->value * float_right->value);
+      case BinaryOpType::Divide:
+        return std::make_shared<DoubleValue>(float_left->value / float_right->value);
+      default:
+        throw std::runtime_error(std::format("Binary Operation {} not implemented for floats", magic_enum::enum_name(bin_op->op)));
+    }
+  }
+
+  if (left->type_name() == "string" && right->type_name() == "string") {
+    auto string_left = std::dynamic_pointer_cast<StringValue>(left);
+    auto string_right = std::dynamic_pointer_cast<StringValue>(right);
+    switch (bin_op->op) {
+      case BinaryOpType::Add:
+        return std::make_shared<StringValue>(string_left->value + string_right->value);
+      default:
+        throw std::runtime_error(std::format("Binary Operation {} not implemented for strings", magic_enum::enum_name(bin_op->op)));
+    }
+  }
+
+  if (left->type_name() == "bool" && right->type_name() == "bool") {
+    auto bool_left = std::dynamic_pointer_cast<BoolValue>(left);
+    auto bool_right = std::dynamic_pointer_cast<BoolValue>(right);
+    switch (bin_op->op) {
+      case BinaryOpType::Equals:
+        return std::make_shared<BoolValue>(bool_left->value == bool_right->value);
+      case BinaryOpType::NotEquals:
+        return std::make_shared<BoolValue>(bool_left->value != bool_right->value);
+      case BinaryOpType::LessThan:
+        return std::make_shared<BoolValue>(bool_left->value < bool_right->value);
+      case BinaryOpType::GreaterThan:
+        return std::make_shared<BoolValue>(bool_left->value > bool_right->value);
+      case BinaryOpType::LessThanOrEqual:
+        return std::make_shared<BoolValue>(bool_left->value <= bool_right->value);
+      case BinaryOpType::GreaterThanOrEqual:
+        return std::make_shared<BoolValue>(bool_left->value >= bool_right->value);
+      default:
+        throw std::runtime_error(std::format("Binary Operation {} not implemented for bools", magic_enum::enum_name(bin_op->op)));
+    }
+  }
+
+
+
+    throw std::runtime_error("Unknown binary operation");
+}
+
+
+std::shared_ptr<ValueBase>
 eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
   spdlog::debug("Evaluating expression");
 
-  if (expr->expr_type == ExpressionType::FunctionCall) {
+
+  if (expr->expr_type == ASTType::FunctionCall) {
     spdlog::debug("Expression is a function call");
     auto call = std::dynamic_pointer_cast<CallExpression>(expr);
     std::vector<std::shared_ptr<ValueBase>> args;
     for (auto arg : call->arguments) {
       args.push_back(eval_expression(ctx, arg));
+      utils::ast::print_ast(arg, 0, 10);
     }
     spdlog::debug("Arguments: {}", args.size());
 
@@ -45,16 +125,18 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
             "Invalid number of arguments for builtin function: " +
             str_val->value);
       else {
+        spdlog::debug("Calling builtin function: {}", str_val->value);
         // Call the builtin function
         auto builtin_func = builtin_functions[str_val->value];
         return builtin_func.impl(args);
       }
     }
 
+
     return nullptr;
   }
 
-  if (expr->expr_type == ExpressionType::Literal) {
+  if (expr->expr_type == ASTType::Literal) {
     spdlog::debug("Expression is a literal");
     auto lit = std::dynamic_pointer_cast<Literal>(expr);
     spdlog::debug("Literal value: {}", lit->value);
@@ -81,7 +163,7 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     return inter_value;
   }
 
-  if (expr->expr_type == ExpressionType::Identifier) {
+  if (expr->expr_type == ASTType::Identifier) {
     spdlog::debug("Expression is an identifier");
     auto ident = std::dynamic_pointer_cast<Identifier>(expr);
     spdlog::debug("Identifier: {}", ident->name);
@@ -92,6 +174,16 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     }
   }
 
+  if (expr->expr_type == ASTType::BinaryOp) {
+    spdlog::debug("Expression is a binary operation");
+    auto bin_op = std::dynamic_pointer_cast<BinaryOp>(expr);
+    auto left = eval_expression(ctx, bin_op->left);
+    auto right = eval_expression(ctx, bin_op->right);
+    return eval_binary_op(ctx, bin_op);
+  }
+
+
+  std::cout << "d s q: " << std::endl;
   spdlog::error("Unknown expression type");
   std::exit(1);
   return nullptr;
@@ -106,7 +198,6 @@ void eval_statement(EvalContext &ctx, const std::shared_ptr<Statement> &stmt) {
       auto ident = std::dynamic_pointer_cast<Identifier>(let->identifier);
       spdlog::debug("identifier: {}", ident->name);
       ctx.values[std::string(ident->name)] = value;
-      spdlog::debug("d" );
       return;
     }
 

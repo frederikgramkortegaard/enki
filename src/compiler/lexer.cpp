@@ -124,7 +124,14 @@ std::vector<Token> lex(const std::string_view &source,
       continue;
     }
     case '+': simple_token(TokenType::Plus); continue;
-    case '-': simple_token(TokenType::Minus); continue;
+      case '-': {
+      if (cursor + 1 < source.size() && source[cursor + 1] == '>') {
+        simple_token(TokenType::Arrow, 2);
+      } else {
+        simple_token(TokenType::Minus);
+      }
+      continue;
+    }
     case '*': simple_token(TokenType::Asterisk); continue;
     case '<': {
       if (peek(1) == '=') {
@@ -134,18 +141,8 @@ std::vector<Token> lex(const std::string_view &source,
       }
       continue;
     }
-<<<<<<< HEAD
-    case '-': {
-      if (cursor + 1 < source.size() && source[cursor + 1] == '>') {
-        increment(2);
-        create_token(TokenType::Arrow, start);
-        continue;
-      }
-    }
 
     // Single-line comments
-=======
->>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
     case '/': {
       if (peek(1) == '/') {
         while (cursor < source.size() && source[cursor] != '\n') {
