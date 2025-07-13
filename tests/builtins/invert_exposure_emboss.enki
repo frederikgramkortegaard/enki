@@ -1,5 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let inv = invert(image)
-let exp = exposure(inv)
-let out = emboss(exp)
-save(out, "tests/builtins/invert_exposure_emboss.bmp")

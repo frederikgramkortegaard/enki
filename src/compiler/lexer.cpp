@@ -3,6 +3,7 @@
 #include <format>
 #include <iostream>
 #include <magic_enum/magic_enum.hpp>
+#include <spdlog/spdlog.h>
 #include <vector>
 
 TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
@@ -12,6 +13,21 @@ TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
     return TokenType::Extern;
   } else if (str == "from") {
     return TokenType::From;
+  }
+  if (str == "if") {
+    return TokenType::If;
+  }
+  if (str == "else") {
+    return TokenType::Else;
+  }
+  if (str == "true") {
+    return TokenType::True;
+  }
+  if (str == "false") {
+    return TokenType::False;
+  }
+  if (str == "while") {
+    return TokenType::While;
   }
   return TokenType::Identifier;
 }
@@ -27,9 +43,10 @@ std::vector<Token> lex(const std::string_view &source,
     std::string_view value_view = source.substr(start.pos, cursor - start.pos);
     tokens.push_back(Token{
         type, value_view, {start, Location{row, col, cursor, file_name}}});
-    std::cout << std::format("Created token of type {} with value '{}'\n",
-                             magic_enum::enum_name(type), value_view);
+    spdlog::debug("Created token of type {} with value '{}'",
+                  magic_enum::enum_name(type), value_view);
   };
+
   // Increment the cursor and the column
   auto increment = [&](int amount = 1) {
     for (int i = 0; i < amount; i++) {
@@ -46,6 +63,20 @@ std::vector<Token> lex(const std::string_view &source,
       cursor++;
     }
   };
+
+  auto simple_token = [&](TokenType type, size_t length = 1) {
+    Location start = {row, col, cursor, file_name};
+    increment(length);
+    create_token(type, start);
+  };
+
+  auto peek = [&](int offset) {
+    if (cursor + offset < source.size()) {
+      return source[cursor + offset];
+    }
+    return '\0'; // End of string
+  };
+
 
   // start of lexing
   while (cursor < source.size()) {
@@ -65,18 +96,45 @@ std::vector<Token> lex(const std::string_view &source,
       break;
 
     // Operators / Syntax
-    case '(':
-    case ')':
-    case ',':
-    case '.':
-    case '|':
-    case ':':
-    case ';':
+    case '(': simple_token(TokenType::LParens); continue;
+    case ')': simple_token(TokenType::RParens); continue;
+    case '[': simple_token(TokenType::LSquare); continue;
+    case ']': simple_token(TokenType::RSquare); continue;
+    case '{': simple_token(TokenType::LCurly); continue;
+    case '}': simple_token(TokenType::RCurly); continue;
+    case ',': simple_token(TokenType::Comma); continue;
+    case '.': simple_token(TokenType::Dot); continue;
+    case '|': simple_token(TokenType::Pipe); continue;
+    case ':': simple_token(TokenType::Colon); continue;
+    case ';': simple_token(TokenType::Semicolon); continue;
     case '=': {
-      increment();
-      create_token(from_char(source[start.pos]), start);
+      if (peek(1) == '=') {
+        simple_token(TokenType::EqualsEquals, 2);
+      } else {
+        simple_token(TokenType::Equals);
+      }
       continue;
     }
+    case '!': {
+      if (peek(1) == '=') {
+        simple_token(TokenType::NotEquals, 2);
+      } else {
+        simple_token(TokenType::Exclamation);
+      }
+      continue;
+    }
+    case '+': simple_token(TokenType::Plus); continue;
+    case '-': simple_token(TokenType::Minus); continue;
+    case '*': simple_token(TokenType::Asterisk); continue;
+    case '<': {
+      if (peek(1) == '=') {
+        simple_token(TokenType::LessThanEquals, 2);
+      } else {
+        simple_token(TokenType::LessThan);
+      }
+      continue;
+    }
+<<<<<<< HEAD
     case '-': {
       if (cursor + 1 < source.size() && source[cursor + 1] == '>') {
         increment(2);
@@ -86,17 +144,22 @@ std::vector<Token> lex(const std::string_view &source,
     }
 
     // Single-line comments
+=======
+>>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
     case '/': {
-      if (cursor + 1 < source.size() && source[cursor + 1] == '/') {
+      if (peek(1) == '/') {
         while (cursor < source.size() && source[cursor] != '\n') {
           increment();
         }
+      } else {
+        simple_token(TokenType::Slash);
       }
-      break;
+      continue;
     }
 
       // String literal
     case '"': {
+      spdlog::debug("Found string literal at {}:{}", row, col);
       increment(); // skip opening quote
       while (cursor < source.size() && source[cursor] != '"') {
         if (source[cursor] == '\\' && cursor + 1 < source.size()) {
@@ -156,6 +219,12 @@ std::vector<Token> lex(const std::string_view &source,
                      start);
         continue;
       }
+
+      // If we reach here, it means we have an unknown character
+      std::cerr << "Unknown character '" << source[cursor]
+                << "' at " << row << ":" << col << "\n";
+      increment();
+      continue;
     }
     }
   }

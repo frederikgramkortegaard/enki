@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-enum class ASTType {
+enum class ExpressionType {
   StringLiteral,
   FloatLiteral,
   IntLiteral,
@@ -31,13 +31,13 @@ struct Statement : Spanned {
 };
 
 struct Expression : Spanned {
-  ASTType ast_type;
+  ExpressionType expr_type;
   virtual ~Expression() = default;
 };
 
 struct Identifier : Expression {
   std::string_view name;
-  Identifier() { ast_type = ASTType::Identifier; }
+  Identifier() { expr_type = ExpressionType::Identifier; }
 };
 
 
@@ -53,7 +53,31 @@ struct ExternStatement : Statement {
 struct CallExpression : Expression {
   std::shared_ptr<Expression> callee;
   std::vector<std::shared_ptr<Expression>> arguments;
-  CallExpression() { ast_type = ASTType::FunctionCall; }
+  CallExpression() { expr_type = ExpressionType::FunctionCall; }
+};
+
+enum class BinaryOpType {
+  Add,
+  Subtract,
+  Multiply,
+  Divide,
+  Modulo,
+  Equals,
+  NotEquals,
+  LessThan,
+  GreaterThan,
+  LessThanOrEqual,
+  GreaterThanOrEqual,
+};
+
+int binary_op_precedence(BinaryOpType op);
+std::optional<BinaryOpType> token_to_binop(TokenType type);
+
+struct BinaryOp : Expression {
+  std::shared_ptr<Expression> left;
+  std::shared_ptr<Expression> right;
+  BinaryOpType op;
+  BinaryOp() { expr_type = ExpressionType::BinaryOp; }
 };
 
 struct LetStatement : Statement {
@@ -61,10 +85,25 @@ struct LetStatement : Statement {
   std::shared_ptr<Expression> expression;
 };
 
+struct IfStatement : Statement {
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<Statement> then_branch;
+  std::shared_ptr<Statement> else_branch;
+};
+
+struct WhileLoop : Statement {
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<Statement> body;
+};
+
+struct Block : Statement {
+  std::vector<std::shared_ptr<Statement>> statements;
+};
+
 struct Literal : Expression {
   Type type;
   std::string value;
-  Literal() { ast_type = ASTType::Literal; }
+  Literal() { expr_type = ExpressionType::Literal; }
 };
 
 struct Program : Spanned {

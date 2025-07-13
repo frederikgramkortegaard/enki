@@ -5,6 +5,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -18,7 +19,7 @@ struct LoadedImage {
   std::vector<uint8_t> data;
 };
 LoadedImage load_bmp(const std::string &filename) {
-  std::cout << "Loading BMP file: " << filename << std::endl;
+  spdlog::debug("Loading BMP file: {}", filename);
   std::ifstream file(filename, std::ios::binary);
   if (!file)
     throw std::runtime_error("Cannot open file: " + filename);
@@ -85,8 +86,7 @@ Value builtin_open(const std::vector<Value> &args) {
     throw std::runtime_error("open(filename): filename must be a string");
   std::string filename = str_val->value;
   auto img = load_bmp(filename);
-  std::cout << "Opened image: " << filename << " (" << img.width << "x"
-            << img.height << ")\n";
+  spdlog::debug("Opened image: {} ({}x{})", filename, img.width, img.height);
   return std::make_shared<ImageValue>(img.width, img.height,
                                       std::move(img.data), "bmp");
 }
@@ -99,124 +99,260 @@ Value builtin_save(const std::vector<Value> &args) {
   if (!img_val || !str_val)
     throw std::runtime_error(
         "save(image, filename): expects image and filename");
-  save_bmp(str_val->value, *img_val);
-  std::cout << "Saved image: " << str_val->value << "\n";
+  std::string filename = str_val->value;
+  save_bmp(filename, *img_val);
+  spdlog::debug("Saved image to: {}", filename);
   return nullptr;
 }
+
 Value builtin_greyscale(const std::vector<Value> &args) {
   if (args.size() != 1)
-    throw std::runtime_error("greyscale(image): expects image");
+    throw std::runtime_error("greyscale(image): expects an image");
   auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
   if (!img_val)
-    throw std::runtime_error("greyscale(image): expects image");
-  auto out = std::make_shared<ImageValue>(*img_val);
-  for (size_t i = 0; i + 2 < out->data.size(); i += 3) {
-    uint8_t r = out->data[i], g = out->data[i + 1], b = out->data[i + 2];
-    uint8_t gray = static_cast<uint8_t>(0.299 * r + 0.587 * g + 0.114 * b);
-    out->data[i] = out->data[i + 1] = out->data[i + 2] = gray;
+    throw std::runtime_error("greyscale(image): expects an image");
+
+  spdlog::debug("Applying greyscale to image");
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  for (size_t i = 0; i < new_img->data.size(); i += 3) {
+    uint8_t r = new_img->data[i], g = new_img->data[i + 1], b = new_img->data[i + 2];
+    uint8_t grey = static_cast<uint8_t>(0.299 * r + 0.587 * g + 0.114 * b);
+    new_img->data[i] = new_img->data[i + 1] = new_img->data[i + 2] = grey;
   }
-  std::cout << "Converted image to greyscale\n";
-  return out;
-}
-Value builtin_invert(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("invert(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("invert(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    for (size_t i = 0; i + 2 < out->data.size(); i += 3) {
-        out->data[i]     = 255 - out->data[i];     // R
-        out->data[i + 1] = 255 - out->data[i + 1]; // G
-        out->data[i + 2] = 255 - out->data[i + 2]; // B
-    }
-    std::cout << "Inverted image colors\n";
-    return out;
+  return new_img;
 }
 
-Value builtin_threshold(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("threshold(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("threshold(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    uint8_t threshold = 128; // fixed threshold for now
-    for (size_t i = 0; i + 2 < out->data.size(); i += 3) {
-        uint8_t r = out->data[i], g = out->data[i+1], b = out->data[i+2];
-        uint8_t gray = static_cast<uint8_t>(0.299*r + 0.587*g + 0.114*b);
-        uint8_t val = (gray >= threshold) ? 255 : 0;
-        out->data[i] = out->data[i+1] = out->data[i+2] = val;
+Value builtin_blur(const std::vector<Value> &args) {
+  if (args.size() != 1)
+    throw std::runtime_error("blur(image): expects an image");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  if (!img_val)
+    throw std::runtime_error("blur(image): expects an image");
+
+  spdlog::debug("Applying blur to image");
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  std::vector<uint8_t> temp_data = new_img->data;
+
+  int width = new_img->width, height = new_img->height;
+  for (int y = 1; y < height - 1; ++y) {
+    for (int x = 1; x < width - 1; ++x) {
+      for (int c = 0; c < 3; ++c) {
+        int sum = 0;
+        for (int dy = -1; dy <= 1; ++dy)
+          for (int dx = -1; dx <= 1; ++dx)
+            sum += temp_data[3 * ((y + dy) * width + (x + dx)) + c];
+        new_img->data[3 * (y * width + x) + c] = static_cast<uint8_t>(sum / 9);
+      }
     }
-    std::cout << "Applied threshold to image\n";
-    return out;
+  }
+  return new_img;
 }
 
-Value builtin_brightness(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("brightness(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("brightness(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    int delta = 40; // brighten by +40
-    for (size_t i = 0; i < out->data.size(); ++i) {
-        int v = static_cast<int>(out->data[i]) + delta;
-        out->data[i] = static_cast<uint8_t>(std::clamp(v, 0, 255));
-    }
-    std::cout << "Adjusted image brightness\n";
-    return out;
+Value builtin_invert(const std::vector<Value> &args) {
+  if (args.size() != 1)
+    throw std::runtime_error("invert(image): expects an image");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  if (!img_val)
+    throw std::runtime_error("invert(image): expects an image");
+
+  spdlog::debug("Applying invert to image");
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  for (size_t i = 0; i < new_img->data.size(); ++i) {
+    new_img->data[i] = 255 - new_img->data[i];
+  }
+  return new_img;
 }
 
-Value builtin_contrast(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("contrast(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("contrast(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    float factor = 1.2f; // increase contrast
-    for (size_t i = 0; i < out->data.size(); ++i) {
-        int v = static_cast<int>((out->data[i] - 128) * factor + 128);
-        out->data[i] = static_cast<uint8_t>(std::clamp(v, 0, 255));
+Value builtin_flip(const std::vector<Value> &args) {
+  if (args.size() != 1)
+    throw std::runtime_error("flip(image): expects an image");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  if (!img_val)
+    throw std::runtime_error("flip(image): expects an image");
+
+  spdlog::debug("Applying flip to image");
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  int width = new_img->width;
+  int height = new_img->height;
+
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      for (int c = 0; c < 3; ++c) {
+        new_img->data[3 * (y * width + x) + c] =
+            img_val->data[3 * (y * width + (width - 1 - x)) + c];
+      }
     }
-    std::cout << "Adjusted image contrast\n";
-    return out;
+  }
+  return new_img;
 }
 
-Value builtin_saturate(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("saturate(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("saturate(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    float factor = 1.3f; // increase saturation
-    for (size_t i = 0; i + 2 < out->data.size(); i += 3) {
-        float r = out->data[i], g = out->data[i+1], b = out->data[i+2];
-        float gray = 0.299f*r + 0.587f*g + 0.114f*b;
-        out->data[i]     = static_cast<uint8_t>(std::clamp(gray + factor*(r-gray), 0.0f, 255.0f));
-        out->data[i + 1] = static_cast<uint8_t>(std::clamp(gray + factor*(g-gray), 0.0f, 255.0f));
-        out->data[i + 2] = static_cast<uint8_t>(std::clamp(gray + factor*(b-gray), 0.0f, 255.0f));
+Value builtin_crop(const std::vector<Value> &args) {
+  if (args.size() != 5)
+    throw std::runtime_error(
+        "crop(image, x, y, width, height): expects 5 arguments");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  auto x_val = std::dynamic_pointer_cast<IntValue>(args[1]);
+  auto y_val = std::dynamic_pointer_cast<IntValue>(args[2]);
+  auto w_val = std::dynamic_pointer_cast<IntValue>(args[3]);
+  auto h_val = std::dynamic_pointer_cast<IntValue>(args[4]);
+
+  if (!img_val || !x_val || !y_val || !w_val || !h_val)
+    throw std::runtime_error("crop: invalid argument types");
+
+  spdlog::debug("Applying crop to image");
+  int x = x_val->value;
+  int y = y_val->value;
+  int w = w_val->value;
+  int h = h_val->value;
+
+  std::vector<uint8_t> new_data(w * h * 3);
+  for (int j = 0; j < h; ++j) {
+    for (int i = 0; i < w; ++i) {
+      for (int c = 0; c < 3; ++c) {
+        new_data[3 * (j * w + i) + c] =
+            img_val->data[3 * ((y + j) * img_val->width + (x + i)) + c];
+      }
     }
-    std::cout << "Adjusted image saturation\n";
-    return out;
+  }
+  return std::make_shared<ImageValue>(w, h, std::move(new_data), img_val->format);
 }
 
-Value builtin_exposure(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("exposure(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("exposure(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    float factor = 1.1f; // simple exposure adjustment
-    for (size_t i = 0; i < out->data.size(); ++i) {
-        int v = static_cast<int>(out->data[i] * factor);
-        out->data[i] = static_cast<uint8_t>(std::clamp(v, 0, 255));
+Value builtin_brightness(const std::vector<Value> &args) {
+  if (args.size() != 2)
+    throw std::runtime_error("brightness(image, factor): expects 2 arguments");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  auto factor_val = std::dynamic_pointer_cast<DoubleValue>(args[1]);
+  if (!img_val || !factor_val)
+    throw std::runtime_error("brightness: invalid argument types");
+
+  spdlog::debug("Applying brightness to image");
+  double factor = factor_val->value;
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  for (size_t i = 0; i < new_img->data.size(); ++i) {
+    int val = static_cast<int>(new_img->data[i] * factor);
+    new_img->data[i] = static_cast<uint8_t>(std::clamp(val, 0, 255));
+  }
+  return new_img;
+}
+
+Value builtin_contrast(const std::vector<Value> &args) {
+  if (args.size() != 2)
+    throw std::runtime_error("contrast(image, factor): expects 2 arguments");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  auto factor_val = std::dynamic_pointer_cast<DoubleValue>(args[1]);
+  if (!img_val || !factor_val)
+    throw std::runtime_error("contrast: invalid argument types");
+
+  spdlog::debug("Applying contrast to image");
+  double factor = factor_val->value;
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  for (size_t i = 0; i < new_img->data.size(); ++i) {
+    int val = static_cast<int>((new_img->data[i] - 128) * factor + 128);
+    new_img->data[i] = static_cast<uint8_t>(std::clamp(val, 0, 255));
+  }
+  return new_img;
+}
+
+Value builtin_sharpen(const std::vector<Value> &args) {
+  if (args.size() != 1)
+    throw std::runtime_error("sharpen(image): expects an image");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  if (!img_val)
+    throw std::runtime_error("sharpen(image): expects an image");
+
+  spdlog::debug("Applying sharpen to image");
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  std::vector<uint8_t> temp_data = new_img->data;
+  int width = new_img->width, height = new_img->height;
+
+  int kernel[3][3] = {{0, -1, 0}, {-1, 5, -1}, {0, -1, 0}};
+  for (int y = 1; y < height - 1; ++y) {
+    for (int x = 1; x < width - 1; ++x) {
+      for (int c = 0; c < 3; ++c) {
+        int sum = 0;
+        for (int dy = -1; dy <= 1; ++dy)
+          for (int dx = -1; dx <= 1; ++dx)
+            sum += kernel[dy + 1][dx + 1] * temp_data[3 * ((y + dy) * width + (x + dx)) + c];
+        sum = std::clamp(sum, 0, 255);
+        new_img->data[3 * (y * width + x) + c] = static_cast<uint8_t>(sum);
+      }
     }
-    std::cout << "Adjusted image exposure\n";
-    return out;
+  }
+  return new_img;
+}
+
+Value builtin_edge_detect(const std::vector<Value> &args) {
+  if (args.size() != 1)
+    throw std::runtime_error("edge_detect(image): expects an image");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  if (!img_val)
+    throw std::runtime_error("edge_detect(image): expects an image");
+
+  spdlog::debug("Applying edge detection to image");
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  std::vector<uint8_t> temp_data = new_img->data;
+  int width = new_img->width, height = new_img->height;
+
+  int kernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};
+  for (int y = 1; y < height - 1; ++y) {
+    for (int x = 1; x < width - 1; ++x) {
+      for (int c = 0; c < 3; ++c) {
+        int sum = 0;
+        for (int dy = -1; dy <= 1; ++dy)
+          for (int dx = -1; dx <= 1; ++dx)
+            sum += kernel[dy + 1][dx + 1] * temp_data[3 * ((y + dy) * width + (x + dx)) + c];
+        sum = std::clamp(sum, 0, 255);
+        new_img->data[3 * (y * width + x) + c] = static_cast<uint8_t>(sum);
+      }
+    }
+  }
+  return new_img;
+}
+
+Value builtin_emboss(const std::vector<Value> &args) {
+  if (args.size() != 1)
+    throw std::runtime_error("emboss(image): expects an image");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  if (!img_val)
+    throw std::runtime_error("emboss(image): expects an image");
+
+  spdlog::debug("Applying emboss to image");
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  std::vector<uint8_t> temp_data = new_img->data;
+  int width = new_img->width, height = new_img->height;
+
+  int kernel[3][3] = {{-2, -1, 0}, {-1, 1, 1}, {0, 1, 2}};
+  for (int y = 1; y < height - 1; ++y) {
+    for (int x = 1; x < width - 1; ++x) {
+      for (int c = 0; c < 3; ++c) {
+        int sum = 128;
+        for (int dy = -1; dy <= 1; ++dy)
+          for (int dx = -1; dx <= 1; ++dx)
+            sum += kernel[dy + 1][dx + 1] * temp_data[3 * ((y + dy) * width + (x + dx)) + c];
+        sum = std::clamp(sum, 0, 255);
+        new_img->data[3 * (y * width + x) + c] = static_cast<uint8_t>(sum);
+      }
+    }
+  }
+  return new_img;
+}
+
+Value builtin_exposure(const std::vector<Value> &args) {
+  if (args.size() != 2)
+    throw std::runtime_error("exposure(image, factor): expects 2 arguments");
+  auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+  auto factor_val = std::dynamic_pointer_cast<DoubleValue>(args[1]);
+  if (!img_val || !factor_val)
+    throw std::runtime_error("exposure: invalid argument types");
+
+  spdlog::debug("Applying exposure to image");
+  double factor = factor_val->value;
+  auto new_img = std::make_shared<ImageValue>(*img_val);
+  for (size_t i = 0; i < new_img->data.size(); ++i) {
+    int val = static_cast<int>(new_img->data[i] * factor);
+    new_img->data[i] = static_cast<uint8_t>(std::clamp(val, 0, 255));
+  }
+  return new_img;
 }
 
 Value builtin_resize(const std::vector<Value>& args) {
@@ -226,7 +362,7 @@ Value builtin_resize(const std::vector<Value>& args) {
     if (!img_val)
         throw std::runtime_error("resize(image): expects image");
     // For now, just return a copy (no actual resize)
-    std::cout << "Stub: resize returns copy of image\n";
+    spdlog::debug("Stub: resize returns copy of image");
     return std::make_shared<ImageValue>(*img_val);
 }
 Value builtin_rotate(const std::vector<Value>& args) {
@@ -269,143 +405,64 @@ Value builtin_rotate(const std::vector<Value>& args) {
             // else: leave black
         }
     }
-    std::cout << "Rotated image by " << angle << " degrees\n";
+    spdlog::debug("Rotated image by {} degrees", angle);
     return std::make_shared<ImageValue>(new_w, new_h, std::move(out_data), img_val->format);
 }
-Value builtin_flip(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("flip(image): expects image");
+
+Value builtin_threshold(const std::vector<Value>& args) {
+    if (args.size() != 2)
+        throw std::runtime_error("threshold(image, value): expects image and value");
     auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("flip(image): expects image");
-    // For now, just return a copy (no actual flip)
-    std::cout << "Stub: flip returns copy of image\n";
-    return std::make_shared<ImageValue>(*img_val);
-}
-Value builtin_crop(const std::vector<Value>& args) {
-    if (args.size() < 1)
-        throw std::runtime_error("crop(image, ...): expects at least image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("crop(image): expects image");
-    // For now, just return a copy (no actual crop)
-    std::cout << "Stub: crop returns copy of image\n";
-    return std::make_shared<ImageValue>(*img_val);
-}
-Value builtin_blur(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("blur(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("blur(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    // Simple box blur (3x3 kernel)
-    int w = out->width, h = out->height;
-    std::vector<uint8_t> orig = out->data;
-    for (int y = 1; y < h-1; ++y) {
-        for (int x = 1; x < w-1; ++x) {
-            for (int c = 0; c < 3; ++c) {
-                int sum = 0;
-                for (int dy = -1; dy <= 1; ++dy)
-                    for (int dx = -1; dx <= 1; ++dx)
-                        sum += orig[3*((y+dy)*w + (x+dx)) + c];
-                out->data[3*(y*w + x) + c] = static_cast<uint8_t>(sum/9);
-            }
-        }
+    auto threshold_val = std::dynamic_pointer_cast<IntValue>(args[1]);
+    if (!img_val || !threshold_val)
+        throw std::runtime_error("threshold: invalid argument types");
+
+    spdlog::debug("Applying threshold to image");
+    int threshold = threshold_val->value;
+    auto new_img = std::make_shared<ImageValue>(*img_val);
+    for (size_t i = 0; i < new_img->data.size(); i += 3) {
+        uint8_t r = new_img->data[i], g = new_img->data[i + 1], b = new_img->data[i + 2];
+        uint8_t grey = static_cast<uint8_t>(0.299 * r + 0.587 * g + 0.114 * b);
+        uint8_t new_val = grey > threshold ? 255 : 0;
+        new_img->data[i] = new_img->data[i + 1] = new_img->data[i + 2] = new_val;
     }
-    std::cout << "Applied blur to image\n";
-    return out;
+    return new_img;
 }
 
-Value builtin_sharpen(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("sharpen(image): expects image");
+Value builtin_saturate(const std::vector<Value>& args) {
+    if (args.size() != 2)
+        throw std::runtime_error("saturate(image, factor): expects image and factor");
     auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("sharpen(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    // Simple sharpen kernel
-    int w = out->width, h = out->height;
-    std::vector<uint8_t> orig = out->data;
-    int kernel[3][3] = {{0, -1, 0}, {-1, 5, -1}, {0, -1, 0}};
-    for (int y = 1; y < h-1; ++y) {
-        for (int x = 1; x < w-1; ++x) {
-            for (int c = 0; c < 3; ++c) {
-                int sum = 0;
-                for (int dy = -1; dy <= 1; ++dy)
-                    for (int dx = -1; dx <= 1; ++dx)
-                        sum += kernel[dy+1][dx+1] * orig[3*((y+dy)*w + (x+dx)) + c];
-                sum = std::clamp(sum, 0, 255);
-                out->data[3*(y*w + x) + c] = static_cast<uint8_t>(sum);
-            }
-        }
-    }
-    std::cout << "Applied sharpen to image\n";
-    return out;
-}
-Value builtin_emboss(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("emboss(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("emboss(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    int w = out->width, h = out->height;
-    std::vector<uint8_t> orig = out->data;
-    int kernel[3][3] = {{-2, -1, 0}, {-1, 1, 1}, {0, 1, 2}};
-    for (int y = 1; y < h-1; ++y) {
-        for (int x = 1; x < w-1; ++x) {
-            for (int c = 0; c < 3; ++c) {
-                int sum = 128;
-                for (int dy = -1; dy <= 1; ++dy)
-                    for (int dx = -1; dx <= 1; ++dx)
-                        sum += kernel[dy+1][dx+1] * orig[3*((y+dy)*w + (x+dx)) + c];
-                sum = std::clamp(sum, 0, 255);
-                out->data[3*(y*w + x) + c] = static_cast<uint8_t>(sum);
-            }
-        }
-    }
-    std::cout << "Applied emboss to image\n";
-    return out;
-}
+    auto factor_val = std::dynamic_pointer_cast<DoubleValue>(args[1]);
+    if (!img_val || !factor_val)
+        throw std::runtime_error("saturate: invalid argument types");
 
-Value builtin_edge_detect(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("edge_detect(image): expects image");
-    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("edge_detect(image): expects image");
-    auto out = std::make_shared<ImageValue>(*img_val);
-    int w = out->width, h = out->height;
-    std::vector<uint8_t> orig = out->data;
-    int kernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};
-    for (int y = 1; y < h-1; ++y) {
-        for (int x = 1; x < w-1; ++x) {
-            for (int c = 0; c < 3; ++c) {
-                int sum = 0;
-                for (int dy = -1; dy <= 1; ++dy)
-                    for (int dx = -1; dx <= 1; ++dx)
-                        sum += kernel[dy+1][dx+1] * orig[3*((y+dy)*w + (x+dx)) + c];
-                sum = std::clamp(sum, 0, 255);
-                out->data[3*(y*w + x) + c] = static_cast<uint8_t>(sum);
-            }
-        }
+    spdlog::debug("Applying saturation to image");
+    double factor = factor_val->value;
+    auto new_img = std::make_shared<ImageValue>(*img_val);
+    for (size_t i = 0; i < new_img->data.size(); i += 3) {
+        float r = new_img->data[i];
+        float g = new_img->data[i+1];
+        float b = new_img->data[i+2];
+        float gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        new_img->data[i] = std::clamp(int(gray + (r - gray) * factor), 0, 255);
+        new_img->data[i+1] = std::clamp(int(gray + (g - gray) * factor), 0, 255);
+        new_img->data[i+2] = std::clamp(int(gray + (b - gray) * factor), 0, 255);
     }
-    std::cout << "Applied edge detection to image\n";
-    return out;
+    return new_img;
 }
 
 Value builtin_print(const std::vector<Value> &args) {
-  std::cout << "Called print with " << args.size() << " args" << std::endl;
+  spdlog::debug("Called print with {} args", args.size());
   for (size_t i = 0; i < args.size(); ++i) {
-    if (args[i])
-      args[i]->print(std::cout);
-    else
-      std::cout << "<null>";
-    if (i + 1 < args.size())
-      std::cout << " ";
+    if (args[i]) {
+      std::stringstream ss;
+      args[i]->print(ss);
+      fmt::println("{}", ss.str());
+    } else {
+      fmt::println("<null>");
+    }
   }
-  std::cout << std::endl;
   return nullptr;
 }
 
@@ -418,12 +475,12 @@ void register_builtins() {
       {"greyscale", {"greyscale", 1, 1, builtin_greyscale}},
       {"print", {"print", 0, 100, builtin_print}},
       {"invert", {"invert", 1, 1, builtin_invert}},
-      {"threshold", {"threshold", 1, 1, builtin_threshold}},
-      {"brightness", {"brightness", 1, 1, builtin_brightness}},
-      {"contrast", {"contrast", 1, 1, builtin_contrast}},
-      {"saturate", {"saturate", 1, 1, builtin_saturate}},
-      {"exposure", {"exposure", 1, 1, builtin_exposure}},
-      {"resize", {"resize", 2, 2, builtin_resize}},
+      {"threshold", {"threshold", 2, 2, builtin_threshold}},
+      {"brightness", {"brightness", 2, 2, builtin_brightness}},
+      {"contrast", {"contrast", 2, 2, builtin_contrast}},
+      {"saturate", {"saturate", 2, 2, builtin_saturate}},
+      {"exposure", {"exposure", 2, 2, builtin_exposure}},
+      {"resize", {"resize", 3, 3, builtin_resize}},
       {"rotate", {"rotate", 2, 2, builtin_rotate}},
       {"flip", {"flip", 1, 1, builtin_flip}},
       {"crop", {"crop", 5, 5, builtin_crop}},

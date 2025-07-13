@@ -1,5 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let rsz = resize(image, 320)
-let rot = rotate(rsz, 90)
-let out = flip(rot)
-save(out, "tests/builtins/resize_rotate_flip.bmp")

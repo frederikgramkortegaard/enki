@@ -1,4 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let blur_img = blur(image)
-let out = brightness(blur_img)
-save(out, "tests/builtins/blur_brightness.bmp")

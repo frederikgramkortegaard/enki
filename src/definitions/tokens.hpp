@@ -12,17 +12,40 @@ enum class TokenType {
 
   // Keywords
   Let,
+<<<<<<< HEAD
   Extern,
+=======
+  If,
+  Else,
+  True,
+  False,
+  While,
+>>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
 
   // Characters
   LParens,
   RParens,
+  LCurly,
+  RCurly,
+  LSquare,
+  RSquare,
   Comma,
   Dot,
   Pipe,
   Colon,
   Semicolon,
   Equals,
+  Plus,
+  Minus,
+  Asterisk,
+  Slash,
+  LessThan,
+  LessThanEquals,
+  GreaterThan,
+  GreaterThanEquals,
+  EqualsEquals,
+  NotEquals,
+  Exclamation,
 
   // Literal types
   Identifier,
@@ -50,6 +73,14 @@ inline TokenType from_char(char c) {
     return TokenType::LParens;
   case ')':
     return TokenType::RParens;
+  case '{':
+    return TokenType::LCurly;
+  case '}':
+    return TokenType::RCurly;
+  case '[':
+    return TokenType::LSquare;
+  case ']':
+    return TokenType::RSquare;
   case ',':
     return TokenType::Comma;
   case '.':

@@ -14,7 +14,8 @@ MorphIR is a C++-based interpreter and runtime for a custom programming language
 ```
 MorphIR/
 ├── src/
-│   ├── compiler/        # Lexer, parser, and compiler entry point
+│   ├── morph.cpp        # Main entry point
+│   ├── compiler/        # Lexer, parser
 │   ├── definitions/     # AST, types, serialization
 │   ├── interpreter/     # Interpreter logic and value system
 │   ├── runtime/         # Builtin functions and runtime support
@@ -29,13 +30,28 @@ Requirements:
 - C++20 compiler (e.g., g++)
 - [nlohmann/json](https://github.com/nlohmann/json)
 - [magic_enum](https://github.com/Neargye/magic_enum) (header-only)
+- [spdlog](https://github.com/gabime/spdlog)
 
-To build both the compiler and interpreter:
+On MacOS:
+```
+brew install spdlog nlohmann-json magic_enum
+```
+
+To build:
 ```sh
 make
 ```
-- `morphir`    — Compiler: parses `.morph` files and outputs JSON AST
-- `morpheval`  — Interpreter: loads JSON AST and executes it
+
+This creates a single executable `morph` with the following subcommands:
+- `morph compile` — Compiles `.morph` files and outputs JSON AST
+- `morph run`     — Compiles and directly interprets `.morph` files
+- `morph serde`   — Compile, then serialize/deserialize AST to/from JSON
+- `morph eval`    — Loads JSON AST and executes it
+
+To install to /usr/local/bin:
+```sh
+sudo make install
+```
 
 To clean build artifacts:
 ```sh
@@ -57,16 +73,22 @@ save(greyscale_image, "greyscale.bmp")
 
 ### 2. Compile to JSON AST
 ```sh
-./morphir -i examples/test.morph -o test.json
+./morph compile -o test.json examples/test.morph
 ```
 
 ### 3. Run the Interpreter
 ```sh
-./morpheval test.json
+./morph eval test.json
+```
+
+### 4. Or do both in one step
+```sh
+./morph run examples/test.morph
 ```
 
 ## Language Features
 - **let statements:** Variable binding
+- **Control flow:** `if` and `else` statements
 - **Function calls:** User and builtin functions
 - **Literals:** Int, float, string
 - **Identifiers:** Variable and function names

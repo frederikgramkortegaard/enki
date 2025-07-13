@@ -29,6 +29,13 @@ struct DoubleValue : ValueBase {
   void print(std::ostream &os) const override { os << value; }
 };
 
+struct BoolValue : ValueBase {
+  bool value;
+  BoolValue(bool v) : value(v) {}
+  std::string type_name() const override { return "bool"; }
+  void print(std::ostream &os) const override { os << (value ? "true" : "false"); }
+};
+
 struct StringValue : ValueBase {
   std::string value;
   StringValue(std::string v) : value(std::move(v)) {}
@@ -55,3 +62,5 @@ struct EvalContext {
 
   EvalContext(const Program &prog) : program(prog) {}
 };
+
+int interpret(EvalContext &ctx);

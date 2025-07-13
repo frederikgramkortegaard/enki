@@ -1,4 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let sharp = sharpen(image)
-let out = saturate(sharp)
-save(out, "tests/builtins/sharpen_saturate.bmp")

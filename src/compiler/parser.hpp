@@ -1,10 +1,12 @@
 #pragma once
 #include "../definitions/ast.hpp"
 #include "../definitions/tokens.hpp"
+#include <spdlog/spdlog.h>
 #include <string_view>
 #include <vector>
+#include <iostream>
 
-std::shared_ptr<Program> parse(std::vector<Token> tokens);
+std::shared_ptr<Program> parse(const std::vector<Token> &tokens);
 
 struct ParserContext {
   std::shared_ptr<Program> program;
@@ -24,7 +26,16 @@ struct ParserContext {
   const Token &consume() {
     if (eof())
       throw std::runtime_error("Unexpected end of input while consuming");
+    spdlog::debug("Consuming token {}: {} at {}", current,
+                  magic_enum::enum_name(tokens[current].type),
+                  tokens[current].span.start.to_string());
     return tokens[current++];
+  }
+
+  Span previous_token_span() const {
+    if (current == 0)
+      throw std::runtime_error("No previous token to get span from");
+    return tokens[current - 1].span;
   }
 
   std::optional<Token> consume_if(TokenType expected) {
@@ -34,19 +45,9 @@ struct ParserContext {
     return std::nullopt;
   }
 
-  const Token &consume_assert(TokenType expected,
-                              std::string_view context = "") {
-    if (eof())
-      throw std::runtime_error(
-          std::format("Expected token '{}' in {}, but reached end of input",
-                      magic_enum::enum_name(expected), context));
-    const Token &tok = peek();
-    if (tok.type != expected) {
-      throw std::runtime_error(
-          std::format("Expected token '{}' in {}, but got '{}' at {}",
-                      magic_enum::enum_name(expected), context,
-                      magic_enum::enum_name(tok.type), tok.span.to_string()));
-    }
-    return consume();
-  }
+  void consume_assert(TokenType type, const std::string &message);
 };
+
+std::shared_ptr<Expression> parse_atom(ParserContext &ctx);
+std::shared_ptr<Expression> parse_expression(ParserContext &ctx);
+std::shared_ptr<Statement> parse_statement(ParserContext &ctx);

@@ -7,6 +7,6 @@ struct Location {
   int row, col, pos;
   std::string_view file_name;
   std::string to_string() const {
-    return std::format("row {}, col {}, pos {}", row, col, pos);
+    return std::format("{}:{}:{}", file_name, row + 1, col + 1);
   }
 };

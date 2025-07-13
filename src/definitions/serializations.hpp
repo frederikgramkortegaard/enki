@@ -64,11 +64,26 @@ inline void from_json(const json &j, Span &s) {
 
 // --- Identifier ---
 inline void to_json(json &j, const Identifier &id) {
-  j["name"] = id.name;
+  j["name"] = std::string(id.name);
   j["span"] = id.span();
 }
 inline void from_json(const json &j, Identifier &id) {
   j.at("name").get_to(id.name);
+  j.at("span").get_to(id.span());
+}
+
+// --- BinaryOp ---
+inline void to_json(json &j, const BinaryOp &id) {
+  j["left"] = id.left;
+  j["right"] = id.right;
+  j["op"] = magic_enum::enum_name(id.op);
+  j["span"] = id.span();
+  j["type"] = "BinaryOp";
+}
+inline void from_json(const json &j, BinaryOp &id) {
+  j.at("left").get_to(id.left);
+  j.at("right").get_to(id.right);
+  id.op = magic_enum::enum_cast<BinaryOpType>(j.at("op").get<std::string>()).value();
   j.at("span").get_to(id.span());
 }
 
@@ -115,6 +130,46 @@ inline void from_json(const json &j, LetStatement &l) {
   j.at("expression").get_to(l.expression);
   j.at("span").get_to(l.span());
 }
+
+// --- IfStatement ---
+inline void to_json(json &j, const IfStatement &i) {
+  j["condition"] = i.condition;
+  j["then_branch"] = i.then_branch;
+  j["else_branch"] = i.else_branch;
+  j["span"] = i.span();
+  j["type"] = "IfStatement";
+}
+inline void from_json(const json &j, IfStatement &i) {
+  j.at("condition").get_to(i.condition);
+  j.at("then_branch").get_to(i.then_branch);
+  j.at("else_branch").get_to(i.else_branch);
+  j.at("span").get_to(i.span());
+}
+
+// --- WhileLoop ---
+inline void to_json(json &j, const WhileLoop &w) {
+  j["condition"] = w.condition;
+  j["body"] = w.body;
+  j["span"] = w.span();
+  j["type"] = "WhileLoop";
+}
+inline void from_json(const json &j, WhileLoop &w) {
+  j.at("condition").get_to(w.condition);
+  j.at("body").get_to(w.body);
+  j.at("span").get_to(w.span());
+}
+
+// --- Block ---
+inline void to_json(json &j, const Block &b) {
+  j["statements"] = b.statements;
+  j["span"] = b.span();
+  j["type"] = "Block";
+}
+inline void from_json(const json &j, Block &b) {
+  j.at("statements").get_to(b.statements);
+  j.at("span").get_to(b.span());
+}
+
 
 // --- Symbol ---
 inline void to_json(json &j, const Symbol &s) {
@@ -203,6 +258,9 @@ inline void to_json(json &j, const std::shared_ptr<Expression> &expr) {
   } else if (auto call = std::dynamic_pointer_cast<CallExpression>(expr)) {
     to_json(j, *call);
     j["type"] = "CallExpression";
+  } else if (auto bin_op = std::dynamic_pointer_cast<BinaryOp>(expr)) {
+    to_json(j, *bin_op);
+    j["type"] = "BinaryOp";
   } else {
     throw std::runtime_error("Unknown Expression type for to_json");
   }
@@ -225,6 +283,10 @@ inline void from_json(const json &j, std::shared_ptr<Expression> &expr) {
     auto call = std::make_shared<CallExpression>();
     from_json(j, *call);
     expr = call;
+  } else if (type == "BinaryOp") {
+    auto bin_op = std::make_shared<BinaryOp>();
+    from_json(j, *bin_op);
+    expr = bin_op;
   } else {
     throw std::runtime_error("Unknown Expression type for from_json: " + type);
   }
@@ -243,9 +305,21 @@ inline void to_json(json &j, const std::shared_ptr<Statement> &stmt) {
                  std::dynamic_pointer_cast<ExpressionStatement>(stmt)) {
     to_json(j, *expr_stmt);
     j["type"] = "ExpressionStatement";
+<<<<<<< HEAD
   } else if (auto ext = std::dynamic_pointer_cast<ExternStatement>(stmt)) {
     to_json(j, *ext);
     j["type"] = "ExternStatement";
+=======
+  } else if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
+    to_json(j, *if_stmt);
+    j["type"] = "IfStatement";
+  } else if (auto while_stmt = std::dynamic_pointer_cast<WhileLoop>(stmt)) {
+    to_json(j, *while_stmt);
+    j["type"] = "WhileLoop";
+  } else if (auto block = std::dynamic_pointer_cast<Block>(stmt)) {
+    to_json(j, *block);
+    j["type"] = "Block";
+>>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -264,10 +338,21 @@ inline void from_json(const json &j, std::shared_ptr<Statement> &stmt) {
     auto expr_stmt = std::make_shared<ExpressionStatement>();
     from_json(j, *expr_stmt);
     stmt = expr_stmt;
+<<<<<<< HEAD
   } else if (type == "ExternStatement") {
     auto ext = std::make_shared<ExternStatement>();
     from_json(j, *ext);
     stmt = ext;
+=======
+  } else if (type == "IfStatement") {
+    auto if_stmt = std::make_shared<IfStatement>();
+    from_json(j, *if_stmt);
+    stmt = if_stmt;
+  } else if (type == "Block") {
+    auto block = std::make_shared<Block>();
+    from_json(j, *block);
+    stmt = block;
+>>>>>>> 37530e3fb031b43d3596a25a49441a1e5fef2ffb
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }
