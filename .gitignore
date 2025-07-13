@@ -5,5 +5,5 @@ morph
 build
 *.dSYM
 *.o
-*.ast.json
+*.json
 *.d
