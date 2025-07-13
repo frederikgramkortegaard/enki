@@ -3,10 +3,13 @@
 #include "../definitions/serializations.hpp"
 #include "../definitions/types.hpp"
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <string>
+#include "../interpreter/eval.hpp"
+
 
 namespace utils {
 namespace ast {
@@ -180,6 +183,15 @@ inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
     }
     return;
   }
+  // ImportStatement
+  if (auto import_stmt = std::dynamic_pointer_cast<ImportStatement>(stmt)) {
+    print_indent(depth);
+    std::cout << "ImportStatement:" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "module_path:" << std::endl;
+    print_ast(import_stmt->module_path, depth + 2, max_depth);
+    return;
+  }
   // Unknown type
   print_indent(depth);
   std::cout << magic_enum::enum_name(stmt->ast_type) << std::endl;
@@ -202,12 +214,18 @@ inline void print_ast(const Program &program, int depth, int max_depth) {
       std::cout << "Symbol: " << name << std::endl;
       print_indent(depth + 3);
       std::cout << "type:" << std::endl;
-      print_ast(sym.type, depth + 4);
+      print_ast(sym->type, depth + 4);
       print_indent(depth + 3);
       std::cout << "span: ..." << std::endl;
       // Optionally print value, etc.
     }
   }
+}
+
+// Overload to print a shared_ptr<Program>
+inline void print_ast(const std::shared_ptr<Program>& program, int depth = 0, int max_depth = -1) {
+    if (program) print_ast(*program, depth, max_depth);
+    else std::cout << "<null Program>" << std::endl;
 }
 
 // Utility to print a Value (shared_ptr<ValueBase>)

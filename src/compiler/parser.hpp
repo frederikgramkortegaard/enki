@@ -5,12 +5,16 @@
 #include <string_view>
 #include <vector>
 #include <iostream>
+#include "modules.hpp"
 
 std::shared_ptr<Program> parse(const std::vector<Token> &tokens);
 
 struct ParserContext {
   std::shared_ptr<Program> program;
   const std::vector<Token> &tokens;
+  std::shared_ptr<ModuleContext> module_context;
+  std::string current_file_path;
+
   size_t current = 0;
 
   bool eof() const { return current >= tokens.size(); }

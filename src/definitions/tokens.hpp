@@ -13,6 +13,7 @@ enum class TokenType {
   // Keywords
   Let,
   Extern,
+  Import,
   If,
   Else,
   True,

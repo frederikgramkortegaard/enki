@@ -15,494 +15,110 @@
   },
   "statements": [
     {
-      "expression": {
-        "arguments": [
-          {
-            "base_type": "String",
-            "span": {
-              "end": {
-                "col": 13,
-                "file_name": "examples/control_flow.enki",
-                "pos": 13,
-                "row": 0
-              },
-              "start": {
-                "col": 7,
-                "file_name": "examples/control_flow.enki",
-                "pos": 7,
-                "row": 0
-              }
-            },
-            "type": "Literal",
-            "value": "before"
-          }
-        ],
-        "callee": {
-          "name": "print",
-          "span": {
-            "end": {
-              "col": 5,
-              "file_name": "examples/control_flow.enki",
-              "pos": 5,
-              "row": 0
-            },
-            "start": {
-              "col": 0,
-              "file_name": "examples/control_flow.enki",
-              "pos": 0,
-              "row": 0
-            }
-          },
-          "type": "Identifier"
-        },
+      "module_path": {
+        "base_type": "String",
         "span": {
           "end": {
-            "col": 5,
-            "file_name": "examples/control_flow.enki",
-            "pos": 5,
+            "col": 17,
+            "file_name": "examples/import.enki",
+            "pos": 17,
             "row": 0
           },
           "start": {
-            "col": 0,
-            "file_name": "examples/control_flow.enki",
-            "pos": 0,
+            "col": 9,
+            "file_name": "examples/import.enki",
+            "pos": 9,
             "row": 0
           }
         },
-        "type": "CallExpression"
+        "type": "Literal",
+        "value": "importee"
       },
       "span": {
         "end": {
-          "col": 5,
-          "file_name": "examples/control_flow.enki",
-          "pos": 5,
+          "col": 17,
+          "file_name": "examples/import.enki",
+          "pos": 17,
           "row": 0
         },
         "start": {
           "col": 0,
-          "file_name": "examples/control_flow.enki",
+          "file_name": "examples/import.enki",
           "pos": 0,
           "row": 0
         }
       },
-      "type": "ExpressionStatement"
+      "type": "ImportStatement"
     },
     {
       "expression": {
-        "base_type": "Bool",
+        "base_type": "Int",
         "span": {
           "end": {
-            "col": 13,
-            "file_name": "examples/control_flow.enki",
-            "pos": 29,
+            "col": 17,
+            "file_name": "examples/import.enki",
+            "pos": 37,
             "row": 1
           },
           "start": {
-            "col": 8,
-            "file_name": "examples/control_flow.enki",
+            "col": 15,
+            "file_name": "examples/import.enki",
+            "pos": 35,
+            "row": 1
+          }
+        },
+        "type": "Literal",
+        "value": "10"
+      },
+      "identifier": {
+        "name": "frederik",
+        "span": {
+          "end": {
+            "col": 12,
+            "file_name": "examples/import.enki",
+            "pos": 32,
+            "row": 1
+          },
+          "start": {
+            "col": 4,
+            "file_name": "examples/import.enki",
             "pos": 24,
             "row": 1
           }
         },
-        "type": "Literal",
-        "value": "false"
-      },
-      "identifier": {
-        "name": "x",
-        "span": {
-          "end": {
-            "col": 5,
-            "file_name": "examples/control_flow.enki",
-            "pos": 21,
-            "row": 1
-          },
-          "start": {
-            "col": 4,
-            "file_name": "examples/control_flow.enki",
-            "pos": 20,
-            "row": 1
-          }
-        },
         "type": "Identifier"
       },
       "span": {
         "end": {
-          "col": 13,
-          "file_name": "examples/control_flow.enki",
-          "pos": 29,
+          "col": 17,
+          "file_name": "examples/import.enki",
+          "pos": 37,
           "row": 1
         },
         "start": {
           "col": 0,
-          "file_name": "examples/control_flow.enki",
-          "pos": 16,
+          "file_name": "examples/import.enki",
+          "pos": 20,
           "row": 1
         }
       },
       "type": "LetStatement"
-    },
-    {
-      "condition": {
-        "name": "x",
-        "span": {
-          "end": {
-            "col": 4,
-            "file_name": "examples/control_flow.enki",
-            "pos": 34,
-            "row": 2
-          },
-          "start": {
-            "col": 3,
-            "file_name": "examples/control_flow.enki",
-            "pos": 33,
-            "row": 2
-          }
-        },
-        "type": "Identifier"
-      },
-      "else_branch": {
-        "span": {
-          "end": {
-            "col": 1,
-            "file_name": "examples/control_flow.enki",
-            "pos": 80,
-            "row": 6
-          },
-          "start": {
-            "col": 7,
-            "file_name": "examples/control_flow.enki",
-            "pos": 61,
-            "row": 4
-          }
-        },
-        "statements": [
-          {
-            "expression": {
-              "arguments": [
-                {
-                  "base_type": "String",
-                  "span": {
-                    "end": {
-                      "col": 13,
-                      "file_name": "examples/control_flow.enki",
-                      "pos": 76,
-                      "row": 5
-                    },
-                    "start": {
-                      "col": 11,
-                      "file_name": "examples/control_flow.enki",
-                      "pos": 74,
-                      "row": 5
-                    }
-                  },
-                  "type": "Literal",
-                  "value": "no"
-                }
-              ],
-              "callee": {
-                "name": "print",
-                "span": {
-                  "end": {
-                    "col": 9,
-                    "file_name": "examples/control_flow.enki",
-                    "pos": 72,
-                    "row": 5
-                  },
-                  "start": {
-                    "col": 4,
-                    "file_name": "examples/control_flow.enki",
-                    "pos": 67,
-                    "row": 5
-                  }
-                },
-                "type": "Identifier"
-              },
-              "span": {
-                "end": {
-                  "col": 9,
-                  "file_name": "examples/control_flow.enki",
-                  "pos": 72,
-                  "row": 5
-                },
-                "start": {
-                  "col": 4,
-                  "file_name": "examples/control_flow.enki",
-                  "pos": 67,
-                  "row": 5
-                }
-              },
-              "type": "CallExpression"
-            },
-            "span": {
-              "end": {
-                "col": 9,
-                "file_name": "examples/control_flow.enki",
-                "pos": 72,
-                "row": 5
-              },
-              "start": {
-                "col": 4,
-                "file_name": "examples/control_flow.enki",
-                "pos": 67,
-                "row": 5
-              }
-            },
-            "type": "ExpressionStatement"
-          }
-        ],
-        "type": "Block"
-      },
-      "span": {
-        "end": {
-          "col": 1,
-          "file_name": "examples/control_flow.enki",
-          "pos": 80,
-          "row": 6
-        },
-        "start": {
-          "col": 0,
-          "file_name": "examples/control_flow.enki",
-          "pos": 30,
-          "row": 2
-        }
-      },
-      "then_branch": {
-        "span": {
-          "end": {
-            "col": 1,
-            "file_name": "examples/control_flow.enki",
-            "pos": 55,
-            "row": 4
-          },
-          "start": {
-            "col": 5,
-            "file_name": "examples/control_flow.enki",
-            "pos": 35,
-            "row": 2
-          }
-        },
-        "statements": [
-          {
-            "expression": {
-              "arguments": [
-                {
-                  "base_type": "String",
-                  "span": {
-                    "end": {
-                      "col": 14,
-                      "file_name": "examples/control_flow.enki",
-                      "pos": 51,
-                      "row": 3
-                    },
-                    "start": {
-                      "col": 11,
-                      "file_name": "examples/control_flow.enki",
-                      "pos": 48,
-                      "row": 3
-                    }
-                  },
-                  "type": "Literal",
-                  "value": "yes"
-                }
-              ],
-              "callee": {
-                "name": "print",
-                "span": {
-                  "end": {
-                    "col": 9,
-                    "file_name": "examples/control_flow.enki",
-                    "pos": 46,
-                    "row": 3
-                  },
-                  "start": {
-                    "col": 4,
-                    "file_name": "examples/control_flow.enki",
-                    "pos": 41,
-                    "row": 3
-                  }
-                },
-                "type": "Identifier"
-              },
-              "span": {
-                "end": {
-                  "col": 9,
-                  "file_name": "examples/control_flow.enki",
-                  "pos": 46,
-                  "row": 3
-                },
-                "start": {
-                  "col": 4,
-                  "file_name": "examples/control_flow.enki",
-                  "pos": 41,
-                  "row": 3
-                }
-              },
-              "type": "CallExpression"
-            },
-            "span": {
-              "end": {
-                "col": 9,
-                "file_name": "examples/control_flow.enki",
-                "pos": 46,
-                "row": 3
-              },
-              "start": {
-                "col": 4,
-                "file_name": "examples/control_flow.enki",
-                "pos": 41,
-                "row": 3
-              }
-            },
-            "type": "ExpressionStatement"
-          }
-        ],
-        "type": "Block"
-      },
-      "type": "IfStatement"
-    },
-    {
-      "body": {
-        "span": {
-          "end": {
-            "col": 1,
-            "file_name": "examples/control_flow.enki",
-            "pos": 124,
-            "row": 10
-          },
-          "start": {
-            "col": 12,
-            "file_name": "examples/control_flow.enki",
-            "pos": 94,
-            "row": 8
-          }
-        },
-        "statements": [
-          {
-            "expression": {
-              "arguments": [
-                {
-                  "base_type": "String",
-                  "span": {
-                    "end": {
-                      "col": 24,
-                      "file_name": "examples/control_flow.enki",
-                      "pos": 120,
-                      "row": 9
-                    },
-                    "start": {
-                      "col": 11,
-                      "file_name": "examples/control_flow.enki",
-                      "pos": 107,
-                      "row": 9
-                    }
-                  },
-                  "type": "Literal",
-                  "value": "infinite loop"
-                }
-              ],
-              "callee": {
-                "name": "print",
-                "span": {
-                  "end": {
-                    "col": 9,
-                    "file_name": "examples/control_flow.enki",
-                    "pos": 105,
-                    "row": 9
-                  },
-                  "start": {
-                    "col": 4,
-                    "file_name": "examples/control_flow.enki",
-                    "pos": 100,
-                    "row": 9
-                  }
-                },
-                "type": "Identifier"
-              },
-              "span": {
-                "end": {
-                  "col": 9,
-                  "file_name": "examples/control_flow.enki",
-                  "pos": 105,
-                  "row": 9
-                },
-                "start": {
-                  "col": 4,
-                  "file_name": "examples/control_flow.enki",
-                  "pos": 100,
-                  "row": 9
-                }
-              },
-              "type": "CallExpression"
-            },
-            "span": {
-              "end": {
-                "col": 9,
-                "file_name": "examples/control_flow.enki",
-                "pos": 105,
-                "row": 9
-              },
-              "start": {
-                "col": 4,
-                "file_name": "examples/control_flow.enki",
-                "pos": 100,
-                "row": 9
-              }
-            },
-            "type": "ExpressionStatement"
-          }
-        ],
-        "type": "Block"
-      },
-      "condition": {
-        "base_type": "Bool",
-        "span": {
-          "end": {
-            "col": 11,
-            "file_name": "examples/control_flow.enki",
-            "pos": 93,
-            "row": 8
-          },
-          "start": {
-            "col": 6,
-            "file_name": "examples/control_flow.enki",
-            "pos": 88,
-            "row": 8
-          }
-        },
-        "type": "Literal",
-        "value": "false"
-      },
-      "span": {
-        "end": {
-          "col": 1,
-          "file_name": "examples/control_flow.enki",
-          "pos": 124,
-          "row": 10
-        },
-        "start": {
-          "col": 0,
-          "file_name": "examples/control_flow.enki",
-          "pos": 82,
-          "row": 8
-        }
-      },
-      "type": "WhileLoop"
     }
   ],
   "symbols": {
-    "x": {
-      "name": "x",
+    "frederik": {
+      "name": "frederik",
       "span": {
         "end": {
-          "col": 5,
-          "file_name": "examples/control_flow.enki",
-          "pos": 21,
+          "col": 12,
+          "file_name": "examples/import.enki",
+          "pos": 32,
           "row": 1
         },
         "start": {
           "col": 4,
-          "file_name": "examples/control_flow.enki",
-          "pos": 20,
+          "file_name": "examples/import.enki",
+          "pos": 24,
           "row": 1
         }
       },

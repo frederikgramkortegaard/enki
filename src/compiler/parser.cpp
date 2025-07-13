@@ -154,26 +154,26 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
   Span statement_start = tok.span;
 
-  if (tok.type == TokenType::Extern) {
-    auto extern_stmt = std::make_shared<ExternStatement>();
+  if (tok.type == TokenType::Import) {
+    spdlog::debug("Parsing Import statement");
+    auto import_stmt = std::make_shared<ImportStatement>();
     ctx.consume();
-    auto ident = parse_identifier(ctx);
-    extern_stmt->identifier = ident;
-    ctx.consume_assert(TokenType::LParens, "Missing '(' in Extern statement");
-    while (ctx.current < ctx.tokens.size() &&
-           ctx.current_token().type != TokenType::RParens) {
-      auto arg = parse_type(ctx);
-      extern_stmt->args.push_back(arg);
-      ctx.consume_if(TokenType::Comma);
+    ctx.consume_assert(TokenType::LessThan, "Missing '<' in Import statement");
+    auto module_path = parse_atom(ctx);
+    if (!module_path) {
+      spdlog::error("Expected module path in Import statement at {}",
+                    tok.span.start.to_string());
+      std::exit(1);
     }
-    ctx.consume_assert(TokenType::RParens, "Missing ')' in Extern statement");
-    ctx.consume_assert(TokenType::Arrow, "Missing '->' in Extern statement");
-    extern_stmt->return_type = parse_type(ctx);
-    ctx.consume_assert(TokenType::From, "Missing 'from' in Extern statement");
-    extern_stmt->module_path = ctx.current_token().value;
-    return extern_stmt;
+    import_stmt->module_path = std::dynamic_pointer_cast<Literal>(module_path);
+    spdlog::debug("Module path: {}", import_stmt->module_path->value);
+    std::cout << ctx.current_token().span.start.to_string() << std::endl;
+    import_stmt->span() = Span(tok.span.start, module_path->span().end);
 
-    // @TODO Add to symtable
+    // Use CTX Module Context to add the module to the program
+    ctx.module_context->add_module(import_stmt->module_path->value, ctx.current_file_path);
+
+    return import_stmt;
   }
 
   if (tok.type == TokenType::Let) {
@@ -208,7 +208,7 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
 
     // Symbols
     ctx.program->symbols[ident_expr->name] =
-        Symbol{ident_expr->name, nullptr, ident_tok.span};
+        std::make_shared<Symbol>(ident_expr->name, nullptr, ident_tok.span);
 
     return let_stmt;
   }
@@ -311,7 +311,11 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
 
 std::shared_ptr<Program> parse(const std::vector<Token> &tokens) {
   auto program = std::make_shared<Program>();
-  ParserContext ctx(program, tokens);
+  ParserContext ctx{program, tokens, std::make_shared<ModuleContext>()};
+  // Try to get the file path from the first token, if available
+  if (!tokens.empty()) {
+    ctx.current_file_path = std::string(tokens[0].span.start.file_name);
+  }
 
   while (ctx.current < tokens.size()) {
     auto stmt = parse_statement(ctx);

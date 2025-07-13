@@ -21,6 +21,7 @@ enum class ASTType {
   FunctionCall,
   FunctionDefinition,
   Extern,
+  Import,
 };
 
 
@@ -108,7 +109,12 @@ struct Literal : Expression {
 
 struct Program : Spanned {
   std::vector<std::shared_ptr<Statement>> statements;
-  std::unordered_map<std::string_view, Symbol> symbols;
+  std::unordered_map<std::string_view, std::shared_ptr<Symbol>> symbols;
+};
+
+struct ImportStatement : Statement {
+  std::shared_ptr<Literal> module_path;
+  ImportStatement() { ast_type = ASTType::Import; }
 };
 
 inline BaseType token_to_literal_type(TokenType type) {

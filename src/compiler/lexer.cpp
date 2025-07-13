@@ -11,6 +11,8 @@ TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
     return TokenType::Let;
   } else if (str == "extern") {
     return TokenType::Extern;
+  } else if (str == "import") {
+    return TokenType::Import;
   } else if (str == "from") {
     return TokenType::From;
   }

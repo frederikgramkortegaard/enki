@@ -243,6 +243,17 @@ inline void from_json(const json &j, ExternStatement &e) {
   j.at("span").get_to(e.span());
 }
 
+// --- ImportStatement ---
+inline void to_json(json &j, const ImportStatement &imp) {
+  j["module_path"] = imp.module_path;
+  j["span"] = imp.span();
+  j["type"] = "ImportStatement";
+}
+inline void from_json(const json &j, ImportStatement &imp) {
+  j.at("module_path").get_to(imp.module_path);
+  j.at("span").get_to(imp.span());
+}
+
 // --- Polymorphic pointer serialization for Expression ---
 inline void to_json(json &j, const std::shared_ptr<Expression> &expr) {
   if (!expr) {
@@ -317,6 +328,9 @@ inline void to_json(json &j, const std::shared_ptr<Statement> &stmt) {
   } else if (auto block = std::dynamic_pointer_cast<Block>(stmt)) {
     to_json(j, *block);
     j["type"] = "Block";
+  } else if (auto import_stmt = std::dynamic_pointer_cast<ImportStatement>(stmt)) {
+    to_json(j, *import_stmt);
+    j["type"] = "ImportStatement";
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -351,6 +365,10 @@ inline void from_json(const json &j, std::shared_ptr<Statement> &stmt) {
     auto while_stmt = std::make_shared<WhileLoop>();
     from_json(j, *while_stmt);
     stmt = while_stmt;
+  } else if (type == "ImportStatement") {
+    auto import_stmt = std::make_shared<ImportStatement>();
+    from_json(j, *import_stmt);
+    stmt = import_stmt;
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }
