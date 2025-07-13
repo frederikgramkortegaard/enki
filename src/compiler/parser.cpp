@@ -164,6 +164,30 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
     return if_stmt;
   }
 
+  if (tok.type == TokenType::While) {
+    auto while_stmt = std::make_shared<WhileLoop>();
+    ctx.consume();
+
+    auto condition = parse_expression(ctx);
+    if (!condition) {
+      spdlog::error("Expected condition expression at {} but couldn't find one",
+                    ctx.current_token().span.start.to_string());
+      std::exit(1);
+    }
+    while_stmt->condition = condition;
+
+    auto body = parse_statement(ctx);
+    if (!body) {
+      spdlog::error("Expected body statement at {} but couldn't find one",
+                    ctx.current_token().span.start.to_string());
+      std::exit(1);
+    }
+    while_stmt->body = body;
+
+    while_stmt->span() = Span(statement_start.start, ctx.previous_token_span().end);
+    return while_stmt;
+  }
+
   // Maybe its a dangling expression
   auto expr = parse_expression(ctx);
   if (expr) {

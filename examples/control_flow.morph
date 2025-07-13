@@ -5,3 +5,7 @@ if x {
 } else {
     print("no")
 }
+
+while false {
+    print("infinite loop")
+}

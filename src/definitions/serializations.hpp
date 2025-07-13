@@ -131,6 +131,19 @@ inline void from_json(const json &j, IfStatement &i) {
   j.at("span").get_to(i.span());
 }
 
+// --- WhileLoop ---
+inline void to_json(json &j, const WhileLoop &w) {
+  j["condition"] = w.condition;
+  j["body"] = w.body;
+  j["span"] = w.span();
+  j["type"] = "WhileLoop";
+}
+inline void from_json(const json &j, WhileLoop &w) {
+  j.at("condition").get_to(w.condition);
+  j.at("body").get_to(w.body);
+  j.at("span").get_to(w.span());
+}
+
 // --- Block ---
 inline void to_json(json &j, const Block &b) {
   j["statements"] = b.statements;
@@ -207,6 +220,9 @@ inline void to_json(json &j, const std::shared_ptr<Expression> &expr) {
   } else if (auto call = std::dynamic_pointer_cast<CallExpression>(expr)) {
     to_json(j, *call);
     j["type"] = "CallExpression";
+  } else if (auto while_stmt = std::dynamic_pointer_cast<WhileLoop>(expr)) {
+    to_json(j, *while_stmt);
+    j["type"] = "WhileLoop";
   } else {
     throw std::runtime_error("Unknown Expression type for to_json");
   }
@@ -250,6 +266,9 @@ inline void to_json(json &j, const std::shared_ptr<Statement> &stmt) {
   } else if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
     to_json(j, *if_stmt);
     j["type"] = "IfStatement";
+  } else if (auto while_stmt = std::dynamic_pointer_cast<WhileLoop>(stmt)) {
+    to_json(j, *while_stmt);
+    j["type"] = "WhileLoop";
   } else if (auto block = std::dynamic_pointer_cast<Block>(stmt)) {
     to_json(j, *block);
     j["type"] = "Block";

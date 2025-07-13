@@ -144,7 +144,25 @@ void eval_statement(EvalContext &ctx, const std::shared_ptr<Statement> &stmt) {
       return;
     }
 
-    spdlog::warn("Unknown statement type at {}", stmt->span().start.to_string());
+    if (auto while_stmt = std::dynamic_pointer_cast<WhileLoop>(stmt)) {
+      spdlog::debug("evaluating while loop");
+      while (true) {
+        auto condition = eval_expression(ctx, while_stmt->condition);
+        if (condition->type_name() != "bool") {
+          throw std::runtime_error("Condition is not a boolean");
+        }
+        auto bool_value = std::dynamic_pointer_cast<BoolValue>(condition);
+        if (!bool_value->value) {
+          spdlog::debug("Condition is false, breaking out of while loop");
+          break;
+        }
+        spdlog::debug("Condition is true, evaluating body of while loop");
+        eval_statement(ctx, while_stmt->body);
+      }
+      return;
+    }
+
+    spdlog::error("Unknown statement type at {}", stmt->span().start.to_string());
     std::exit(1);
 }
 

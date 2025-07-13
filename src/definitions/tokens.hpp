@@ -16,6 +16,7 @@ enum class TokenType {
   Else,
   True,
   False,
+  While,
 
   // Characters
   LParens,

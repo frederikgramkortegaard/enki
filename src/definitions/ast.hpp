@@ -52,6 +52,11 @@ struct IfStatement : Statement {
   std::shared_ptr<Statement> else_branch;
 };
 
+struct WhileLoop : Statement {
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<Statement> body;
+};
+
 struct Block : Statement {
   std::vector<std::shared_ptr<Statement>> statements;
 };
