@@ -4,8 +4,8 @@ set -e
 # Paths
 INPUT="sample-bmp-files-sample_640x426.bmp"
 OUTDIR="tests/builtins"
-MORPHIR="./morphir"
-MORPHEVAL="./morpheval"
+MORPHIR="./morph compile"
+MORPHEVAL="./morph eval"
 
 mkdir -p "$OUTDIR"
 
@@ -14,7 +14,7 @@ run_flow() {
   local morph_code="$2"
   echo "Testing $name..."
   echo "$morph_code" > "$OUTDIR/$name.morph"
-  $MORPHIR -i "$OUTDIR/$name.morph" -o "$OUTDIR/$name.json"
+  $MORPHIR "$OUTDIR/$name.morph" -o "$OUTDIR/$name.json"
   $MORPHEVAL "$OUTDIR/$name.json"
 }
 

@@ -116,6 +116,33 @@ inline void from_json(const json &j, LetStatement &l) {
   j.at("span").get_to(l.span());
 }
 
+// --- IfStatement ---
+inline void to_json(json &j, const IfStatement &i) {
+  j["condition"] = i.condition;
+  j["then_branch"] = i.then_branch;
+  j["else_branch"] = i.else_branch;
+  j["span"] = i.span();
+  j["type"] = "IfStatement";
+}
+inline void from_json(const json &j, IfStatement &i) {
+  j.at("condition").get_to(i.condition);
+  j.at("then_branch").get_to(i.then_branch);
+  j.at("else_branch").get_to(i.else_branch);
+  j.at("span").get_to(i.span());
+}
+
+// --- Block ---
+inline void to_json(json &j, const Block &b) {
+  j["statements"] = b.statements;
+  j["span"] = b.span();
+  j["type"] = "Block";
+}
+inline void from_json(const json &j, Block &b) {
+  j.at("statements").get_to(b.statements);
+  j.at("span").get_to(b.span());
+}
+
+
 // --- Symbol ---
 inline void to_json(json &j, const Symbol &s) {
   j["name"] = s.name;
@@ -220,6 +247,12 @@ inline void to_json(json &j, const std::shared_ptr<Statement> &stmt) {
                  std::dynamic_pointer_cast<ExpressionStatement>(stmt)) {
     to_json(j, *expr_stmt);
     j["type"] = "ExpressionStatement";
+  } else if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
+    to_json(j, *if_stmt);
+    j["type"] = "IfStatement";
+  } else if (auto block = std::dynamic_pointer_cast<Block>(stmt)) {
+    to_json(j, *block);
+    j["type"] = "Block";
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -238,6 +271,14 @@ inline void from_json(const json &j, std::shared_ptr<Statement> &stmt) {
     auto expr_stmt = std::make_shared<ExpressionStatement>();
     from_json(j, *expr_stmt);
     stmt = expr_stmt;
+  } else if (type == "IfStatement") {
+    auto if_stmt = std::make_shared<IfStatement>();
+    from_json(j, *if_stmt);
+    stmt = if_stmt;
+  } else if (type == "Block") {
+    auto block = std::make_shared<Block>();
+    from_json(j, *block);
+    stmt = block;
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }

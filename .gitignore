@@ -1,6 +1,9 @@
 morphir
 morpheval
 morphrun
+morph
 build
 *.dSYM
 *.o
+*.ast.json
+*.d
