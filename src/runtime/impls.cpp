@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <cmath>
 
 // Helper: Read a 24-bit BMP file
 struct LoadedImage {
@@ -229,14 +230,47 @@ Value builtin_resize(const std::vector<Value>& args) {
     return std::make_shared<ImageValue>(*img_val);
 }
 Value builtin_rotate(const std::vector<Value>& args) {
-    if (args.size() != 1)
-        throw std::runtime_error("rotate(image): expects image");
+    if (args.size() != 2)
+        throw std::runtime_error("rotate(image, angle): expects image and angle");
     auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
-    if (!img_val)
-        throw std::runtime_error("rotate(image): expects image");
-    // For now, just return a copy (no actual rotation)
-    std::cout << "Stub: rotate returns copy of image\n";
-    return std::make_shared<ImageValue>(*img_val);
+    auto angle_val = std::dynamic_pointer_cast<IntValue>(args[1]);
+    if (!img_val || !angle_val)
+        throw std::runtime_error("rotate(image, angle): expects image and integer angle");
+    int angle = angle_val->value;
+    double radians = angle * M_PI / 180.0;
+    int w = img_val->width, h = img_val->height;
+
+    // Calculate new image size
+    double cos_a = std::abs(std::cos(radians));
+    double sin_a = std::abs(std::sin(radians));
+    int new_w = static_cast<int>(w * cos_a + h * sin_a);
+    int new_h = static_cast<int>(w * sin_a + h * cos_a);
+
+    std::vector<uint8_t> out_data(new_w * new_h * 3, 0);
+
+    // Center of original and new image
+    double cx = w / 2.0, cy = h / 2.0;
+    double ncx = new_w / 2.0, ncy = new_h / 2.0;
+
+    for (int y = 0; y < new_h; ++y) {
+        for (int x = 0; x < new_w; ++x) {
+            // Map (x, y) in output to (src_x, src_y) in input
+            double dx = x - ncx;
+            double dy = y - ncy;
+            double src_x =  cos(radians) * dx + sin(radians) * dy + cx;
+            double src_y = -sin(radians) * dx + cos(radians) * dy + cy;
+            int isx = static_cast<int>(std::round(src_x));
+            int isy = static_cast<int>(std::round(src_y));
+            if (isx >= 0 && isx < w && isy >= 0 && isy < h) {
+                for (int c = 0; c < 3; ++c) {
+                    out_data[3 * (y * new_w + x) + c] = img_val->data[3 * (isy * w + isx) + c];
+                }
+            }
+            // else: leave black
+        }
+    }
+    std::cout << "Rotated image by " << angle << " degrees\n";
+    return std::make_shared<ImageValue>(new_w, new_h, std::move(out_data), img_val->format);
 }
 Value builtin_flip(const std::vector<Value>& args) {
     if (args.size() != 1)
@@ -390,7 +424,7 @@ void register_builtins() {
       {"saturate", {"saturate", 1, 1, builtin_saturate}},
       {"exposure", {"exposure", 1, 1, builtin_exposure}},
       {"resize", {"resize", 2, 2, builtin_resize}},
-      {"rotate", {"rotate", 1, 1, builtin_rotate}},
+      {"rotate", {"rotate", 2, 2, builtin_rotate}},
       {"flip", {"flip", 1, 1, builtin_flip}},
       {"crop", {"crop", 5, 5, builtin_crop}},
       {"blur", {"blur", 1, 1, builtin_blur}},

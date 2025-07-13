@@ -234,6 +234,25 @@
               }
             },
             "type": "Identifier"
+          },
+          {
+            "base_type": "Int",
+            "span": {
+              "end": {
+                "col": 24,
+                "file_name": "tests/builtins/resize_rotate_flip.morph",
+                "pos": 109,
+                "row": 2
+              },
+              "start": {
+                "col": 22,
+                "file_name": "tests/builtins/resize_rotate_flip.morph",
+                "pos": 107,
+                "row": 2
+              }
+            },
+            "type": "Literal",
+            "value": "90"
           }
         ],
         "callee": {
@@ -313,13 +332,13 @@
               "end": {
                 "col": 18,
                 "file_name": "tests/builtins/resize_rotate_flip.morph",
-                "pos": 125,
+                "pos": 129,
                 "row": 3
               },
               "start": {
                 "col": 15,
                 "file_name": "tests/builtins/resize_rotate_flip.morph",
-                "pos": 122,
+                "pos": 126,
                 "row": 3
               }
             },
@@ -332,13 +351,13 @@
             "end": {
               "col": 14,
               "file_name": "tests/builtins/resize_rotate_flip.morph",
-              "pos": 121,
+              "pos": 125,
               "row": 3
             },
             "start": {
               "col": 10,
               "file_name": "tests/builtins/resize_rotate_flip.morph",
-              "pos": 117,
+              "pos": 121,
               "row": 3
             }
           },
@@ -348,13 +367,13 @@
           "end": {
             "col": 14,
             "file_name": "tests/builtins/resize_rotate_flip.morph",
-            "pos": 121,
+            "pos": 125,
             "row": 3
           },
           "start": {
             "col": 10,
             "file_name": "tests/builtins/resize_rotate_flip.morph",
-            "pos": 117,
+            "pos": 121,
             "row": 3
           }
         },
@@ -366,13 +385,13 @@
           "end": {
             "col": 7,
             "file_name": "tests/builtins/resize_rotate_flip.morph",
-            "pos": 114,
+            "pos": 118,
             "row": 3
           },
           "start": {
             "col": 4,
             "file_name": "tests/builtins/resize_rotate_flip.morph",
-            "pos": 111,
+            "pos": 115,
             "row": 3
           }
         },
@@ -382,13 +401,13 @@
         "end": {
           "col": 14,
           "file_name": "tests/builtins/resize_rotate_flip.morph",
-          "pos": 121,
+          "pos": 125,
           "row": 3
         },
         "start": {
           "col": 0,
           "file_name": "tests/builtins/resize_rotate_flip.morph",
-          "pos": 107,
+          "pos": 111,
           "row": 3
         }
       },
@@ -403,13 +422,13 @@
               "end": {
                 "col": 8,
                 "file_name": "tests/builtins/resize_rotate_flip.morph",
-                "pos": 135,
+                "pos": 139,
                 "row": 4
               },
               "start": {
                 "col": 5,
                 "file_name": "tests/builtins/resize_rotate_flip.morph",
-                "pos": 132,
+                "pos": 136,
                 "row": 4
               }
             },
@@ -421,13 +440,13 @@
               "end": {
                 "col": 48,
                 "file_name": "tests/builtins/resize_rotate_flip.morph",
-                "pos": 175,
+                "pos": 179,
                 "row": 4
               },
               "start": {
                 "col": 11,
                 "file_name": "tests/builtins/resize_rotate_flip.morph",
-                "pos": 138,
+                "pos": 142,
                 "row": 4
               }
             },
@@ -441,13 +460,13 @@
             "end": {
               "col": 4,
               "file_name": "tests/builtins/resize_rotate_flip.morph",
-              "pos": 131,
+              "pos": 135,
               "row": 4
             },
             "start": {
               "col": 0,
               "file_name": "tests/builtins/resize_rotate_flip.morph",
-              "pos": 127,
+              "pos": 131,
               "row": 4
             }
           },
@@ -457,13 +476,13 @@
           "end": {
             "col": 4,
             "file_name": "tests/builtins/resize_rotate_flip.morph",
-            "pos": 131,
+            "pos": 135,
             "row": 4
           },
           "start": {
             "col": 0,
             "file_name": "tests/builtins/resize_rotate_flip.morph",
-            "pos": 127,
+            "pos": 131,
             "row": 4
           }
         },
@@ -511,13 +530,13 @@
         "end": {
           "col": 7,
           "file_name": "tests/builtins/resize_rotate_flip.morph",
-          "pos": 114,
+          "pos": 118,
           "row": 3
         },
         "start": {
           "col": 4,
           "file_name": "tests/builtins/resize_rotate_flip.morph",
-          "pos": 111,
+          "pos": 115,
           "row": 3
         }
       },

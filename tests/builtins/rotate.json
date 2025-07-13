@@ -125,6 +125,25 @@
               }
             },
             "type": "Identifier"
+          },
+          {
+            "base_type": "Int",
+            "span": {
+              "end": {
+                "col": 26,
+                "file_name": "tests/builtins/rotate.morph",
+                "pos": 82,
+                "row": 1
+              },
+              "start": {
+                "col": 24,
+                "file_name": "tests/builtins/rotate.morph",
+                "pos": 80,
+                "row": 1
+              }
+            },
+            "type": "Literal",
+            "value": "90"
           }
         ],
         "callee": {
@@ -204,13 +223,13 @@
               "end": {
                 "col": 8,
                 "file_name": "tests/builtins/rotate.morph",
-                "pos": 88,
+                "pos": 92,
                 "row": 2
               },
               "start": {
                 "col": 5,
                 "file_name": "tests/builtins/rotate.morph",
-                "pos": 85,
+                "pos": 89,
                 "row": 2
               }
             },
@@ -222,13 +241,13 @@
               "end": {
                 "col": 36,
                 "file_name": "tests/builtins/rotate.morph",
-                "pos": 116,
+                "pos": 120,
                 "row": 2
               },
               "start": {
                 "col": 11,
                 "file_name": "tests/builtins/rotate.morph",
-                "pos": 91,
+                "pos": 95,
                 "row": 2
               }
             },
@@ -242,13 +261,13 @@
             "end": {
               "col": 4,
               "file_name": "tests/builtins/rotate.morph",
-              "pos": 84,
+              "pos": 88,
               "row": 2
             },
             "start": {
               "col": 0,
               "file_name": "tests/builtins/rotate.morph",
-              "pos": 80,
+              "pos": 84,
               "row": 2
             }
           },
@@ -258,13 +277,13 @@
           "end": {
             "col": 4,
             "file_name": "tests/builtins/rotate.morph",
-            "pos": 84,
+            "pos": 88,
             "row": 2
           },
           "start": {
             "col": 0,
             "file_name": "tests/builtins/rotate.morph",
-            "pos": 80,
+            "pos": 84,
             "row": 2
           }
         },

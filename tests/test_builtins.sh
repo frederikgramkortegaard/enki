@@ -56,7 +56,7 @@ run_flow "resize" "let image = open(\"$INPUT\")
 let out = resize(image, 320)
 save(out, \"$OUTDIR/resize.bmp\")"
 run_flow "rotate" "let image = open(\"$INPUT\")
-let out = rotate(image)
+let out = rotate(image, 90)
 save(out, \"$OUTDIR/rotate.bmp\")"
 run_flow "flip" "let image = open(\"$INPUT\")
 let out = flip(image)
@@ -103,7 +103,7 @@ let out = emboss(exp)
 save(out, \"$OUTDIR/invert_exposure_emboss.bmp\")"
 run_flow "resize_rotate_flip" "let image = open(\"$INPUT\")
 let rsz = resize(image, 320)
-let rot = rotate(rsz)
+let rot = rotate(rsz, 90)
 let out = flip(rot)
 save(out, \"$OUTDIR/resize_rotate_flip.bmp\")"
 run_flow "crop_blur_sharpen" "let image = open(\"$INPUT\")
