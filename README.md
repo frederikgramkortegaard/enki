@@ -1,26 +1,26 @@
-# MorphIR
+# enkiIR
 
-MorphIR is a C++-based interpreter and runtime for a custom programming language designed for data and image manipulation, extensible computation, and robust AST handling. It features a modern type system, JSON serialization, and a flexible built-in function system.
+enkiIR is a C++-based interpreter and runtime for a custom programming language designed for data and image manipulation, extensible computation, and robust AST handling. It features a modern type system, JSON serialization, and a flexible built-in function system.
 
 ## Features
 - **Custom Language:** Supports variables, expressions, function calls, and let-statements.
 - **Image Processing Builtins:** Includes `open`, `save`, `greyscale`, and more for BMP images.
 - **AST & Type System:** Strongly-typed AST with extensible node and value types.
 - **Serialization:** Full JSON serialization/deserialization of ASTs using [nlohmann/json](https://github.com/nlohmann/json).
-- **Interpreter:** Polymorphic value system for extensibility and type safety.
+- **Interpreter:** Polyenkiic value system for extensibility and type safety.
 - **Pretty Printing:** Utilities for AST and value visualization.
 
 ## Directory Structure
 ```
-MorphIR/
+enkiIR/
 ├── src/
-│   ├── morph.cpp        # Main entry point
+│   ├── enki.cpp        # Main entry point
 │   ├── compiler/        # Lexer, parser
 │   ├── definitions/     # AST, types, serialization
 │   ├── interpreter/     # Interpreter logic and value system
 │   ├── runtime/         # Builtin functions and runtime support
 │   └── utils/           # Utilities (e.g., AST pretty printer)
-├── examples/            # Example MorphIR programs
+├── examples/            # Example enkiIR programs
 ├── Makefile             # Build system
 ├── test.json            # Example serialized AST
 ```
@@ -42,11 +42,11 @@ To build:
 make
 ```
 
-This creates a single executable `morph` with the following subcommands:
-- `morph compile` — Compiles `.morph` files and outputs JSON AST
-- `morph run`     — Compiles and directly interprets `.morph` files
-- `morph serde`   — Compile, then serialize/deserialize AST to/from JSON
-- `morph eval`    — Loads JSON AST and executes it
+This creates a single executable `enki` with the following subcommands:
+- `enki compile` — Compiles `.enki` files and outputs JSON AST
+- `enki run`     — Compiles and directly interprets `.enki` files
+- `enki serde`   — Compile, then serialize/deserialize AST to/from JSON
+- `enki eval`    — Loads JSON AST and executes it
 
 To install to /usr/local/bin:
 ```sh
@@ -59,9 +59,9 @@ make clean
 ```
 
 ## Usage
-### 1. Write a MorphIR Program
-Example (`examples/test.morph`):
-```morph
+### 1. Write a enkiIR Program
+Example (`examples/test.enki`):
+```enki
 print("loadig image")
 let image = open("sample-bmp-files-sample_640x426.bmp")
 print(image)
@@ -73,17 +73,17 @@ save(greyscale_image, "greyscale.bmp")
 
 ### 2. Compile to JSON AST
 ```sh
-./morph compile -o test.json examples/test.morph
+./enki compile -o test.json examples/test.enki
 ```
 
 ### 3. Run the Interpreter
 ```sh
-./morph eval test.json
+./enki eval test.json
 ```
 
 ### 4. Or do both in one step
 ```sh
-./morph run examples/test.morph
+./enki run examples/test.enki
 ```
 
 ## Language Features
