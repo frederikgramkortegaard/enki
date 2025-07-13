@@ -1,0 +1,545 @@
+{
+  "span": {
+    "end": {
+      "col": 0,
+      "file_name": "",
+      "pos": 0,
+      "row": 0
+    },
+    "start": {
+      "col": 0,
+      "file_name": "",
+      "pos": 0,
+      "row": 0
+    }
+  },
+  "statements": [
+    {
+      "expression": {
+        "arguments": [
+          {
+            "base_type": "String",
+            "span": {
+              "end": {
+                "col": 53,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 53,
+                "row": 0
+              },
+              "start": {
+                "col": 18,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 18,
+                "row": 0
+              }
+            },
+            "type": "Literal",
+            "value": "sample-bmp-files-sample_640x426.bmp"
+          }
+        ],
+        "callee": {
+          "name": "open",
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 16,
+              "row": 0
+            },
+            "start": {
+              "col": 12,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 12,
+              "row": 0
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 16,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 16,
+            "row": 0
+          },
+          "start": {
+            "col": 12,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 12,
+            "row": 0
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "image",
+        "span": {
+          "end": {
+            "col": 9,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 9,
+            "row": 0
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 4,
+            "row": 0
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 16,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 16,
+          "row": 0
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 0,
+          "row": 0
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "image",
+            "span": {
+              "end": {
+                "col": 26,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 82,
+                "row": 1
+              },
+              "start": {
+                "col": 21,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 77,
+                "row": 1
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "greyscale",
+          "span": {
+            "end": {
+              "col": 20,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 76,
+              "row": 1
+            },
+            "start": {
+              "col": 11,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 67,
+              "row": 1
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 20,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 76,
+            "row": 1
+          },
+          "start": {
+            "col": 11,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 67,
+            "row": 1
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "grey",
+        "span": {
+          "end": {
+            "col": 8,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 64,
+            "row": 1
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 60,
+            "row": 1
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 20,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 76,
+          "row": 1
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 56,
+          "row": 1
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "grey",
+            "span": {
+              "end": {
+                "col": 24,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 108,
+                "row": 2
+              },
+              "start": {
+                "col": 20,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 104,
+                "row": 2
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "blur",
+          "span": {
+            "end": {
+              "col": 19,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 103,
+              "row": 2
+            },
+            "start": {
+              "col": 15,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 99,
+              "row": 2
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 19,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 103,
+            "row": 2
+          },
+          "start": {
+            "col": 15,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 99,
+            "row": 2
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "blur_img",
+        "span": {
+          "end": {
+            "col": 12,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 96,
+            "row": 2
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 88,
+            "row": 2
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 19,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 103,
+          "row": 2
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 84,
+          "row": 2
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "blur_img",
+            "span": {
+              "end": {
+                "col": 30,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 140,
+                "row": 3
+              },
+              "start": {
+                "col": 22,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 132,
+                "row": 3
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "edge_detect",
+          "span": {
+            "end": {
+              "col": 21,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 131,
+              "row": 3
+            },
+            "start": {
+              "col": 10,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 120,
+              "row": 3
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 21,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 131,
+            "row": 3
+          },
+          "start": {
+            "col": 10,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 120,
+            "row": 3
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "out",
+        "span": {
+          "end": {
+            "col": 7,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 117,
+            "row": 3
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 114,
+            "row": 3
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 21,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 131,
+          "row": 3
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 110,
+          "row": 3
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "out",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 150,
+                "row": 4
+              },
+              "start": {
+                "col": 5,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 147,
+                "row": 4
+              }
+            },
+            "type": "Identifier"
+          },
+          {
+            "base_type": "String",
+            "span": {
+              "end": {
+                "col": 49,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 191,
+                "row": 4
+              },
+              "start": {
+                "col": 11,
+                "file_name": "tests/builtins/greyscale_blur_edge.morph",
+                "pos": 153,
+                "row": 4
+              }
+            },
+            "type": "Literal",
+            "value": "tests/builtins/greyscale_blur_edge.bmp"
+          }
+        ],
+        "callee": {
+          "name": "save",
+          "span": {
+            "end": {
+              "col": 4,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 146,
+              "row": 4
+            },
+            "start": {
+              "col": 0,
+              "file_name": "tests/builtins/greyscale_blur_edge.morph",
+              "pos": 142,
+              "row": 4
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 4,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 146,
+            "row": 4
+          },
+          "start": {
+            "col": 0,
+            "file_name": "tests/builtins/greyscale_blur_edge.morph",
+            "pos": 142,
+            "row": 4
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 0,
+          "file_name": "",
+          "pos": 0,
+          "row": 0
+        },
+        "start": {
+          "col": 0,
+          "file_name": "",
+          "pos": 0,
+          "row": 0
+        }
+      },
+      "type": "ExpressionStatement"
+    }
+  ],
+  "symbols": {
+    "blur_img": {
+      "name": "blur_img",
+      "span": {
+        "end": {
+          "col": 12,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 96,
+          "row": 2
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 88,
+          "row": 2
+        }
+      },
+      "type": null
+    },
+    "grey": {
+      "name": "grey",
+      "span": {
+        "end": {
+          "col": 8,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 64,
+          "row": 1
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 60,
+          "row": 1
+        }
+      },
+      "type": null
+    },
+    "image": {
+      "name": "image",
+      "span": {
+        "end": {
+          "col": 9,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 9,
+          "row": 0
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 4,
+          "row": 0
+        }
+      },
+      "type": null
+    },
+    "out": {
+      "name": "out",
+      "span": {
+        "end": {
+          "col": 7,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 117,
+          "row": 3
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/greyscale_blur_edge.morph",
+          "pos": 114,
+          "row": 3
+        }
+      },
+      "type": null
+    }
+  },
+  "type": "Program"
+}

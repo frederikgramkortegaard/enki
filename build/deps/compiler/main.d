@@ -1,11 +1,5 @@
-build/compiler/main.o: src/compiler/main.cpp src/compiler/lexer.hpp \
-  src/compiler/../definitions/tokens.hpp \
-  src/compiler/../definitions/span.hpp \
-  src/compiler/../definitions/location.hpp \
-  /opt/homebrew/include/magic_enum/magic_enum.hpp \
-  src/compiler/parser.hpp src/compiler/../definitions/ast.hpp \
-  src/compiler/../definitions/symbols.hpp \
-  src/compiler/../definitions/types.hpp \
+build/compiler/main.o: src/compiler/main.cpp \
+  src/compiler/../definitions/serializations.hpp \
   /opt/homebrew/include/nlohmann/json.hpp \
   /opt/homebrew/include/nlohmann/adl_serializer.hpp \
   /opt/homebrew/include/nlohmann/detail/abi_macros.hpp \
@@ -52,16 +46,15 @@ build/compiler/main.o: src/compiler/main.cpp src/compiler/lexer.hpp \
   /opt/homebrew/include/nlohmann/ordered_map.hpp \
   /opt/homebrew/include/nlohmann/detail/macro_unscope.hpp \
   /opt/homebrew/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
-  src/compiler/../definitions/serializations.hpp
-src/compiler/lexer.hpp:
-src/compiler/../definitions/tokens.hpp:
-src/compiler/../definitions/span.hpp:
-src/compiler/../definitions/location.hpp:
-/opt/homebrew/include/magic_enum/magic_enum.hpp:
-src/compiler/parser.hpp:
-src/compiler/../definitions/ast.hpp:
-src/compiler/../definitions/symbols.hpp:
-src/compiler/../definitions/types.hpp:
+  src/compiler/../definitions/ast.hpp \
+  src/compiler/../definitions/span.hpp \
+  src/compiler/../definitions/location.hpp \
+  src/compiler/../definitions/symbols.hpp \
+  src/compiler/../definitions/types.hpp \
+  /opt/homebrew/include/magic_enum/magic_enum.hpp \
+  src/compiler/../definitions/tokens.hpp src/compiler/lexer.hpp \
+  src/compiler/parser.hpp
+src/compiler/../definitions/serializations.hpp:
 /opt/homebrew/include/nlohmann/json.hpp:
 /opt/homebrew/include/nlohmann/adl_serializer.hpp:
 /opt/homebrew/include/nlohmann/detail/abi_macros.hpp:
@@ -108,4 +101,12 @@ src/compiler/../definitions/types.hpp:
 /opt/homebrew/include/nlohmann/ordered_map.hpp:
 /opt/homebrew/include/nlohmann/detail/macro_unscope.hpp:
 /opt/homebrew/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
-src/compiler/../definitions/serializations.hpp:
+src/compiler/../definitions/ast.hpp:
+src/compiler/../definitions/span.hpp:
+src/compiler/../definitions/location.hpp:
+src/compiler/../definitions/symbols.hpp:
+src/compiler/../definitions/types.hpp:
+/opt/homebrew/include/magic_enum/magic_enum.hpp:
+src/compiler/../definitions/tokens.hpp:
+src/compiler/lexer.hpp:
+src/compiler/parser.hpp:

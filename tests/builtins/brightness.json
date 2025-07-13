@@ -1,0 +1,329 @@
+{
+  "span": {
+    "end": {
+      "col": 0,
+      "file_name": "",
+      "pos": 0,
+      "row": 0
+    },
+    "start": {
+      "col": 0,
+      "file_name": "",
+      "pos": 0,
+      "row": 0
+    }
+  },
+  "statements": [
+    {
+      "expression": {
+        "arguments": [
+          {
+            "base_type": "String",
+            "span": {
+              "end": {
+                "col": 53,
+                "file_name": "tests/builtins/brightness.morph",
+                "pos": 53,
+                "row": 0
+              },
+              "start": {
+                "col": 18,
+                "file_name": "tests/builtins/brightness.morph",
+                "pos": 18,
+                "row": 0
+              }
+            },
+            "type": "Literal",
+            "value": "sample-bmp-files-sample_640x426.bmp"
+          }
+        ],
+        "callee": {
+          "name": "open",
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "tests/builtins/brightness.morph",
+              "pos": 16,
+              "row": 0
+            },
+            "start": {
+              "col": 12,
+              "file_name": "tests/builtins/brightness.morph",
+              "pos": 12,
+              "row": 0
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 16,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 16,
+            "row": 0
+          },
+          "start": {
+            "col": 12,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 12,
+            "row": 0
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "image",
+        "span": {
+          "end": {
+            "col": 9,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 9,
+            "row": 0
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 4,
+            "row": 0
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 16,
+          "file_name": "tests/builtins/brightness.morph",
+          "pos": 16,
+          "row": 0
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/brightness.morph",
+          "pos": 0,
+          "row": 0
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "image",
+            "span": {
+              "end": {
+                "col": 26,
+                "file_name": "tests/builtins/brightness.morph",
+                "pos": 82,
+                "row": 1
+              },
+              "start": {
+                "col": 21,
+                "file_name": "tests/builtins/brightness.morph",
+                "pos": 77,
+                "row": 1
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "brightness",
+          "span": {
+            "end": {
+              "col": 20,
+              "file_name": "tests/builtins/brightness.morph",
+              "pos": 76,
+              "row": 1
+            },
+            "start": {
+              "col": 10,
+              "file_name": "tests/builtins/brightness.morph",
+              "pos": 66,
+              "row": 1
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 20,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 76,
+            "row": 1
+          },
+          "start": {
+            "col": 10,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 66,
+            "row": 1
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "out",
+        "span": {
+          "end": {
+            "col": 7,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 63,
+            "row": 1
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 60,
+            "row": 1
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 20,
+          "file_name": "tests/builtins/brightness.morph",
+          "pos": 76,
+          "row": 1
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/brightness.morph",
+          "pos": 56,
+          "row": 1
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "out",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "tests/builtins/brightness.morph",
+                "pos": 92,
+                "row": 2
+              },
+              "start": {
+                "col": 5,
+                "file_name": "tests/builtins/brightness.morph",
+                "pos": 89,
+                "row": 2
+              }
+            },
+            "type": "Identifier"
+          },
+          {
+            "base_type": "String",
+            "span": {
+              "end": {
+                "col": 40,
+                "file_name": "tests/builtins/brightness.morph",
+                "pos": 124,
+                "row": 2
+              },
+              "start": {
+                "col": 11,
+                "file_name": "tests/builtins/brightness.morph",
+                "pos": 95,
+                "row": 2
+              }
+            },
+            "type": "Literal",
+            "value": "tests/builtins/brightness.bmp"
+          }
+        ],
+        "callee": {
+          "name": "save",
+          "span": {
+            "end": {
+              "col": 4,
+              "file_name": "tests/builtins/brightness.morph",
+              "pos": 88,
+              "row": 2
+            },
+            "start": {
+              "col": 0,
+              "file_name": "tests/builtins/brightness.morph",
+              "pos": 84,
+              "row": 2
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 4,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 88,
+            "row": 2
+          },
+          "start": {
+            "col": 0,
+            "file_name": "tests/builtins/brightness.morph",
+            "pos": 84,
+            "row": 2
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 0,
+          "file_name": "",
+          "pos": 0,
+          "row": 0
+        },
+        "start": {
+          "col": 0,
+          "file_name": "",
+          "pos": 0,
+          "row": 0
+        }
+      },
+      "type": "ExpressionStatement"
+    }
+  ],
+  "symbols": {
+    "image": {
+      "name": "image",
+      "span": {
+        "end": {
+          "col": 9,
+          "file_name": "tests/builtins/brightness.morph",
+          "pos": 9,
+          "row": 0
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/brightness.morph",
+          "pos": 4,
+          "row": 0
+        }
+      },
+      "type": null
+    },
+    "out": {
+      "name": "out",
+      "span": {
+        "end": {
+          "col": 7,
+          "file_name": "tests/builtins/brightness.morph",
+          "pos": 63,
+          "row": 1
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/brightness.morph",
+          "pos": 60,
+          "row": 1
+        }
+      },
+      "type": null
+    }
+  },
+  "type": "Program"
+}

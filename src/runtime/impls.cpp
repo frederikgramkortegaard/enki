@@ -117,62 +117,250 @@ Value builtin_greyscale(const std::vector<Value> &args) {
   std::cout << "Converted image to greyscale\n";
   return out;
 }
-Value builtin_invert(const std::vector<Value> &args) {
-  std::cout << "Called invert\n";
-  return nullptr;
+Value builtin_invert(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("invert(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("invert(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    for (size_t i = 0; i + 2 < out->data.size(); i += 3) {
+        out->data[i]     = 255 - out->data[i];     // R
+        out->data[i + 1] = 255 - out->data[i + 1]; // G
+        out->data[i + 2] = 255 - out->data[i + 2]; // B
+    }
+    std::cout << "Inverted image colors\n";
+    return out;
 }
-Value builtin_threshold(const std::vector<Value> &args) {
-  std::cout << "Called threshold with " << args.size() << " args\n";
-  return nullptr;
+
+Value builtin_threshold(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("threshold(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("threshold(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    uint8_t threshold = 128; // fixed threshold for now
+    for (size_t i = 0; i + 2 < out->data.size(); i += 3) {
+        uint8_t r = out->data[i], g = out->data[i+1], b = out->data[i+2];
+        uint8_t gray = static_cast<uint8_t>(0.299*r + 0.587*g + 0.114*b);
+        uint8_t val = (gray >= threshold) ? 255 : 0;
+        out->data[i] = out->data[i+1] = out->data[i+2] = val;
+    }
+    std::cout << "Applied threshold to image\n";
+    return out;
 }
-Value builtin_brightness(const std::vector<Value> &args) {
-  std::cout << "Called brightness with " << args.size() << " args\n";
-  return nullptr;
+
+Value builtin_brightness(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("brightness(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("brightness(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    int delta = 40; // brighten by +40
+    for (size_t i = 0; i < out->data.size(); ++i) {
+        int v = static_cast<int>(out->data[i]) + delta;
+        out->data[i] = static_cast<uint8_t>(std::clamp(v, 0, 255));
+    }
+    std::cout << "Adjusted image brightness\n";
+    return out;
 }
-Value builtin_contrast(const std::vector<Value> &args) {
-  std::cout << "Called contrast with " << args.size() << " args\n";
-  return nullptr;
+
+Value builtin_contrast(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("contrast(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("contrast(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    float factor = 1.2f; // increase contrast
+    for (size_t i = 0; i < out->data.size(); ++i) {
+        int v = static_cast<int>((out->data[i] - 128) * factor + 128);
+        out->data[i] = static_cast<uint8_t>(std::clamp(v, 0, 255));
+    }
+    std::cout << "Adjusted image contrast\n";
+    return out;
 }
-Value builtin_saturate(const std::vector<Value> &args) {
-  std::cout << "Called saturate with " << args.size() << " args\n";
-  return nullptr;
+
+Value builtin_saturate(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("saturate(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("saturate(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    float factor = 1.3f; // increase saturation
+    for (size_t i = 0; i + 2 < out->data.size(); i += 3) {
+        float r = out->data[i], g = out->data[i+1], b = out->data[i+2];
+        float gray = 0.299f*r + 0.587f*g + 0.114f*b;
+        out->data[i]     = static_cast<uint8_t>(std::clamp(gray + factor*(r-gray), 0.0f, 255.0f));
+        out->data[i + 1] = static_cast<uint8_t>(std::clamp(gray + factor*(g-gray), 0.0f, 255.0f));
+        out->data[i + 2] = static_cast<uint8_t>(std::clamp(gray + factor*(b-gray), 0.0f, 255.0f));
+    }
+    std::cout << "Adjusted image saturation\n";
+    return out;
 }
-Value builtin_exposure(const std::vector<Value> &args) {
-  std::cout << "Called exposure with " << args.size() << " args\n";
-  return nullptr;
+
+Value builtin_exposure(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("exposure(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("exposure(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    float factor = 1.1f; // simple exposure adjustment
+    for (size_t i = 0; i < out->data.size(); ++i) {
+        int v = static_cast<int>(out->data[i] * factor);
+        out->data[i] = static_cast<uint8_t>(std::clamp(v, 0, 255));
+    }
+    std::cout << "Adjusted image exposure\n";
+    return out;
 }
-Value builtin_resize(const std::vector<Value> &args) {
-  std::cout << "Called resize with " << args.size() << " args\n";
-  return nullptr;
+
+Value builtin_resize(const std::vector<Value>& args) {
+    if (args.size() != 2 && args.size() != 1)
+        throw std::runtime_error("resize(image[, ...]): expects at least image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("resize(image): expects image");
+    // For now, just return a copy (no actual resize)
+    std::cout << "Stub: resize returns copy of image\n";
+    return std::make_shared<ImageValue>(*img_val);
 }
-Value builtin_rotate(const std::vector<Value> &args) {
-  std::cout << "Called rotate with " << args.size() << " args\n";
-  return nullptr;
+Value builtin_rotate(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("rotate(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("rotate(image): expects image");
+    // For now, just return a copy (no actual rotation)
+    std::cout << "Stub: rotate returns copy of image\n";
+    return std::make_shared<ImageValue>(*img_val);
 }
-Value builtin_flip(const std::vector<Value> &args) {
-  std::cout << "Called flip with " << args.size() << " args\n";
-  return nullptr;
+Value builtin_flip(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("flip(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("flip(image): expects image");
+    // For now, just return a copy (no actual flip)
+    std::cout << "Stub: flip returns copy of image\n";
+    return std::make_shared<ImageValue>(*img_val);
 }
-Value builtin_crop(const std::vector<Value> &args) {
-  std::cout << "Called crop with " << args.size() << " args\n";
-  return nullptr;
+Value builtin_crop(const std::vector<Value>& args) {
+    if (args.size() < 1)
+        throw std::runtime_error("crop(image, ...): expects at least image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("crop(image): expects image");
+    // For now, just return a copy (no actual crop)
+    std::cout << "Stub: crop returns copy of image\n";
+    return std::make_shared<ImageValue>(*img_val);
 }
-Value builtin_blur(const std::vector<Value> &args) {
-  std::cout << "Called blur with " << args.size() << " args\n";
-  return nullptr;
+Value builtin_blur(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("blur(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("blur(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    // Simple box blur (3x3 kernel)
+    int w = out->width, h = out->height;
+    std::vector<uint8_t> orig = out->data;
+    for (int y = 1; y < h-1; ++y) {
+        for (int x = 1; x < w-1; ++x) {
+            for (int c = 0; c < 3; ++c) {
+                int sum = 0;
+                for (int dy = -1; dy <= 1; ++dy)
+                    for (int dx = -1; dx <= 1; ++dx)
+                        sum += orig[3*((y+dy)*w + (x+dx)) + c];
+                out->data[3*(y*w + x) + c] = static_cast<uint8_t>(sum/9);
+            }
+        }
+    }
+    std::cout << "Applied blur to image\n";
+    return out;
 }
-Value builtin_sharpen(const std::vector<Value> &args) {
-  std::cout << "Called sharpen with " << args.size() << " args\n";
-  return nullptr;
+
+Value builtin_sharpen(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("sharpen(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("sharpen(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    // Simple sharpen kernel
+    int w = out->width, h = out->height;
+    std::vector<uint8_t> orig = out->data;
+    int kernel[3][3] = {{0, -1, 0}, {-1, 5, -1}, {0, -1, 0}};
+    for (int y = 1; y < h-1; ++y) {
+        for (int x = 1; x < w-1; ++x) {
+            for (int c = 0; c < 3; ++c) {
+                int sum = 0;
+                for (int dy = -1; dy <= 1; ++dy)
+                    for (int dx = -1; dx <= 1; ++dx)
+                        sum += kernel[dy+1][dx+1] * orig[3*((y+dy)*w + (x+dx)) + c];
+                sum = std::clamp(sum, 0, 255);
+                out->data[3*(y*w + x) + c] = static_cast<uint8_t>(sum);
+            }
+        }
+    }
+    std::cout << "Applied sharpen to image\n";
+    return out;
 }
-Value builtin_emboss(const std::vector<Value> &args) {
-  std::cout << "Called emboss\n";
-  return nullptr;
+Value builtin_emboss(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("emboss(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("emboss(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    int w = out->width, h = out->height;
+    std::vector<uint8_t> orig = out->data;
+    int kernel[3][3] = {{-2, -1, 0}, {-1, 1, 1}, {0, 1, 2}};
+    for (int y = 1; y < h-1; ++y) {
+        for (int x = 1; x < w-1; ++x) {
+            for (int c = 0; c < 3; ++c) {
+                int sum = 128;
+                for (int dy = -1; dy <= 1; ++dy)
+                    for (int dx = -1; dx <= 1; ++dx)
+                        sum += kernel[dy+1][dx+1] * orig[3*((y+dy)*w + (x+dx)) + c];
+                sum = std::clamp(sum, 0, 255);
+                out->data[3*(y*w + x) + c] = static_cast<uint8_t>(sum);
+            }
+        }
+    }
+    std::cout << "Applied emboss to image\n";
+    return out;
 }
-Value builtin_edge_detect(const std::vector<Value> &args) {
-  std::cout << "Called edge_detect\n";
-  return nullptr;
+
+Value builtin_edge_detect(const std::vector<Value>& args) {
+    if (args.size() != 1)
+        throw std::runtime_error("edge_detect(image): expects image");
+    auto img_val = std::dynamic_pointer_cast<ImageValue>(args[0]);
+    if (!img_val)
+        throw std::runtime_error("edge_detect(image): expects image");
+    auto out = std::make_shared<ImageValue>(*img_val);
+    int w = out->width, h = out->height;
+    std::vector<uint8_t> orig = out->data;
+    int kernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};
+    for (int y = 1; y < h-1; ++y) {
+        for (int x = 1; x < w-1; ++x) {
+            for (int c = 0; c < 3; ++c) {
+                int sum = 0;
+                for (int dy = -1; dy <= 1; ++dy)
+                    for (int dx = -1; dx <= 1; ++dx)
+                        sum += kernel[dy+1][dx+1] * orig[3*((y+dy)*w + (x+dx)) + c];
+                sum = std::clamp(sum, 0, 255);
+                out->data[3*(y*w + x) + c] = static_cast<uint8_t>(sum);
+            }
+        }
+    }
+    std::cout << "Applied edge detection to image\n";
+    return out;
 }
+
 Value builtin_print(const std::vector<Value> &args) {
   std::cout << "Called print with " << args.size() << " args" << std::endl;
   for (size_t i = 0; i < args.size(); ++i) {
@@ -195,7 +383,7 @@ void register_builtins() {
       {"save", {"save", 2, 2, builtin_save}},
       {"greyscale", {"greyscale", 1, 1, builtin_greyscale}},
       {"print", {"print", 0, 100, builtin_print}},
-      {"invert", {"invert", 0, 0, builtin_invert}},
+      {"invert", {"invert", 1, 1, builtin_invert}},
       {"threshold", {"threshold", 1, 1, builtin_threshold}},
       {"brightness", {"brightness", 1, 1, builtin_brightness}},
       {"contrast", {"contrast", 1, 1, builtin_contrast}},
@@ -204,10 +392,10 @@ void register_builtins() {
       {"resize", {"resize", 2, 2, builtin_resize}},
       {"rotate", {"rotate", 1, 1, builtin_rotate}},
       {"flip", {"flip", 1, 1, builtin_flip}},
-      {"crop", {"crop", 4, 4, builtin_crop}},
+      {"crop", {"crop", 5, 5, builtin_crop}},
       {"blur", {"blur", 1, 1, builtin_blur}},
       {"sharpen", {"sharpen", 1, 1, builtin_sharpen}},
-      {"emboss", {"emboss", 0, 0, builtin_emboss}},
-      {"edge_detect", {"edge_detect", 0, 0, builtin_edge_detect}},
+      {"emboss", {"emboss", 1, 1, builtin_emboss}},
+      {"edge_detect", {"edge_detect", 1, 1, builtin_edge_detect}},
   };
 }

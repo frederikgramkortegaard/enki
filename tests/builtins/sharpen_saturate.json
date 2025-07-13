@@ -1,0 +1,437 @@
+{
+  "span": {
+    "end": {
+      "col": 0,
+      "file_name": "",
+      "pos": 0,
+      "row": 0
+    },
+    "start": {
+      "col": 0,
+      "file_name": "",
+      "pos": 0,
+      "row": 0
+    }
+  },
+  "statements": [
+    {
+      "expression": {
+        "arguments": [
+          {
+            "base_type": "String",
+            "span": {
+              "end": {
+                "col": 53,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 53,
+                "row": 0
+              },
+              "start": {
+                "col": 18,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 18,
+                "row": 0
+              }
+            },
+            "type": "Literal",
+            "value": "sample-bmp-files-sample_640x426.bmp"
+          }
+        ],
+        "callee": {
+          "name": "open",
+          "span": {
+            "end": {
+              "col": 16,
+              "file_name": "tests/builtins/sharpen_saturate.morph",
+              "pos": 16,
+              "row": 0
+            },
+            "start": {
+              "col": 12,
+              "file_name": "tests/builtins/sharpen_saturate.morph",
+              "pos": 12,
+              "row": 0
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 16,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 16,
+            "row": 0
+          },
+          "start": {
+            "col": 12,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 12,
+            "row": 0
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "image",
+        "span": {
+          "end": {
+            "col": 9,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 9,
+            "row": 0
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 4,
+            "row": 0
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 16,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 16,
+          "row": 0
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 0,
+          "row": 0
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "image",
+            "span": {
+              "end": {
+                "col": 25,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 81,
+                "row": 1
+              },
+              "start": {
+                "col": 20,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 76,
+                "row": 1
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "sharpen",
+          "span": {
+            "end": {
+              "col": 19,
+              "file_name": "tests/builtins/sharpen_saturate.morph",
+              "pos": 75,
+              "row": 1
+            },
+            "start": {
+              "col": 12,
+              "file_name": "tests/builtins/sharpen_saturate.morph",
+              "pos": 68,
+              "row": 1
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 19,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 75,
+            "row": 1
+          },
+          "start": {
+            "col": 12,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 68,
+            "row": 1
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "sharp",
+        "span": {
+          "end": {
+            "col": 9,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 65,
+            "row": 1
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 60,
+            "row": 1
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 19,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 75,
+          "row": 1
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 56,
+          "row": 1
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "sharp",
+            "span": {
+              "end": {
+                "col": 24,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 107,
+                "row": 2
+              },
+              "start": {
+                "col": 19,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 102,
+                "row": 2
+              }
+            },
+            "type": "Identifier"
+          }
+        ],
+        "callee": {
+          "name": "saturate",
+          "span": {
+            "end": {
+              "col": 18,
+              "file_name": "tests/builtins/sharpen_saturate.morph",
+              "pos": 101,
+              "row": 2
+            },
+            "start": {
+              "col": 10,
+              "file_name": "tests/builtins/sharpen_saturate.morph",
+              "pos": 93,
+              "row": 2
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 18,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 101,
+            "row": 2
+          },
+          "start": {
+            "col": 10,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 93,
+            "row": 2
+          }
+        },
+        "type": "CallExpression"
+      },
+      "identifier": {
+        "name": "out",
+        "span": {
+          "end": {
+            "col": 7,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 90,
+            "row": 2
+          },
+          "start": {
+            "col": 4,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 87,
+            "row": 2
+          }
+        },
+        "type": "Identifier"
+      },
+      "span": {
+        "end": {
+          "col": 18,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 101,
+          "row": 2
+        },
+        "start": {
+          "col": 0,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 83,
+          "row": 2
+        }
+      },
+      "type": "LetStatement"
+    },
+    {
+      "expression": {
+        "arguments": [
+          {
+            "name": "out",
+            "span": {
+              "end": {
+                "col": 8,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 117,
+                "row": 3
+              },
+              "start": {
+                "col": 5,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 114,
+                "row": 3
+              }
+            },
+            "type": "Identifier"
+          },
+          {
+            "base_type": "String",
+            "span": {
+              "end": {
+                "col": 46,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 155,
+                "row": 3
+              },
+              "start": {
+                "col": 11,
+                "file_name": "tests/builtins/sharpen_saturate.morph",
+                "pos": 120,
+                "row": 3
+              }
+            },
+            "type": "Literal",
+            "value": "tests/builtins/sharpen_saturate.bmp"
+          }
+        ],
+        "callee": {
+          "name": "save",
+          "span": {
+            "end": {
+              "col": 4,
+              "file_name": "tests/builtins/sharpen_saturate.morph",
+              "pos": 113,
+              "row": 3
+            },
+            "start": {
+              "col": 0,
+              "file_name": "tests/builtins/sharpen_saturate.morph",
+              "pos": 109,
+              "row": 3
+            }
+          },
+          "type": "Identifier"
+        },
+        "span": {
+          "end": {
+            "col": 4,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 113,
+            "row": 3
+          },
+          "start": {
+            "col": 0,
+            "file_name": "tests/builtins/sharpen_saturate.morph",
+            "pos": 109,
+            "row": 3
+          }
+        },
+        "type": "CallExpression"
+      },
+      "span": {
+        "end": {
+          "col": 0,
+          "file_name": "",
+          "pos": 0,
+          "row": 0
+        },
+        "start": {
+          "col": 0,
+          "file_name": "",
+          "pos": 0,
+          "row": 0
+        }
+      },
+      "type": "ExpressionStatement"
+    }
+  ],
+  "symbols": {
+    "image": {
+      "name": "image",
+      "span": {
+        "end": {
+          "col": 9,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 9,
+          "row": 0
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 4,
+          "row": 0
+        }
+      },
+      "type": null
+    },
+    "out": {
+      "name": "out",
+      "span": {
+        "end": {
+          "col": 7,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 90,
+          "row": 2
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 87,
+          "row": 2
+        }
+      },
+      "type": null
+    },
+    "sharp": {
+      "name": "sharp",
+      "span": {
+        "end": {
+          "col": 9,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 65,
+          "row": 1
+        },
+        "start": {
+          "col": 4,
+          "file_name": "tests/builtins/sharpen_saturate.morph",
+          "pos": 60,
+          "row": 1
+        }
+      },
+      "type": null
+    }
+  },
+  "type": "Program"
+}
