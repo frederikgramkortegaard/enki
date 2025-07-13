@@ -1,0 +1,5 @@
+morphir
+morpheval
+build
+*.dSYM
+*.o
