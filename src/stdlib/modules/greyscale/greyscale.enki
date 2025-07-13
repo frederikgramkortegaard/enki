@@ -1,0 +1,11 @@
+// greyscale.enki
+extern greyscale_cuda(image) from "greyscale.cu";
+extern greyscale_cpu(image) from "greyscale.cpp";
+
+func greyscale(image: MyImageType) -> MyImageType {
+    if _meta.cuda_enabled && image.width * image.height > 256*256 {
+        return greyscale_cuda(image);
+    } else {
+        return greyscale_cpu(image);
+    }
+}
