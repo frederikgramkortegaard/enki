@@ -3,7 +3,7 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
-std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
+std::shared_ptr<Expression> parse_atom(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
 
   switch (tok.type) {
@@ -33,8 +33,9 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
              ctx.current_token().type != TokenType::RParens) {
         auto arg = parse_expression(ctx);
         if (!arg) {
-          spdlog::error("Expected Expression at {} but couldn't find one",
-                        std::string(ctx.current_token().span.start.to_string()));
+          spdlog::error(
+              "Expected Expression at {} but couldn't find one",
+              std::string(ctx.current_token().span.start.to_string()));
           std::exit(1);
         }
         call_expr->arguments.push_back(arg);
@@ -66,6 +67,68 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
   }
 
   return nullptr;
+}
+
+std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
+  auto left = parse_atom(ctx);
+  if (!left)
+    return nullptr;
+
+  // Shunting Yard Algorithm for Binary Operators
+  std::vector<std::shared_ptr<Expression>> output;
+  std::vector<BinaryOpType> ops;
+  output.push_back(left);
+
+  while (ctx.current < ctx.tokens.size()) {
+    const Token &tok = ctx.current_token();
+    auto binop = token_to_binop(tok.type);
+    if (!binop.has_value()) {
+      break; // No more binary operators
+    }
+    ctx.consume();
+    while (!ops.empty() && binary_op_precedence(ops.back()) >=
+                               binary_op_precedence(binop.value())) {
+      auto right = output.back();
+      output.pop_back();
+      auto left_expr = output.back();
+      output.pop_back();
+
+      auto bin_expr = std::make_shared<BinaryOp>();
+      bin_expr->left = left_expr;
+      bin_expr->right = right;
+      bin_expr->op = ops.back();
+      bin_expr->span() = Span(left_expr->span().start, right->span().end);
+      output.push_back(bin_expr);
+      ops.pop_back();
+    }
+
+    auto right = parse_atom(ctx);
+    if (!right) {
+      spdlog::error("Expected right operand for binary operator at {}",
+                    tok.span.start.to_string());
+      std::exit(1);
+    }
+
+    output.push_back(right);
+    ops.push_back(binop.value());
+  }
+
+  // Process remaining operators
+  while (!ops.empty()) {
+    auto right = output.back();
+    output.pop_back();
+    auto left_expr = output.back();
+    output.pop_back();
+    auto bin_expr = std::make_shared<BinaryOp>();
+    bin_expr->left = left_expr;
+    bin_expr->right = right;
+    bin_expr->op = ops.back();
+    bin_expr->span() = Span(left_expr->span().start, right->span().end);
+    output.push_back(bin_expr);
+    ops.pop_back();
+  }
+
+  return output.size() == 1 ? output[0] : nullptr;
 }
 
 std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
@@ -124,7 +187,8 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
     }
 
     ctx.consume_assert(TokenType::RCurly, "Missing '}' in Block statement");
-    block_stmt->span() = Span(statement_start.start, ctx.previous_token_span().end);
+    block_stmt->span() =
+        Span(statement_start.start, ctx.previous_token_span().end);
     return block_stmt;
   }
 
@@ -142,8 +206,9 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
 
     auto then_branch = parse_statement(ctx);
     if (!then_branch) {
-      spdlog::error("Expected then branch statement at {} but couldn't find one",
-                    ctx.current_token().span.start.to_string());
+      spdlog::error(
+          "Expected then branch statement at {} but couldn't find one",
+          ctx.current_token().span.start.to_string());
       std::exit(1);
     }
     if_stmt->then_branch = then_branch;
@@ -153,14 +218,16 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
       ctx.consume();
       auto else_branch = parse_statement(ctx);
       if (!else_branch) {
-        spdlog::error("Expected else branch statement at {} but couldn't find one",
-                      ctx.current_token().span.start.to_string());
+        spdlog::error(
+            "Expected else branch statement at {} but couldn't find one",
+            ctx.current_token().span.start.to_string());
         std::exit(1);
       }
       if_stmt->else_branch = else_branch;
     }
 
-    if_stmt->span() = Span(statement_start.start, ctx.previous_token_span().end);
+    if_stmt->span() =
+        Span(statement_start.start, ctx.previous_token_span().end);
     return if_stmt;
   }
 
@@ -184,7 +251,8 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
     }
     while_stmt->body = body;
 
-    while_stmt->span() = Span(statement_start.start, ctx.previous_token_span().end);
+    while_stmt->span() =
+        Span(statement_start.start, ctx.previous_token_span().end);
     return while_stmt;
   }
 

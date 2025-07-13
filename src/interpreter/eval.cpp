@@ -15,7 +15,7 @@ std::shared_ptr<ValueBase>
 eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
   spdlog::debug("Evaluating expression");
 
-  if (expr->ast_type == ASTType::FunctionCall) {
+  if (expr->expr_type == ExpressionType::FunctionCall) {
     spdlog::debug("Expression is a function call");
     auto call = std::dynamic_pointer_cast<CallExpression>(expr);
     std::vector<std::shared_ptr<ValueBase>> args;
@@ -54,7 +54,7 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     return nullptr;
   }
 
-  if (expr->ast_type == ASTType::Literal) {
+  if (expr->expr_type == ExpressionType::Literal) {
     spdlog::debug("Expression is a literal");
     auto lit = std::dynamic_pointer_cast<Literal>(expr);
     spdlog::debug("Literal value: {}", lit->value);
@@ -81,7 +81,7 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     return inter_value;
   }
 
-  if (expr->ast_type == ASTType::Identifier) {
+  if (expr->expr_type == ExpressionType::Identifier) {
     spdlog::debug("Expression is an identifier");
     auto ident = std::dynamic_pointer_cast<Identifier>(expr);
     spdlog::debug("Identifier: {}", ident->name);
@@ -92,8 +92,8 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     }
   }
 
-  spdlog::warn("Unknown expression type");
-
+  spdlog::error("Unknown expression type");
+  std::exit(1);
   return nullptr;
 }
 

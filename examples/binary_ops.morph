@@ -1,0 +1,14 @@
+let a0 = 10 + 11
+print(a0)
+let a1 = 10 - 11
+print(a1)
+let a2 = 10 / 11
+print(a2)
+let a3 = 10 * 11
+print(a3)
+let a4 = 10 / 11 * 12
+print(a4)
+let a5 = 10 + 11 * 12
+print(a5)
+let a6 = 10 * 11 + 12
+print(a6)

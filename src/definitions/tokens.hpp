@@ -31,6 +31,17 @@ enum class TokenType {
   Colon,
   Semicolon,
   Equals,
+  Plus,
+  Minus,
+  Asterisk,
+  Slash,
+  LessThan,
+  LessThanEquals,
+  GreaterThan,
+  GreaterThanEquals,
+  EqualsEquals,
+  NotEquals,
+  Exclamation,
 
   // Literal types
   Identifier,

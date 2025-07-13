@@ -4,6 +4,7 @@ OBJ_DIR   = build
 CORE_SRCS = $(wildcard src/compiler/*.cpp)
 CORE_SRCS += $(wildcard src/runtime/*.cpp)
 CORE_SRCS += $(wildcard src/interpreter/*.cpp)
+CORE_SRCS += $(wildcard src/definitions/*.cpp)
 CORE_SRCS += $(wildcard src/utils/*.cpp)
 CORE_OBJS = $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(CORE_SRCS))
 

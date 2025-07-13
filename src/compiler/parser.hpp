@@ -47,3 +47,7 @@ struct ParserContext {
 
   void consume_assert(TokenType type, const std::string &message);
 };
+
+std::shared_ptr<Expression> parse_atom(ParserContext &ctx);
+std::shared_ptr<Expression> parse_expression(ParserContext &ctx);
+std::shared_ptr<Statement> parse_statement(ParserContext &ctx);

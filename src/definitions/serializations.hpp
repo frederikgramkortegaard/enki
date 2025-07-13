@@ -64,11 +64,26 @@ inline void from_json(const json &j, Span &s) {
 
 // --- Identifier ---
 inline void to_json(json &j, const Identifier &id) {
-  j["name"] = id.name;
+  j["name"] = std::string(id.name);
   j["span"] = id.span();
 }
 inline void from_json(const json &j, Identifier &id) {
   j.at("name").get_to(id.name);
+  j.at("span").get_to(id.span());
+}
+
+// --- BinaryOp ---
+inline void to_json(json &j, const BinaryOp &id) {
+  j["left"] = id.left;
+  j["right"] = id.right;
+  j["op"] = magic_enum::enum_name(id.op);
+  j["span"] = id.span();
+  j["type"] = "BinaryOp";
+}
+inline void from_json(const json &j, BinaryOp &id) {
+  j.at("left").get_to(id.left);
+  j.at("right").get_to(id.right);
+  id.op = magic_enum::enum_cast<BinaryOpType>(j.at("op").get<std::string>()).value();
   j.at("span").get_to(id.span());
 }
 
@@ -220,9 +235,9 @@ inline void to_json(json &j, const std::shared_ptr<Expression> &expr) {
   } else if (auto call = std::dynamic_pointer_cast<CallExpression>(expr)) {
     to_json(j, *call);
     j["type"] = "CallExpression";
-  } else if (auto while_stmt = std::dynamic_pointer_cast<WhileLoop>(expr)) {
-    to_json(j, *while_stmt);
-    j["type"] = "WhileLoop";
+  } else if (auto bin_op = std::dynamic_pointer_cast<BinaryOp>(expr)) {
+    to_json(j, *bin_op);
+    j["type"] = "BinaryOp";
   } else {
     throw std::runtime_error("Unknown Expression type for to_json");
   }
@@ -245,6 +260,10 @@ inline void from_json(const json &j, std::shared_ptr<Expression> &expr) {
     auto call = std::make_shared<CallExpression>();
     from_json(j, *call);
     expr = call;
+  } else if (type == "BinaryOp") {
+    auto bin_op = std::make_shared<BinaryOp>();
+    from_json(j, *bin_op);
+    expr = bin_op;
   } else {
     throw std::runtime_error("Unknown Expression type for from_json: " + type);
   }
