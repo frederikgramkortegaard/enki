@@ -3,6 +3,7 @@
 #include "../definitions/tokens.hpp"
 #include <string_view>
 #include <vector>
+#include <iostream>
 
 std::shared_ptr<Program> parse(std::vector<Token> tokens);
 
@@ -24,7 +25,17 @@ struct ParserContext {
   const Token &consume() {
     if (eof())
       throw std::runtime_error("Unexpected end of input while consuming");
+    std::cout << std::format(
+        "Consuming token {}: {} at {}",
+        current, magic_enum::enum_name(tokens[current].type),
+        tokens[current].span.start.to_string()) << std::endl;
     return tokens[current++];
+  }
+
+  Span previous_token_span() const {
+    if (current == 0)
+      throw std::runtime_error("No previous token to get span from");
+    return tokens[current - 1].span;
   }
 
   std::optional<Token> consume_if(TokenType expected) {

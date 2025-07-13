@@ -9,6 +9,18 @@ TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
   if (str == "let") {
     return TokenType::Let;
   }
+  if (str == "if") {
+    return TokenType::If;
+  }
+  if (str == "else") {
+    return TokenType::Else;
+  }
+  if (str == "true") {
+    return TokenType::True;
+  }
+  if (str == "false") {
+    return TokenType::False;
+  }
   return TokenType::Identifier;
 }
 
@@ -63,6 +75,10 @@ std::vector<Token> lex(const std::string_view &source,
     // Operators / Syntax
     case '(':
     case ')':
+    case '[':
+    case ']':
+    case '{':
+    case '}':
     case ',':
     case '.':
     case '|':
@@ -145,6 +161,12 @@ std::vector<Token> lex(const std::string_view &source,
                      start);
         continue;
       }
+
+      // If we reach here, it means we have an unknown character
+      std::cerr << "Unknown character '" << source[cursor]
+                << "' at " << row << ":" << col << "\n";
+      increment();
+      continue;
     }
     }
   }

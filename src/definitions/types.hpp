@@ -13,7 +13,7 @@
 #include <string>      // for std::string
 #include <string_view> // for std::string_view
 
-enum class BaseType { Int, Float, String, Identifier };
+enum class BaseType { Int, Float, String, Bool, Identifier };
 
 struct Type {
   BaseType base_type;

@@ -71,6 +71,9 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     case BaseType::String:
       inter_value = std::make_shared<StringValue>(lit->value);
       break;
+    case BaseType::Bool:
+      inter_value = std::make_shared<BoolValue>(lit->value == "true");
+      break;
     default:
       throw std::runtime_error("Unknown literal type");
     }
@@ -94,9 +97,8 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
   return nullptr;
 }
 
-int interpret(EvalContext &ctx) {
-
-  for (auto stmt : ctx.program.statements) {
+void eval_statement(EvalContext &ctx, const std::shared_ptr<Statement> &stmt) {
+    // TODO: Move these into virtual eval(EvalContext &ctx) functions for AST nodes
     if (auto let = std::dynamic_pointer_cast<LetStatement>(stmt)) {
 
       std::shared_ptr<ValueBase> value = eval_expression(ctx, let->expression);
@@ -106,13 +108,50 @@ int interpret(EvalContext &ctx) {
       std::cout << "identifier: " << ident->name << std::endl;
       ctx.values[std::string(ident->name)] = value;
       std::cout << "d" << std::endl;
+      return;
     }
 
     if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStatement>(stmt)) {
       std::cout << "evaluating expression statement" << std::endl;
       auto value = eval_expression(ctx, expr_stmt->expression);
       std::cout << "evaluated expression statement" << std::endl;
+      return;
     }
+
+    if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
+      std::cout << "evaluating if statement" << std::endl;
+      auto condition = eval_expression(ctx, if_stmt->condition);
+      std::cout << "evaluated if statement" << std::endl;
+      if (condition->type_name() != "bool") {
+        throw std::runtime_error("Condition is not a boolean");
+      }
+      auto bool_value = std::dynamic_pointer_cast<BoolValue>(condition);
+      if (bool_value->value) {
+        std::cout << "Condition is true, evaluating then branch" << std::endl;
+        eval_statement(ctx, if_stmt->then_branch);
+      } else if (if_stmt->else_branch) {
+        std::cout << "Condition is false, evaluating else branch" << std::endl;
+        eval_statement(ctx, if_stmt->else_branch);
+      }
+      return;
+    }
+
+    if (auto block_stmt = std::dynamic_pointer_cast<Block>(stmt)) {
+      std::cout << "evaluating block statement" << std::endl;
+      for (const auto &inner_stmt : block_stmt->statements) {
+        eval_statement(ctx, inner_stmt);
+      }
+      std::cout << "evaluated block statement" << std::endl;
+      return;
+    }
+
+    std::cout << "Unknown statement type at " << stmt->span().start.to_string() << std::endl;
+    std::exit(1);
+}
+
+int interpret(EvalContext &ctx) {
+  for (auto stmt : ctx.program.statements) {
+    eval_statement(ctx, stmt);
   }
 
   return 0;

@@ -17,7 +17,6 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
     return lit;
   }
   case TokenType::Identifier: {
-
     // Function Call
     if (ctx.peek(1).type == TokenType::LParens) {
       auto call_expr = std::make_shared<CallExpression>();
@@ -52,6 +51,15 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
     ident->span() = tok.span;
     ctx.consume();
     return ident;
+  }
+  case TokenType::True:
+  case TokenType::False: {
+    auto bool_lit = std::make_shared<Literal>();
+    bool_lit->type = Type{BaseType::Bool};
+    bool_lit->value = tok.type == TokenType::True ? "true" : "false";
+    bool_lit->span() = tok.span;
+    ctx.consume();
+    return bool_lit;
   }
   default:
     break;
@@ -101,6 +109,64 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
         Symbol{ident_expr->name, nullptr, ident_tok.span};
 
     return let_stmt;
+  }
+
+  if (tok.type == TokenType::LCurly) {
+    auto block_stmt = std::make_shared<Block>();
+    ctx.consume();
+
+    while (ctx.current < ctx.tokens.size() &&
+           ctx.current_token().type != TokenType::RCurly) {
+      auto stmt = parse_statement(ctx);
+      if (stmt) {
+        block_stmt->statements.push_back(stmt);
+      } else {
+        break; // error handling or end
+      }
+    }
+
+    ctx.consume_assert(TokenType::RCurly, "Missing '}' in Block statement");
+    block_stmt->span() = Span(statement_start.start, ctx.previous_token_span().end);
+    return block_stmt;
+  }
+
+  if (tok.type == TokenType::If) {
+    auto if_stmt = std::make_shared<IfStatement>();
+    ctx.consume();
+
+    auto condition = parse_expression(ctx);
+    if (!condition) {
+      std::cerr << std::format(
+          "Expected condition expression at {} but couldn't find one\n",
+          ctx.current_token().span.start.to_string());
+      std::exit(1);
+    }
+    if_stmt->condition = condition;
+
+    auto then_branch = parse_statement(ctx);
+    if (!then_branch) {
+      std::cerr << std::format(
+          "Expected then branch statement at {} but couldn't find one\n",
+          ctx.current_token().span.start.to_string());
+      std::exit(1);
+    }
+    if_stmt->then_branch = then_branch;
+
+    if (ctx.current < ctx.tokens.size() &&
+        ctx.current_token().type == TokenType::Else) {
+      ctx.consume();
+      auto else_branch = parse_statement(ctx);
+      if (!else_branch) {
+        std::cerr << std::format(
+            "Expected else branch statement at {} but couldn't find one\n",
+            ctx.current_token().span.start.to_string());
+        std::exit(1);
+      }
+      if_stmt->else_branch = else_branch;
+    }
+
+    if_stmt->span() = Span(statement_start.start, ctx.previous_token_span().end);
+    return if_stmt;
   }
 
   // Maybe its a dangling expression

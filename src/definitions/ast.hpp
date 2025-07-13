@@ -46,6 +46,16 @@ struct LetStatement : Statement {
   std::shared_ptr<Expression> expression;
 };
 
+struct IfStatement : Statement {
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<Statement> then_branch;
+  std::shared_ptr<Statement> else_branch;
+};
+
+struct Block : Statement {
+  std::vector<std::shared_ptr<Statement>> statements;
+};
+
 struct Literal : Expression {
   Type type;
   std::string value;
