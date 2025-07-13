@@ -8,6 +8,10 @@
 TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
   if (str == "let") {
     return TokenType::Let;
+  } else if (str == "extern") {
+    return TokenType::Extern;
+  } else if (str == "from") {
+    return TokenType::From;
   }
   return TokenType::Identifier;
 }
@@ -72,6 +76,13 @@ std::vector<Token> lex(const std::string_view &source,
       increment();
       create_token(from_char(source[start.pos]), start);
       continue;
+    }
+    case '-': {
+      if (cursor + 1 < source.size() && source[cursor + 1] == '>') {
+        increment(2);
+        create_token(TokenType::Arrow, start);
+        continue;
+      }
     }
 
     // Single-line comments

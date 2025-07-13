@@ -1,0 +1,5 @@
+let image = open("sample-bmp-files-sample_640x426.bmp")
+let crp = crop(image, 0, 0, 100, 100)
+let blur_img = blur(crp)
+let out = sharpen(blur_img)
+save(out, "tests/builtins/crop_blur_sharpen.bmp")

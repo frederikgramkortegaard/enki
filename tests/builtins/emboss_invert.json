@@ -22,13 +22,13 @@
             "span": {
               "end": {
                 "col": 53,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 53,
                 "row": 0
               },
               "start": {
                 "col": 18,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 18,
                 "row": 0
               }
@@ -42,13 +42,13 @@
           "span": {
             "end": {
               "col": 16,
-              "file_name": "tests/builtins/emboss_invert.morph",
+              "file_name": "tests/builtins/emboss_invert.enki",
               "pos": 16,
               "row": 0
             },
             "start": {
               "col": 12,
-              "file_name": "tests/builtins/emboss_invert.morph",
+              "file_name": "tests/builtins/emboss_invert.enki",
               "pos": 12,
               "row": 0
             }
@@ -58,13 +58,13 @@
         "span": {
           "end": {
             "col": 16,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 16,
             "row": 0
           },
           "start": {
             "col": 12,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 12,
             "row": 0
           }
@@ -76,13 +76,13 @@
         "span": {
           "end": {
             "col": 9,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 9,
             "row": 0
           },
           "start": {
             "col": 4,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 4,
             "row": 0
           }
@@ -92,13 +92,13 @@
       "span": {
         "end": {
           "col": 16,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 16,
           "row": 0
         },
         "start": {
           "col": 0,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 0,
           "row": 0
         }
@@ -113,13 +113,13 @@
             "span": {
               "end": {
                 "col": 22,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 78,
                 "row": 1
               },
               "start": {
                 "col": 17,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 73,
                 "row": 1
               }
@@ -132,13 +132,13 @@
           "span": {
             "end": {
               "col": 16,
-              "file_name": "tests/builtins/emboss_invert.morph",
+              "file_name": "tests/builtins/emboss_invert.enki",
               "pos": 72,
               "row": 1
             },
             "start": {
               "col": 10,
-              "file_name": "tests/builtins/emboss_invert.morph",
+              "file_name": "tests/builtins/emboss_invert.enki",
               "pos": 66,
               "row": 1
             }
@@ -148,13 +148,13 @@
         "span": {
           "end": {
             "col": 16,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 72,
             "row": 1
           },
           "start": {
             "col": 10,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 66,
             "row": 1
           }
@@ -166,13 +166,13 @@
         "span": {
           "end": {
             "col": 7,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 63,
             "row": 1
           },
           "start": {
             "col": 4,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 60,
             "row": 1
           }
@@ -182,13 +182,13 @@
       "span": {
         "end": {
           "col": 16,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 72,
           "row": 1
         },
         "start": {
           "col": 0,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 56,
           "row": 1
         }
@@ -203,13 +203,13 @@
             "span": {
               "end": {
                 "col": 20,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 100,
                 "row": 2
               },
               "start": {
                 "col": 17,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 97,
                 "row": 2
               }
@@ -222,13 +222,13 @@
           "span": {
             "end": {
               "col": 16,
-              "file_name": "tests/builtins/emboss_invert.morph",
+              "file_name": "tests/builtins/emboss_invert.enki",
               "pos": 96,
               "row": 2
             },
             "start": {
               "col": 10,
-              "file_name": "tests/builtins/emboss_invert.morph",
+              "file_name": "tests/builtins/emboss_invert.enki",
               "pos": 90,
               "row": 2
             }
@@ -238,13 +238,13 @@
         "span": {
           "end": {
             "col": 16,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 96,
             "row": 2
           },
           "start": {
             "col": 10,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 90,
             "row": 2
           }
@@ -256,13 +256,13 @@
         "span": {
           "end": {
             "col": 7,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 87,
             "row": 2
           },
           "start": {
             "col": 4,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 84,
             "row": 2
           }
@@ -272,13 +272,13 @@
       "span": {
         "end": {
           "col": 16,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 96,
           "row": 2
         },
         "start": {
           "col": 0,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 80,
           "row": 2
         }
@@ -293,13 +293,13 @@
             "span": {
               "end": {
                 "col": 8,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 110,
                 "row": 3
               },
               "start": {
                 "col": 5,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 107,
                 "row": 3
               }
@@ -311,13 +311,13 @@
             "span": {
               "end": {
                 "col": 43,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 145,
                 "row": 3
               },
               "start": {
                 "col": 11,
-                "file_name": "tests/builtins/emboss_invert.morph",
+                "file_name": "tests/builtins/emboss_invert.enki",
                 "pos": 113,
                 "row": 3
               }
@@ -331,13 +331,13 @@
           "span": {
             "end": {
               "col": 4,
-              "file_name": "tests/builtins/emboss_invert.morph",
+              "file_name": "tests/builtins/emboss_invert.enki",
               "pos": 106,
               "row": 3
             },
             "start": {
               "col": 0,
-              "file_name": "tests/builtins/emboss_invert.morph",
+              "file_name": "tests/builtins/emboss_invert.enki",
               "pos": 102,
               "row": 3
             }
@@ -347,13 +347,13 @@
         "span": {
           "end": {
             "col": 4,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 106,
             "row": 3
           },
           "start": {
             "col": 0,
-            "file_name": "tests/builtins/emboss_invert.morph",
+            "file_name": "tests/builtins/emboss_invert.enki",
             "pos": 102,
             "row": 3
           }
@@ -383,13 +383,13 @@
       "span": {
         "end": {
           "col": 7,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 63,
           "row": 1
         },
         "start": {
           "col": 4,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 60,
           "row": 1
         }
@@ -401,13 +401,13 @@
       "span": {
         "end": {
           "col": 9,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 9,
           "row": 0
         },
         "start": {
           "col": 4,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 4,
           "row": 0
         }
@@ -419,13 +419,13 @@
       "span": {
         "end": {
           "col": 7,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 87,
           "row": 2
         },
         "start": {
           "col": 4,
-          "file_name": "tests/builtins/emboss_invert.morph",
+          "file_name": "tests/builtins/emboss_invert.enki",
           "pos": 84,
           "row": 2
         }

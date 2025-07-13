@@ -60,9 +60,50 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
   return nullptr;
 }
 
+std::shared_ptr<Type> parse_type(ParserContext &ctx) {
+  return nullptr;
+}
+
+std::shared_ptr<Identifier> parse_identifier(ParserContext &ctx) {
+  const Token &tok = ctx.tokens[ctx.current];
+  if (tok.type != TokenType::Identifier) {
+    std::cerr << std::format("Expected Identifier at {} but got {}\n",
+                             tok.span.start.to_string(),
+                             magic_enum::enum_name(tok.type));
+    std::exit(1);
+  }
+  auto ident = std::make_shared<Identifier>();
+  ident->name = tok.value;
+  ident->span() = tok.span;
+  ctx.consume();
+  return ident;
+}
+
 std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
   Span statement_start = tok.span;
+
+  if (tok.type == TokenType::Extern) {
+    auto extern_stmt = std::make_shared<ExternStatement>();
+    ctx.consume();
+    auto ident = parse_identifier(ctx);
+    extern_stmt->identifier = ident;
+    ctx.consume_assert(TokenType::LParens, "Missing '(' in Extern statement");
+    while (ctx.current < ctx.tokens.size() &&
+           ctx.current_token().type != TokenType::RParens) {
+      auto arg = parse_type(ctx);
+      extern_stmt->args.push_back(arg);
+      ctx.consume_if(TokenType::Comma);
+    }
+    ctx.consume_assert(TokenType::RParens, "Missing ')' in Extern statement");
+    ctx.consume_assert(TokenType::Arrow, "Missing '->' in Extern statement");
+    extern_stmt->return_type = parse_type(ctx);
+    ctx.consume_assert(TokenType::From, "Missing 'from' in Extern statement");
+    extern_stmt->module_path = ctx.current_token().value;
+    return extern_stmt;
+
+    // @TODO Add to symtable
+  }
 
   if (tok.type == TokenType::Let) {
     auto let_stmt = std::make_shared<LetStatement>();

@@ -1,0 +1,4 @@
+let image = open("sample-bmp-files-sample_640x426.bmp")
+let emb = emboss(image)
+let out = invert(emb)
+save(out, "tests/builtins/emboss_invert.bmp")

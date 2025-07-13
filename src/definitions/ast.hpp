@@ -19,9 +19,14 @@ enum class ASTType {
   BinaryOp,
   Literal,
   FunctionCall,
+  FunctionDefinition,
+  Extern,
 };
 
+
+
 struct Statement : Spanned {
+  ASTType ast_type;
   virtual ~Statement() = default;
 };
 
@@ -33,6 +38,16 @@ struct Expression : Spanned {
 struct Identifier : Expression {
   std::string_view name;
   Identifier() { ast_type = ASTType::Identifier; }
+};
+
+
+
+struct ExternStatement : Statement {
+  std::shared_ptr<Identifier> identifier;
+  std::vector<std::shared_ptr<Type>> args;
+  std::shared_ptr<Type> return_type;
+  std::string_view module_path;
+  ExternStatement() { ast_type = ASTType::Extern; }
 };
 
 struct CallExpression : Expression {

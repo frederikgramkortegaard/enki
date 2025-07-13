@@ -22,13 +22,13 @@
             "span": {
               "end": {
                 "col": 53,
-                "file_name": "tests/builtins/emboss.morph",
+                "file_name": "tests/builtins/emboss.enki",
                 "pos": 53,
                 "row": 0
               },
               "start": {
                 "col": 18,
-                "file_name": "tests/builtins/emboss.morph",
+                "file_name": "tests/builtins/emboss.enki",
                 "pos": 18,
                 "row": 0
               }
@@ -42,13 +42,13 @@
           "span": {
             "end": {
               "col": 16,
-              "file_name": "tests/builtins/emboss.morph",
+              "file_name": "tests/builtins/emboss.enki",
               "pos": 16,
               "row": 0
             },
             "start": {
               "col": 12,
-              "file_name": "tests/builtins/emboss.morph",
+              "file_name": "tests/builtins/emboss.enki",
               "pos": 12,
               "row": 0
             }
@@ -58,13 +58,13 @@
         "span": {
           "end": {
             "col": 16,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 16,
             "row": 0
           },
           "start": {
             "col": 12,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 12,
             "row": 0
           }
@@ -76,13 +76,13 @@
         "span": {
           "end": {
             "col": 9,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 9,
             "row": 0
           },
           "start": {
             "col": 4,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 4,
             "row": 0
           }
@@ -92,13 +92,13 @@
       "span": {
         "end": {
           "col": 16,
-          "file_name": "tests/builtins/emboss.morph",
+          "file_name": "tests/builtins/emboss.enki",
           "pos": 16,
           "row": 0
         },
         "start": {
           "col": 0,
-          "file_name": "tests/builtins/emboss.morph",
+          "file_name": "tests/builtins/emboss.enki",
           "pos": 0,
           "row": 0
         }
@@ -113,13 +113,13 @@
             "span": {
               "end": {
                 "col": 22,
-                "file_name": "tests/builtins/emboss.morph",
+                "file_name": "tests/builtins/emboss.enki",
                 "pos": 78,
                 "row": 1
               },
               "start": {
                 "col": 17,
-                "file_name": "tests/builtins/emboss.morph",
+                "file_name": "tests/builtins/emboss.enki",
                 "pos": 73,
                 "row": 1
               }
@@ -132,13 +132,13 @@
           "span": {
             "end": {
               "col": 16,
-              "file_name": "tests/builtins/emboss.morph",
+              "file_name": "tests/builtins/emboss.enki",
               "pos": 72,
               "row": 1
             },
             "start": {
               "col": 10,
-              "file_name": "tests/builtins/emboss.morph",
+              "file_name": "tests/builtins/emboss.enki",
               "pos": 66,
               "row": 1
             }
@@ -148,13 +148,13 @@
         "span": {
           "end": {
             "col": 16,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 72,
             "row": 1
           },
           "start": {
             "col": 10,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 66,
             "row": 1
           }
@@ -166,13 +166,13 @@
         "span": {
           "end": {
             "col": 7,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 63,
             "row": 1
           },
           "start": {
             "col": 4,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 60,
             "row": 1
           }
@@ -182,13 +182,13 @@
       "span": {
         "end": {
           "col": 16,
-          "file_name": "tests/builtins/emboss.morph",
+          "file_name": "tests/builtins/emboss.enki",
           "pos": 72,
           "row": 1
         },
         "start": {
           "col": 0,
-          "file_name": "tests/builtins/emboss.morph",
+          "file_name": "tests/builtins/emboss.enki",
           "pos": 56,
           "row": 1
         }
@@ -203,13 +203,13 @@
             "span": {
               "end": {
                 "col": 8,
-                "file_name": "tests/builtins/emboss.morph",
+                "file_name": "tests/builtins/emboss.enki",
                 "pos": 88,
                 "row": 2
               },
               "start": {
                 "col": 5,
-                "file_name": "tests/builtins/emboss.morph",
+                "file_name": "tests/builtins/emboss.enki",
                 "pos": 85,
                 "row": 2
               }
@@ -221,13 +221,13 @@
             "span": {
               "end": {
                 "col": 36,
-                "file_name": "tests/builtins/emboss.morph",
+                "file_name": "tests/builtins/emboss.enki",
                 "pos": 116,
                 "row": 2
               },
               "start": {
                 "col": 11,
-                "file_name": "tests/builtins/emboss.morph",
+                "file_name": "tests/builtins/emboss.enki",
                 "pos": 91,
                 "row": 2
               }
@@ -241,13 +241,13 @@
           "span": {
             "end": {
               "col": 4,
-              "file_name": "tests/builtins/emboss.morph",
+              "file_name": "tests/builtins/emboss.enki",
               "pos": 84,
               "row": 2
             },
             "start": {
               "col": 0,
-              "file_name": "tests/builtins/emboss.morph",
+              "file_name": "tests/builtins/emboss.enki",
               "pos": 80,
               "row": 2
             }
@@ -257,13 +257,13 @@
         "span": {
           "end": {
             "col": 4,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 84,
             "row": 2
           },
           "start": {
             "col": 0,
-            "file_name": "tests/builtins/emboss.morph",
+            "file_name": "tests/builtins/emboss.enki",
             "pos": 80,
             "row": 2
           }
@@ -293,13 +293,13 @@
       "span": {
         "end": {
           "col": 9,
-          "file_name": "tests/builtins/emboss.morph",
+          "file_name": "tests/builtins/emboss.enki",
           "pos": 9,
           "row": 0
         },
         "start": {
           "col": 4,
-          "file_name": "tests/builtins/emboss.morph",
+          "file_name": "tests/builtins/emboss.enki",
           "pos": 4,
           "row": 0
         }
@@ -311,13 +311,13 @@
       "span": {
         "end": {
           "col": 7,
-          "file_name": "tests/builtins/emboss.morph",
+          "file_name": "tests/builtins/emboss.enki",
           "pos": 63,
           "row": 1
         },
         "start": {
           "col": 4,
-          "file_name": "tests/builtins/emboss.morph",
+          "file_name": "tests/builtins/emboss.enki",
           "pos": 60,
           "row": 1
         }

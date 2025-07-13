@@ -2,12 +2,12 @@ CC        = g++
 OBJ       = build
 SRCS = $(wildcard src/*.cpp) $(wildcard src/compiler/*.cpp) $(wildcard src/runtime/*.cpp)
 EVAL_SRCS = src/interpreter/eval.cpp src/runtime/impls.cpp
-EVAL_EXE = morpheval
+EVAL_EXE = enkieval
 DEPDIR   := $(OBJ)/deps
 DEPFILES := $(patsubst src/%.cpp,$(DEPDIR)/%.d,$(SRCS))
 OBJS      = $(patsubst src/%.cpp,$(OBJ)/%.o,$(SRCS))
 DEPFLAGS  = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
-EXE       = morphir
+EXE       = enki
 CFLAGS = -I/opt/homebrew/include -g -std=c++20 -Wall -Wpedantic -I/opt/homebrew/include/nlohmann 
 LDLIBS    = -lm -lstdc++ 
 

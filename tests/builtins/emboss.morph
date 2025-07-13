@@ -1,3 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let out = emboss(image)
-save(out, "tests/builtins/emboss.bmp")

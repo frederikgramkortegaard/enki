@@ -1,5 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let flp = flip(image)
-let bright = brightness(flp)
-let out = contrast(bright)
-save(out, "tests/builtins/flip_brightness_contrast.bmp")

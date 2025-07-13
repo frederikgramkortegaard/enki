@@ -1,3 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let out = rotate(image, 90)
-save(out, "tests/builtins/rotate.bmp")

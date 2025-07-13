@@ -12,6 +12,7 @@ enum class TokenType {
 
   // Keywords
   Let,
+  Extern,
 
   // Characters
   LParens,
@@ -28,6 +29,10 @@ enum class TokenType {
   String,
   Int,
   Float,
+
+  // Misc
+  Arrow,
+  From,
 
   // Meta
   Eof,

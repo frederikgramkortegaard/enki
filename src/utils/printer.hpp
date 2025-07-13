@@ -108,6 +108,27 @@ inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
     print_ast(expr_stmt->expression, depth + 2, max_depth);
     return;
   }
+  // ExternStatement
+  if (auto ext = std::dynamic_pointer_cast<ExternStatement>(stmt)) {
+    print_indent(depth);
+    std::cout << "ExternStatement:" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "identifier:" << std::endl;
+    print_ast(ext->identifier, depth + 2, max_depth);
+    print_indent(depth + 1);
+    std::cout << "args:" << std::endl;
+    for (const auto &arg : ext->args) {
+      print_ast(arg, depth + 2);
+    }
+    print_indent(depth + 1);
+    std::cout << "return_type:" << std::endl;
+    print_ast(ext->return_type, depth + 2);
+    print_indent(depth + 1);
+    std::cout << "module_path: " << ext->module_path << std::endl;
+    print_indent(depth + 1);
+    std::cout << "span: ..." << std::endl;
+    return;
+  }
   // Unknown type
   print_indent(depth);
   std::cout << "<Unknown Statement Type>" << std::endl;

@@ -1,3 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let out = resize(image, 320)
-save(out, "tests/builtins/resize.bmp")

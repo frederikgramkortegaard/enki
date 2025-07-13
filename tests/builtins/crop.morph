@@ -1,3 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let out = crop(image, 0, 0, 100, 100)
-save(out, "tests/builtins/crop.bmp")

@@ -165,6 +165,29 @@ inline void from_json(const json &j, ExpressionStatement &es) {
   j.at("span").get_to(es.span());
 }
 
+// --- ExternStatement ---
+inline void to_json(json &j, const ExternStatement &e) {
+  j["identifier"] = e.identifier;
+  j["args"] = json::array();
+  for (const auto &arg : e.args) {
+    j["args"].push_back(*arg);
+  }
+  j["return_type"] = *e.return_type;
+  j["module_path"] = e.module_path;
+  j["span"] = e.span();
+  j["type"] = "ExternStatement";
+}
+inline void from_json(const json &j, ExternStatement &e) {
+  j.at("identifier").get_to(e.identifier);
+  e.args.clear();
+  for (const auto &arg : j.at("args")) {
+    e.args.push_back(std::make_shared<Type>(arg.get<Type>()));
+  }
+  e.return_type = std::make_shared<Type>(j.at("return_type").get<Type>());
+  j.at("module_path").get_to(e.module_path);
+  j.at("span").get_to(e.span());
+}
+
 // --- Polymorphic pointer serialization for Expression ---
 inline void to_json(json &j, const std::shared_ptr<Expression> &expr) {
   if (!expr) {
@@ -220,6 +243,9 @@ inline void to_json(json &j, const std::shared_ptr<Statement> &stmt) {
                  std::dynamic_pointer_cast<ExpressionStatement>(stmt)) {
     to_json(j, *expr_stmt);
     j["type"] = "ExpressionStatement";
+  } else if (auto ext = std::dynamic_pointer_cast<ExternStatement>(stmt)) {
+    to_json(j, *ext);
+    j["type"] = "ExternStatement";
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -238,6 +264,10 @@ inline void from_json(const json &j, std::shared_ptr<Statement> &stmt) {
     auto expr_stmt = std::make_shared<ExpressionStatement>();
     from_json(j, *expr_stmt);
     stmt = expr_stmt;
+  } else if (type == "ExternStatement") {
+    auto ext = std::make_shared<ExternStatement>();
+    from_json(j, *ext);
+    stmt = ext;
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }

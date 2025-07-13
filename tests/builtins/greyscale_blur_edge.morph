@@ -1,5 +1,0 @@
-let image = open("sample-bmp-files-sample_640x426.bmp")
-let grey = greyscale(image)
-let blur_img = blur(grey)
-let out = edge_detect(blur_img)
-save(out, "tests/builtins/greyscale_blur_edge.bmp")

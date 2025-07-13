@@ -4,18 +4,18 @@ set -e
 # Paths
 INPUT="sample-bmp-files-sample_640x426.bmp"
 OUTDIR="tests/builtins"
-MORPHIR="./morphir"
-MORPHEVAL="./morpheval"
+enkiIR="./enki"
+enkiEVAL="./enkieval"
 
 mkdir -p "$OUTDIR"
 
 run_flow() {
   local name="$1"
-  local morph_code="$2"
+  local enki_code="$2"
   echo "Testing $name..."
-  echo "$morph_code" > "$OUTDIR/$name.morph"
-  $MORPHIR -i "$OUTDIR/$name.morph" -o "$OUTDIR/$name.json"
-  $MORPHEVAL "$OUTDIR/$name.json"
+  echo "$enki_code" > "$OUTDIR/$name.enki"
+  $enkiIR -i "$OUTDIR/$name.enki" -o "$OUTDIR/$name.json"
+  $enkiEVAL "$OUTDIR/$name.json"
 }
 
 # Single builtins

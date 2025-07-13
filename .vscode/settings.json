@@ -68,6 +68,7 @@
         "strstream": "cpp",
         "typeindex": "cpp",
         "unordered_set": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "*.enki": "rust"
     }
 }
