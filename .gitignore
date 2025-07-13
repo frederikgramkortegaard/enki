@@ -1,5 +1,6 @@
 morphir
 morpheval
+morphrun
 build
 *.dSYM
 *.o

@@ -1,11 +1,18 @@
+#include "../compiler/lexer.hpp"
+#include "../compiler/parser.hpp"
 #include "../definitions/serializations.hpp"
-#include "lexer.hpp"
 #include "nlohmann/json.hpp"
-#include "parser.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
+
+std::shared_ptr<Program> compile(const std::string &source,
+                                 const std::string &filename) {
+  std::vector<Token> tokens = lex(source, filename);
+  return parse(tokens);
+}
+
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
@@ -71,7 +78,6 @@ int main(int argc, char *argv[]) {
     std::cout << "Loaded AST from " << load_filename << std::endl;
     return 0;
   }
-  std::vector<Token> tokens;
   std::shared_ptr<Program> program;
 
   // If input file, lex, parse, and print to output file
@@ -80,8 +86,7 @@ int main(int argc, char *argv[]) {
     std::stringstream buffer;
     buffer << file.rdbuf();
     source = buffer.str();
-    tokens = lex(source, input_filename); // pass both source and filename
-    program = parse(tokens);
+    program = compile(source, input_filename);
   }
 
   if (output.is_open()) {

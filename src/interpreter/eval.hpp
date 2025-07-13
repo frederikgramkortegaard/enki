@@ -55,3 +55,5 @@ struct EvalContext {
 
   EvalContext(const Program &prog) : program(prog) {}
 };
+
+int interpret(EvalContext &ctx);
