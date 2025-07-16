@@ -7,13 +7,16 @@
 #include <iostream>
 #include "modules.hpp"
 
-std::shared_ptr<Program> parse(const std::vector<Token> &tokens);
+
+struct ModuleContext;
+Ref<Program> parse(const std::vector<Token> &tokens);
 
 struct ParserContext {
-  std::shared_ptr<Program> program;
+  Ref<Program> program;
   const std::vector<Token> &tokens;
-  std::shared_ptr<ModuleContext> module_context;
+  Ref<ModuleContext> module_context;
   std::string current_file_path;
+  Ref<Scope> current_scope;
 
   size_t current = 0;
 
@@ -52,6 +55,6 @@ struct ParserContext {
   void consume_assert(TokenType type, const std::string &message);
 };
 
-std::shared_ptr<Expression> parse_atom(ParserContext &ctx);
-std::shared_ptr<Expression> parse_expression(ParserContext &ctx);
-std::shared_ptr<Statement> parse_statement(ParserContext &ctx);
+Ref<Expression> parse_atom(ParserContext &ctx);
+Ref<Expression> parse_expression(ParserContext &ctx);
+Ref<Statement> parse_statement(ParserContext &ctx);

@@ -12,9 +12,9 @@
 #include <vector>
 
 std::shared_ptr<ValueBase>
-eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr);
+eval_expression(EvalContext &ctx, const Ref<Expression> &expr);
 
-std::shared_ptr<ValueBase> eval_binary_op(EvalContext &ctx, const std::shared_ptr<BinaryOp> &bin_op) {
+std::shared_ptr<ValueBase> eval_binary_op(EvalContext &ctx, const Ref<BinaryOp> &bin_op) {
   auto left = eval_expression(ctx, bin_op->left);
   auto right = eval_expression(ctx, bin_op->right);
 
@@ -90,13 +90,13 @@ std::shared_ptr<ValueBase> eval_binary_op(EvalContext &ctx, const std::shared_pt
 
 
 std::shared_ptr<ValueBase>
-eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
+eval_expression(EvalContext &ctx, const Ref<Expression> &expr) {
   spdlog::debug("Evaluating expression");
 
 
-  if (expr->expr_type == ASTType::FunctionCall) {
+  if (expr->get_type() == ASTType::FunctionCall) {
     spdlog::debug("Expression is a function call");
-    auto call = std::dynamic_pointer_cast<CallExpression>(expr);
+    auto call = std::dynamic_pointer_cast<Call>(expr);
     std::vector<std::shared_ptr<ValueBase>> args;
     for (auto arg : call->arguments) {
       args.push_back(eval_expression(ctx, arg));
@@ -136,7 +136,7 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     return nullptr;
   }
 
-  if (expr->expr_type == ASTType::Literal) {
+  if (expr->get_type() == ASTType::Literal) {
     spdlog::debug("Expression is a literal");
     auto lit = std::dynamic_pointer_cast<Literal>(expr);
     spdlog::debug("Literal value: {}", lit->value);
@@ -163,7 +163,7 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     return inter_value;
   }
 
-  if (expr->expr_type == ASTType::Identifier) {
+  if (expr->get_type() == ASTType::Identifier) {
     spdlog::debug("Expression is an identifier");
     auto ident = std::dynamic_pointer_cast<Identifier>(expr);
     spdlog::debug("Identifier: {}", ident->name);
@@ -174,7 +174,7 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
     }
   }
 
-  if (expr->expr_type == ASTType::BinaryOp) {
+  if (expr->get_type() == ASTType::BinaryOp) {
     spdlog::debug("Expression is a binary operation");
     auto bin_op = std::dynamic_pointer_cast<BinaryOp>(expr);
     auto left = eval_expression(ctx, bin_op->left);
@@ -189,8 +189,8 @@ eval_expression(EvalContext &ctx, const std::shared_ptr<Expression> &expr) {
   return nullptr;
 }
 
-void eval_statement(EvalContext &ctx, const std::shared_ptr<Statement> &stmt) {
-  if (auto let = std::dynamic_pointer_cast<LetStatement>(stmt)) {
+void eval_statement(EvalContext &ctx, const Ref<Statement> &stmt) {
+  if (auto let = std::dynamic_pointer_cast<VarDecl>(stmt)) {
 
       std::shared_ptr<ValueBase> value = eval_expression(ctx, let->expression);
       spdlog::debug("evaluated let expression");
@@ -208,7 +208,7 @@ void eval_statement(EvalContext &ctx, const std::shared_ptr<Statement> &stmt) {
       return;
     }
 
-    if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
+    if (auto if_stmt = std::dynamic_pointer_cast<If>(stmt)) {
       spdlog::debug("evaluating if statement");
       auto condition = eval_expression(ctx, if_stmt->condition);
       spdlog::debug("evaluated if statement");
@@ -235,7 +235,7 @@ void eval_statement(EvalContext &ctx, const std::shared_ptr<Statement> &stmt) {
       return;
     }
 
-    if (auto while_stmt = std::dynamic_pointer_cast<WhileLoop>(stmt)) {
+    if (auto while_stmt = std::dynamic_pointer_cast<While>(stmt)) {
       spdlog::debug("evaluating while loop");
       while (true) {
         auto condition = eval_expression(ctx, while_stmt->condition);
@@ -253,7 +253,7 @@ void eval_statement(EvalContext &ctx, const std::shared_ptr<Statement> &stmt) {
       return;
     }
 
-    spdlog::error("Unknown statement type at {}", stmt->span().start.to_string());
+    spdlog::error("Unknown statement type at {}", stmt->span.start.to_string());
     std::exit(1);
 }
 

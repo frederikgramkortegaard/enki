@@ -1,12 +1,15 @@
 #pragma once
-#include "span.hpp"
-#include "symbols.hpp"
+#include "position.hpp"
 #include "tokens.hpp"
 #include <string_view>
 
 #include "types.hpp"
 #include <unordered_map>
 #include <vector>
+#include <memory>
+
+template <typename T>
+using Ref = std::shared_ptr<T>;
 
 enum class ASTType {
   StringLiteral,
@@ -22,39 +25,48 @@ enum class ASTType {
   FunctionDefinition,
   Extern,
   Import,
+  ExpressionStatement,
+  Block,
+  If,
+  While,
+  Return
 };
 
 
 
-struct Statement : Spanned {
-  ASTType ast_type;
-  virtual ~Statement() = default;
+struct ASTNode {
+  Span span;
+  virtual ~ASTNode() = default;
+  virtual ASTType get_type() const = 0;
 };
 
-struct Expression : Spanned {
-  ASTType expr_type;
+struct Expression : ASTNode {
   virtual ~Expression() = default;
+  virtual ASTType get_type() const = 0;
+};
+
+struct Statement : ASTNode {
+  virtual ~Statement() = default;
+  virtual ASTType get_type() const = 0;
 };
 
 struct Identifier : Expression {
   std::string_view name;
-  Identifier() { expr_type = ASTType::Identifier; }
+  ASTType get_type() const override { return ASTType::Identifier; }
 };
 
-
-
-struct ExternStatement : Statement {
-  std::shared_ptr<Identifier> identifier;
-  std::vector<std::shared_ptr<Type>> args;
-  std::shared_ptr<Type> return_type;
+struct Extern : Statement {
+  Ref<Identifier> identifier;
+  std::vector<Ref<Type>> args;
+  Ref<Type> return_type;
   std::string_view module_path;
-  ExternStatement() { ast_type = ASTType::Extern; }
+  ASTType get_type() const override { return ASTType::Extern; }
 };
 
-struct CallExpression : Expression {
-  std::shared_ptr<Expression> callee;
-  std::vector<std::shared_ptr<Expression>> arguments;
-  CallExpression() { expr_type = ASTType::FunctionCall; }
+struct Call : Expression {
+  Ref<Expression> callee;
+  std::vector<Ref<Expression>> arguments;
+  ASTType get_type() const override { return ASTType::FunctionCall; }
 };
 
 enum class BinaryOpType {
@@ -75,47 +87,74 @@ int binary_op_precedence(BinaryOpType op);
 std::optional<BinaryOpType> token_to_binop(TokenType type);
 
 struct BinaryOp : Expression {
-  std::shared_ptr<Expression> left;
-  std::shared_ptr<Expression> right;
+  Ref<Expression> left;
+  Ref<Expression> right;
   BinaryOpType op;
-  BinaryOp() { expr_type = ASTType::BinaryOp; }
+  ASTType get_type() const override { return ASTType::BinaryOp; }
 };
 
-struct LetStatement : Statement {
-  std::shared_ptr<Expression> identifier;
-  std::shared_ptr<Expression> expression;
+struct VarDecl : Statement {
+  Ref<Identifier> identifier;
+  Ref<Type> type;
+  Ref<Expression> expression;
+  ASTType get_type() const override { return ASTType::VarDecl; }
 };
 
-struct IfStatement : Statement {
-  std::shared_ptr<Expression> condition;
-  std::shared_ptr<Statement> then_branch;
-  std::shared_ptr<Statement> else_branch;
+struct If : Statement {
+  Ref<Expression> condition;
+  Ref<Statement> then_branch;
+  Ref<Statement> else_branch;
+  ASTType get_type() const override { return ASTType::If; }
 };
 
-struct WhileLoop : Statement {
-  std::shared_ptr<Expression> condition;
-  std::shared_ptr<Statement> body;
+struct While : Statement {
+  Ref<Expression> condition;
+  Ref<Statement> body;
+  ASTType get_type() const override { return ASTType::While; }
 };
 
 struct Block : Statement {
-  std::vector<std::shared_ptr<Statement>> statements;
+  std::vector<Ref<Statement>> statements;
+  Ref<Scope> scope;
+  ASTType get_type() const override { return ASTType::Block; }
 };
 
 struct Literal : Expression {
   Type type;
   std::string value;
-  Literal() { expr_type = ASTType::Literal; }
+  ASTType get_type() const override { return ASTType::Literal; }
 };
 
-struct Program : Spanned {
-  std::vector<std::shared_ptr<Statement>> statements;
-  std::unordered_map<std::string_view, std::shared_ptr<Symbol>> symbols;
+struct Return : Statement {
+  Ref<Expression> expression;
+  ASTType get_type() const override { return ASTType::Return; }
 };
 
-struct ImportStatement : Statement {
-  std::shared_ptr<Literal> module_path;
-  ImportStatement() { ast_type = ASTType::Import; }
+struct Program {
+  Span span;
+  std::vector<Ref<Statement>> statements;
+  Ref<Scope> scope = std::make_shared<Scope>(); // Global Scope
+  std::unordered_map<std::string, Ref<Function>> functions;
+
 };
+
+struct Import : Statement {
+  Ref<Literal> module_path;
+  ASTType get_type() const override { return ASTType::Import; }
+};
+
+using Parameter = VarDecl;
+
+struct FunctionDefinition : Statement {
+  Ref<Identifier> identifier;
+  Ref<Type> return_type;
+  std::vector<Ref<Parameter>> parameters;
+  std::vector<Ref<Return>> returns;
+  Ref<Block> body;
+
+  ASTType get_type() const override { return ASTType::FunctionDefinition; }
+};
+
 
 inline BaseType token_to_literal_type(TokenType type) {
   switch (type) {
@@ -131,8 +170,6 @@ inline BaseType token_to_literal_type(TokenType type) {
 }
 
 struct ExpressionStatement : Statement {
-  std::shared_ptr<Expression> expression;
-  ExpressionStatement() = default;
-  ExpressionStatement(std::shared_ptr<Expression> expr)
-      : expression(std::move(expr)) {}
+  Ref<Expression> expression;
+  ASTType get_type() const override { return ASTType::ExpressionStatement; }
 };

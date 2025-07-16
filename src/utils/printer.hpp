@@ -20,15 +20,15 @@ inline void print_indent(int depth) {
 }
 
 // Forward declarations
-void print_ast(const std::shared_ptr<Expression> &expr, int depth = 0,
+void print_ast(const Ref<Expression> &expr, int depth = 0,
                int max_depth = -1);
-void print_ast(const std::shared_ptr<Statement> &stmt, int depth = 0,
+void print_ast(const Ref<Statement> &stmt, int depth = 0,
                int max_depth = -1);
 void print_ast(const Program &program, int depth = 0, int max_depth = -1);
-void print_ast(const std::shared_ptr<Type> &type, int depth = 0);
+void print_ast(const Ref<Type> &type, int depth = 0);
 
 // Print Type
-inline void print_ast(const std::shared_ptr<Type> &type, int depth) {
+inline void print_ast(const Ref<Type> &type, int depth) {
   if (!type) {
     print_indent(depth);
     std::cout << "<null Type>" << std::endl;
@@ -40,7 +40,7 @@ inline void print_ast(const std::shared_ptr<Type> &type, int depth) {
 }
 
 // Print Expression (polymorphic)
-inline void print_ast(const std::shared_ptr<Expression> &expr, int depth,
+inline void print_ast(const Ref<Expression> &expr, int depth,
                       int max_depth) {
   if (!expr) {
     print_indent(depth);
@@ -61,10 +61,10 @@ inline void print_ast(const std::shared_ptr<Expression> &expr, int depth,
     std::cout << "Literal: " << lit->value << std::endl;
     return;
   }
-  // CallExpression
-  if (auto call = std::dynamic_pointer_cast<CallExpression>(expr)) {
+  // Call
+  if (auto call = std::dynamic_pointer_cast<Call>(expr)) {
     print_indent(depth);
-    std::cout << "CallExpression:" << std::endl;
+    std::cout << "Call:" << std::endl;
     print_indent(depth + 1);
     std::cout << "callee:" << std::endl;
     print_ast(call->callee, depth + 2, max_depth);
@@ -89,12 +89,12 @@ inline void print_ast(const std::shared_ptr<Expression> &expr, int depth,
   }
   // Unknown type
   print_indent(depth);
-  std::cout << magic_enum::enum_name(expr->expr_type) << std::endl;
+  std::cout << magic_enum::enum_name(expr->get_type()) << std::endl;
   std::cout << "<Unknown Expression Type>" << std::endl;
 }
 
 // Print Statement (polymorphic)
-inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
+inline void print_ast(const Ref<Statement> &stmt, int depth,
                       int max_depth) {
   if (!stmt) {
     print_indent(depth);
@@ -103,10 +103,10 @@ inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
   }
   if (max_depth >= 0 && depth > max_depth)
     return;
-  // LetStatement
-  if (auto let = std::dynamic_pointer_cast<LetStatement>(stmt)) {
+  // VarDecl
+  if (auto let = std::dynamic_pointer_cast<VarDecl>(stmt)) {
     print_indent(depth);
-    std::cout << "LetStatement:" << std::endl;
+    std::cout << "VarDecl:" << std::endl;
     print_indent(depth + 1);
     std::cout << "identifier:" << std::endl;
     print_ast(let->identifier, depth + 2, max_depth);
@@ -124,10 +124,10 @@ inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
     print_ast(expr_stmt->expression, depth + 2, max_depth);
     return;
   }
-  // ExternStatement
-  if (auto ext = std::dynamic_pointer_cast<ExternStatement>(stmt)) {
+  // Extern
+  if (auto ext = std::dynamic_pointer_cast<Extern>(stmt)) {
     print_indent(depth);
-    std::cout << "ExternStatement:" << std::endl;
+    std::cout << "Extern:" << std::endl;
     print_indent(depth + 1);
     std::cout << "identifier:" << std::endl;
     print_ast(ext->identifier, depth + 2, max_depth);
@@ -145,10 +145,10 @@ inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
     std::cout << "span: ..." << std::endl;
     return;
   }
-  // IfStatement
-  if (auto if_stmt = std::dynamic_pointer_cast<IfStatement>(stmt)) {
+  // If
+  if (auto if_stmt = std::dynamic_pointer_cast<If>(stmt)) {
     print_indent(depth);
-    std::cout << "IfStatement:" << std::endl;
+    std::cout << "If:" << std::endl;
     print_indent(depth + 1);
     std::cout << "condition:" << std::endl;
     print_ast(if_stmt->condition, depth + 2, max_depth);
@@ -162,10 +162,10 @@ inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
     }
     return;
   }
-  // WhileLoop
-  if (auto while_stmt = std::dynamic_pointer_cast<WhileLoop>(stmt)) {
+  // While
+  if (auto while_stmt = std::dynamic_pointer_cast<While>(stmt)) {
     print_indent(depth);
-    std::cout << "WhileLoop:" << std::endl;
+    std::cout << "While:" << std::endl;
     print_indent(depth + 1);
     std::cout << "condition:" << std::endl;
     print_ast(while_stmt->condition, depth + 2, max_depth);
@@ -183,18 +183,40 @@ inline void print_ast(const std::shared_ptr<Statement> &stmt, int depth,
     }
     return;
   }
-  // ImportStatement
-  if (auto import_stmt = std::dynamic_pointer_cast<ImportStatement>(stmt)) {
+  // Import
+  if (auto import_stmt = std::dynamic_pointer_cast<Import>(stmt)) {
     print_indent(depth);
-    std::cout << "ImportStatement:" << std::endl;
+    std::cout << "Import:" << std::endl;
     print_indent(depth + 1);
     std::cout << "module_path:" << std::endl;
     print_ast(import_stmt->module_path, depth + 2, max_depth);
     return;
   }
+  // FunctionDefinition
+  if (auto func_def = std::dynamic_pointer_cast<FunctionDefinition>(stmt)) {
+    print_indent(depth);
+    std::cout << "FunctionDefinition:" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "define" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "identifier:" << std::endl;
+    print_ast(func_def->identifier, depth + 2, max_depth);
+    print_indent(depth + 1);
+    std::cout << "args:" << std::endl;
+    for (const auto &arg : func_def->parameters) {
+      print_ast(arg, depth + 2);
+    }
+    print_indent(depth + 1);
+    std::cout << "return_type:" << std::endl;
+    print_ast(func_def->return_type, depth + 2);
+    print_indent(depth + 1);
+    std::cout << "body:" << std::endl;
+    print_ast(func_def->body, depth + 2, max_depth);
+    return;
+  }
   // Unknown type
   print_indent(depth);
-  std::cout << magic_enum::enum_name(stmt->ast_type) << std::endl;
+  std::cout << magic_enum::enum_name(stmt->get_type()) << std::endl;
   std::cout << "<Unknown Statement Type>" << std::endl;
 }
 
@@ -205,25 +227,10 @@ inline void print_ast(const Program &program, int depth, int max_depth) {
   for (const auto &stmt : program.statements) {
     print_ast(stmt, depth + 1, max_depth);
   }
-  // Print symbols (if any)
-  if (!program.symbols.empty()) {
-    print_indent(depth + 1);
-    std::cout << "Symbols:" << std::endl;
-    for (const auto &[name, sym] : program.symbols) {
-      print_indent(depth + 2);
-      std::cout << "Symbol: " << name << std::endl;
-      print_indent(depth + 3);
-      std::cout << "type:" << std::endl;
-      print_ast(sym->type, depth + 4);
-      print_indent(depth + 3);
-      std::cout << "span: ..." << std::endl;
-      // Optionally print value, etc.
-    }
-  }
 }
 
 // Overload to print a shared_ptr<Program>
-inline void print_ast(const std::shared_ptr<Program>& program, int depth = 0, int max_depth = -1) {
+inline void print_ast(const Ref<Program>& program, int depth = 0, int max_depth = -1) {
     if (program) print_ast(*program, depth, max_depth);
     else std::cout << "<null Program>" << std::endl;
 }

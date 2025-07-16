@@ -3,7 +3,7 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
-std::shared_ptr<Expression> parse_atom(ParserContext &ctx) {
+Ref<Expression> parse_atom(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
 
   switch (tok.type) {
@@ -13,17 +13,17 @@ std::shared_ptr<Expression> parse_atom(ParserContext &ctx) {
     auto lit = std::make_shared<Literal>();
     lit->type = Type{token_to_literal_type(tok.type)};
     lit->value = tok.value;
-    lit->span() = tok.span;
+    lit->span = tok.span;
     ctx.consume();
     return lit;
   }
   case TokenType::Identifier: {
     // Function Call
     if (ctx.peek(1).type == TokenType::LParens) {
-      auto call_expr = std::make_shared<CallExpression>();
+      auto call_expr = std::make_shared<Call>();
       auto ident = std::make_shared<Identifier>();
       ident->name = tok.value;
-      ident->span() = tok.span;
+      ident->span = tok.span;
       call_expr->callee = ident;
 
       ctx.consume();
@@ -43,13 +43,13 @@ std::shared_ptr<Expression> parse_atom(ParserContext &ctx) {
       }
 
       ctx.consume_assert(TokenType::RParens, "Missing ')' in Function Call");
-      call_expr->span() = tok.span;
+      call_expr->span = tok.span;
       return call_expr;
     }
 
     auto ident = std::make_shared<Identifier>();
     ident->name = tok.value;
-    ident->span() = tok.span;
+    ident->span = tok.span;
     ctx.consume();
     return ident;
   }
@@ -58,7 +58,7 @@ std::shared_ptr<Expression> parse_atom(ParserContext &ctx) {
     auto bool_lit = std::make_shared<Literal>();
     bool_lit->type = Type{BaseType::Bool};
     bool_lit->value = tok.type == TokenType::True ? "true" : "false";
-    bool_lit->span() = tok.span;
+    bool_lit->span = tok.span;
     ctx.consume();
     return bool_lit;
   }
@@ -69,11 +69,15 @@ std::shared_ptr<Expression> parse_atom(ParserContext &ctx) {
   return nullptr;
 }
 
-std::shared_ptr<Type> parse_type(ParserContext &ctx) {
-  return nullptr;
+//@TODO : Only handles simple types for now
+Ref<Type> parse_type(ParserContext &ctx) {
+  auto type = std::make_shared<Type>();
+  type->span = ctx.current_token().span;
+  ctx.consume();
+  return type;
 }
 
-std::shared_ptr<Identifier> parse_identifier(ParserContext &ctx) {
+Ref<Identifier> parse_identifier(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
   if (tok.type != TokenType::Identifier) {
     std::cerr << std::format("Expected Identifier at {} but got {}\n",
@@ -83,18 +87,18 @@ std::shared_ptr<Identifier> parse_identifier(ParserContext &ctx) {
   }
   auto ident = std::make_shared<Identifier>();
   ident->name = tok.value;
-  ident->span() = tok.span;
+  ident->span = tok.span;
   ctx.consume();
   return ident;
 }
 
-std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
+Ref<Expression> parse_expression(ParserContext &ctx) {
   auto left = parse_atom(ctx);
   if (!left)
     return nullptr;
 
   // Shunting Yard Algorithm for Binary Operators
-  std::vector<std::shared_ptr<Expression>> output;
+  std::vector<Ref<Expression>> output;
   std::vector<BinaryOpType> ops;
   output.push_back(left);
 
@@ -116,7 +120,7 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
       bin_expr->left = left_expr;
       bin_expr->right = right;
       bin_expr->op = ops.back();
-      bin_expr->span() = Span(left_expr->span().start, right->span().end);
+      bin_expr->span = Span(left_expr->span.start, right->span.end);
       output.push_back(bin_expr);
       ops.pop_back();
     }
@@ -142,7 +146,7 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
     bin_expr->left = left_expr;
     bin_expr->right = right;
     bin_expr->op = ops.back();
-    bin_expr->span() = Span(left_expr->span().start, right->span().end);
+    bin_expr->span = Span(left_expr->span.start, right->span.end);
     output.push_back(bin_expr);
     ops.pop_back();
   }
@@ -150,13 +154,73 @@ std::shared_ptr<Expression> parse_expression(ParserContext &ctx) {
   return output.size() == 1 ? output[0] : nullptr;
 }
 
-std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
+
+Ref<VarDecl> parse_parameter(ParserContext &ctx) {
+  auto var_decl = std::make_shared<VarDecl>();
+  var_decl->identifier = parse_identifier(ctx);
+  ctx.consume_assert(TokenType::Colon, "Missing ':' in Variable Declaration");
+  var_decl->type = parse_type(ctx);
+  var_decl->span = Span(var_decl->identifier->span.start, var_decl->type->span.end);
+  return var_decl;
+}
+  
+// @NOTE DOES NOT CONSUME {}
+Ref<Block> parse_block(ParserContext &ctx) {
+  auto block = std::make_shared<Block>();
+  block->scope = ctx.current_scope;
+  block->scope->children.push_back(block->scope);
+
+  while (ctx.current < ctx.tokens.size() &&
+         ctx.current_token().type != TokenType::RCurly) {
+    auto stmt = parse_statement(ctx);
+    if (stmt) {
+      block->statements.push_back(stmt);
+    } else {
+      break; // error handling or end
+    }
+  }
+  ctx.current_scope = block->scope->parent;
+  return block;
+}
+
+Ref<Statement> parse_statement(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
   Span statement_start = tok.span;
 
+  if (tok.type == TokenType::Define) {
+    // define add(a: int, b: int) -> int {
+    // return a + b;
+    // }
+
+    auto function_def = std::make_shared<FunctionDefinition>();
+    ctx.consume();
+    function_def->identifier = parse_identifier(ctx);
+    ctx.consume_assert(TokenType::LParens, "Missing '(' in Function Definition");
+
+    while (ctx.current < ctx.tokens.size() &&
+           ctx.current_token().type != TokenType::RParens) {
+      auto param = parse_parameter(ctx);
+      function_def->parameters.push_back(param);
+      ctx.consume_if(TokenType::Comma);
+    } 
+
+    ctx.consume_assert(TokenType::RParens, "Missing ')' in Function Definition");
+    ctx.consume_assert(TokenType::Arrow, "Missing '->' in Function Definition");
+    function_def->return_type = parse_type(ctx);
+    ctx.consume_assert(TokenType::LCurly, "Missing '{' in Function Definition");
+    std::cout << ctx.current_token().value << std::endl;
+    function_def->body = parse_block(ctx);
+    std::cout << ctx.current_token().value << std::endl;
+    ctx.consume_assert(TokenType::RCurly, "Missing '}' in Function Definition");
+    std::cout << ctx.current_token().value << std::endl;
+    function_def->span = Span(tok.span.start, ctx.previous_token_span().end);
+    ctx.consume_if(TokenType::Semicolon);
+    return function_def;
+  }
+
   if (tok.type == TokenType::Import) {
     spdlog::debug("Parsing Import statement");
-    auto import_stmt = std::make_shared<ImportStatement>();
+    auto import_stmt = std::make_shared<Import>();
     ctx.consume();
     ctx.consume_assert(TokenType::LessThan, "Missing '<' in Import statement");
     auto module_path = parse_atom(ctx);
@@ -168,7 +232,7 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
     import_stmt->module_path = std::dynamic_pointer_cast<Literal>(module_path);
     spdlog::debug("Module path: {}", import_stmt->module_path->value);
     std::cout << ctx.current_token().span.start.to_string() << std::endl;
-    import_stmt->span() = Span(tok.span.start, module_path->span().end);
+    import_stmt->span = Span(tok.span.start, module_path->span.end);
 
     // Use CTX Module Context to add the module to the program
     ctx.module_context->add_module(import_stmt->module_path->value, ctx.current_file_path);
@@ -177,7 +241,7 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
   }
 
   if (tok.type == TokenType::Let) {
-    auto let_stmt = std::make_shared<LetStatement>();
+    auto var_decl = std::make_shared<VarDecl>();
     ctx.consume();
 
     const Token &ident_tok = ctx.current_token();
@@ -190,8 +254,8 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
 
     auto ident_expr = std::make_shared<Identifier>();
     ident_expr->name = ident_tok.value;
-    ident_expr->span() = ident_tok.span;
-    let_stmt->identifier = ident_expr;
+    ident_expr->span = ident_tok.span;
+    var_decl->identifier = ident_expr;
     ctx.consume();
 
     ctx.consume_assert(TokenType::Equals, "Missing '=' in Let statement");
@@ -203,14 +267,10 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
                     equals_span.start.to_string());
       std::exit(1);
     }
-    let_stmt->expression = expr;
-    let_stmt->span() = {statement_start.start, expr->span().end};
+    var_decl->expression = expr;
+    var_decl->span = {statement_start.start, expr->span.end};
 
-    // Symbols
-    ctx.program->symbols[ident_expr->name] =
-        std::make_shared<Symbol>(ident_expr->name, nullptr, ident_tok.span);
-
-    return let_stmt;
+    return var_decl;
   }
 
   if (tok.type == TokenType::LCurly) {
@@ -228,13 +288,12 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
     }
 
     ctx.consume_assert(TokenType::RCurly, "Missing '}' in Block statement");
-    block_stmt->span() =
-        Span(statement_start.start, ctx.previous_token_span().end);
+    block_stmt->span = Span(statement_start.start, ctx.previous_token_span().end);
     return block_stmt;
   }
 
   if (tok.type == TokenType::If) {
-    auto if_stmt = std::make_shared<IfStatement>();
+    auto if_node = std::make_shared<If>();
     ctx.consume();
 
     auto condition = parse_expression(ctx);
@@ -243,7 +302,7 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
                     ctx.current_token().span.start.to_string());
       std::exit(1);
     }
-    if_stmt->condition = condition;
+    if_node->condition = condition;
 
     auto then_branch = parse_statement(ctx);
     if (!then_branch) {
@@ -252,7 +311,7 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
           ctx.current_token().span.start.to_string());
       std::exit(1);
     }
-    if_stmt->then_branch = then_branch;
+    if_node->then_branch = then_branch;
 
     if (ctx.current < ctx.tokens.size() &&
         ctx.current_token().type == TokenType::Else) {
@@ -264,16 +323,15 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
             ctx.current_token().span.start.to_string());
         std::exit(1);
       }
-      if_stmt->else_branch = else_branch;
+      if_node->else_branch = else_branch;
     }
 
-    if_stmt->span() =
-        Span(statement_start.start, ctx.previous_token_span().end);
-    return if_stmt;
+    if_node->span = Span(statement_start.start, ctx.previous_token_span().end);
+    return if_node;
   }
 
   if (tok.type == TokenType::While) {
-    auto while_stmt = std::make_shared<WhileLoop>();
+    auto while_stmt = std::make_shared<While>();
     ctx.consume();
 
     auto condition = parse_expression(ctx);
@@ -292,7 +350,7 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
     }
     while_stmt->body = body;
 
-    while_stmt->span() =
+    while_stmt->span =
         Span(statement_start.start, ctx.previous_token_span().end);
     return while_stmt;
   }
@@ -302,16 +360,18 @@ std::shared_ptr<Statement> parse_statement(ParserContext &ctx) {
   if (expr) {
     auto expr_stmt = std::make_shared<ExpressionStatement>();
     expr_stmt->expression = expr;
-    expr_stmt->span() = expr->span();
+    expr_stmt->span = expr->span;
     return expr_stmt;
   }
 
   return nullptr;
 }
 
-std::shared_ptr<Program> parse(const std::vector<Token> &tokens) {
+Ref<Program> parse(const std::vector<Token> &tokens) {
   auto program = std::make_shared<Program>();
   ParserContext ctx{program, tokens, std::make_shared<ModuleContext>()};
+  ctx.current_scope = program->scope;
+
   // Try to get the file path from the first token, if available
   if (!tokens.empty()) {
     ctx.current_file_path = std::string(tokens[0].span.start.file_name);

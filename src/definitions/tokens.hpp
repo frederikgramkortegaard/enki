@@ -1,5 +1,5 @@
 #pragma once
-#include "span.hpp"
+#include "position.hpp"
 #include <magic_enum/magic_enum.hpp>
 #include <map>
 #include <string>
@@ -19,6 +19,7 @@ enum class TokenType {
   True,
   False,
   While,
+  Define, // for 'define' keyword
 
   // Characters
   LParens,

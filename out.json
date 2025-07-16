@@ -15,115 +15,293 @@
   },
   "statements": [
     {
-      "module_path": {
-        "base_type": "String",
+      "body": {
         "span": {
           "end": {
-            "col": 17,
-            "file_name": "examples/import.enki",
-            "pos": 17,
+            "col": 0,
+            "file_name": "",
+            "pos": 0,
             "row": 0
           },
           "start": {
-            "col": 9,
-            "file_name": "examples/import.enki",
-            "pos": 9,
+            "col": 0,
+            "file_name": "",
+            "pos": 0,
             "row": 0
           }
         },
-        "type": "Literal",
-        "value": "importee"
+        "statements": [
+          {
+            "expression": {
+              "name": "return",
+              "span": {
+                "end": {
+                  "col": 10,
+                  "file_name": "examples/function_definition.enki",
+                  "pos": 49,
+                  "row": 4
+                },
+                "start": {
+                  "col": 4,
+                  "file_name": "examples/function_definition.enki",
+                  "pos": 43,
+                  "row": 4
+                }
+              },
+              "type": "Identifier"
+            },
+            "span": {
+              "end": {
+                "col": 10,
+                "file_name": "examples/function_definition.enki",
+                "pos": 49,
+                "row": 4
+              },
+              "start": {
+                "col": 4,
+                "file_name": "examples/function_definition.enki",
+                "pos": 43,
+                "row": 4
+              }
+            },
+            "type": "ExpressionStatement"
+          },
+          {
+            "expression": {
+              "left": {
+                "name": "a",
+                "span": {
+                  "end": {
+                    "col": 12,
+                    "file_name": "examples/function_definition.enki",
+                    "pos": 51,
+                    "row": 4
+                  },
+                  "start": {
+                    "col": 11,
+                    "file_name": "examples/function_definition.enki",
+                    "pos": 50,
+                    "row": 4
+                  }
+                },
+                "type": "Identifier"
+              },
+              "op": "Add",
+              "right": {
+                "name": "b",
+                "span": {
+                  "end": {
+                    "col": 16,
+                    "file_name": "examples/function_definition.enki",
+                    "pos": 55,
+                    "row": 4
+                  },
+                  "start": {
+                    "col": 15,
+                    "file_name": "examples/function_definition.enki",
+                    "pos": 54,
+                    "row": 4
+                  }
+                },
+                "type": "Identifier"
+              },
+              "span": {
+                "end": {
+                  "col": 16,
+                  "file_name": "examples/function_definition.enki",
+                  "pos": 55,
+                  "row": 4
+                },
+                "start": {
+                  "col": 11,
+                  "file_name": "examples/function_definition.enki",
+                  "pos": 50,
+                  "row": 4
+                }
+              },
+              "type": "BinaryOp"
+            },
+            "span": {
+              "end": {
+                "col": 16,
+                "file_name": "examples/function_definition.enki",
+                "pos": 55,
+                "row": 4
+              },
+              "start": {
+                "col": 11,
+                "file_name": "examples/function_definition.enki",
+                "pos": 50,
+                "row": 4
+              }
+            },
+            "type": "ExpressionStatement"
+          }
+        ],
+        "type": "Block"
       },
+      "identifier": {
+        "name": "add",
+        "span": {
+          "end": {
+            "col": 10,
+            "file_name": "examples/function_definition.enki",
+            "pos": 13,
+            "row": 3
+          },
+          "start": {
+            "col": 7,
+            "file_name": "examples/function_definition.enki",
+            "pos": 10,
+            "row": 3
+          }
+        }
+      },
+      "parameters": [
+        {
+          "expression": null,
+          "identifier": {
+            "name": "a",
+            "span": {
+              "end": {
+                "col": 12,
+                "file_name": "examples/function_definition.enki",
+                "pos": 15,
+                "row": 3
+              },
+              "start": {
+                "col": 11,
+                "file_name": "examples/function_definition.enki",
+                "pos": 14,
+                "row": 3
+              }
+            }
+          },
+          "span": {
+            "end": {
+              "col": 17,
+              "file_name": "examples/function_definition.enki",
+              "pos": 20,
+              "row": 3
+            },
+            "start": {
+              "col": 11,
+              "file_name": "examples/function_definition.enki",
+              "pos": 14,
+              "row": 3
+            }
+          },
+          "type": "VarDecl"
+        },
+        {
+          "expression": null,
+          "identifier": {
+            "name": "b",
+            "span": {
+              "end": {
+                "col": 20,
+                "file_name": "examples/function_definition.enki",
+                "pos": 23,
+                "row": 3
+              },
+              "start": {
+                "col": 19,
+                "file_name": "examples/function_definition.enki",
+                "pos": 22,
+                "row": 3
+              }
+            }
+          },
+          "span": {
+            "end": {
+              "col": 25,
+              "file_name": "examples/function_definition.enki",
+              "pos": 28,
+              "row": 3
+            },
+            "start": {
+              "col": 19,
+              "file_name": "examples/function_definition.enki",
+              "pos": 22,
+              "row": 3
+            }
+          },
+          "type": "VarDecl"
+        }
+      ],
+      "return_type": {
+        "base_type": "Int"
+      },
+      "returns": [],
       "span": {
         "end": {
-          "col": 17,
-          "file_name": "examples/import.enki",
-          "pos": 17,
-          "row": 0
+          "col": 1,
+          "file_name": "examples/function_definition.enki",
+          "pos": 57,
+          "row": 5
         },
         "start": {
           "col": 0,
-          "file_name": "examples/import.enki",
-          "pos": 0,
-          "row": 0
+          "file_name": "examples/function_definition.enki",
+          "pos": 3,
+          "row": 3
         }
       },
-      "type": "ImportStatement"
+      "type": "FunctionDefinition"
     },
     {
       "expression": {
         "base_type": "Int",
         "span": {
           "end": {
-            "col": 17,
-            "file_name": "examples/import.enki",
-            "pos": 37,
-            "row": 1
+            "col": 9,
+            "file_name": "examples/function_definition.enki",
+            "pos": 69,
+            "row": 8
           },
           "start": {
-            "col": 15,
-            "file_name": "examples/import.enki",
-            "pos": 35,
-            "row": 1
+            "col": 8,
+            "file_name": "examples/function_definition.enki",
+            "pos": 68,
+            "row": 8
           }
         },
         "type": "Literal",
-        "value": "10"
+        "value": "2"
       },
       "identifier": {
-        "name": "frederik",
+        "name": "a",
         "span": {
           "end": {
-            "col": 12,
-            "file_name": "examples/import.enki",
-            "pos": 32,
-            "row": 1
+            "col": 5,
+            "file_name": "examples/function_definition.enki",
+            "pos": 65,
+            "row": 8
           },
           "start": {
             "col": 4,
-            "file_name": "examples/import.enki",
-            "pos": 24,
-            "row": 1
+            "file_name": "examples/function_definition.enki",
+            "pos": 64,
+            "row": 8
           }
-        },
-        "type": "Identifier"
+        }
       },
       "span": {
         "end": {
-          "col": 17,
-          "file_name": "examples/import.enki",
-          "pos": 37,
-          "row": 1
+          "col": 9,
+          "file_name": "examples/function_definition.enki",
+          "pos": 69,
+          "row": 8
         },
         "start": {
           "col": 0,
-          "file_name": "examples/import.enki",
-          "pos": 20,
-          "row": 1
+          "file_name": "examples/function_definition.enki",
+          "pos": 60,
+          "row": 8
         }
       },
-      "type": "LetStatement"
+      "type": "VarDecl"
     }
   ],
-  "symbols": {
-    "frederik": {
-      "name": "frederik",
-      "span": {
-        "end": {
-          "col": 12,
-          "file_name": "examples/import.enki",
-          "pos": 32,
-          "row": 1
-        },
-        "start": {
-          "col": 4,
-          "file_name": "examples/import.enki",
-          "pos": 24,
-          "row": 1
-        }
-      },
-      "type": null
-    }
-  },
   "type": "Program"
 }

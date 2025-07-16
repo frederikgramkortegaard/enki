@@ -31,6 +31,9 @@ TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
   if (str == "while") {
     return TokenType::While;
   }
+  if (str == "define") {
+    return TokenType::Define;
+  }
   return TokenType::Identifier;
 }
 

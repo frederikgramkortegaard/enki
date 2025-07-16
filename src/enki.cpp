@@ -15,7 +15,7 @@
 #include "runtime/builtins.hpp"
 #include "utils/logging.hpp"
 
-std::shared_ptr<Program> compile(const std::string &source,
+Ref<Program> compile(const std::string &source,
                                const std::string &filename) {
   std::vector<Token> tokens = lex(source, filename);
   return parse(tokens);
@@ -91,7 +91,7 @@ int compile_command(int argc, char *argv[]) {
     return 1;
   }
 
-  std::shared_ptr<Program> program;
+  Ref<Program> program;
 
   // If input file, lex, parse, and print to output file
   std::ifstream file(input_filename);
@@ -153,7 +153,7 @@ int serde_command(int argc, char *argv[]) {
   }
 
 
-  std::shared_ptr<Program> program;
+  Ref<Program> program;
 
   {
     // If input file, lex, parse, and print to output file
@@ -201,21 +201,14 @@ int serde_command(int argc, char *argv[]) {
     from_json(ast_json, *parsed_program);
   }
 
-  if (program->statements.size() != parsed_program->statements.size() ||
-      program->symbols.size() != parsed_program->symbols.size()) {
+  if (program->statements.size() != parsed_program->statements.size()) {
     spdlog::error("AST mismatch after serialization/deserialization");
     spdlog::error("Original AST statements: {}", program->statements.size());
     spdlog::error("Parsed AST statements: {}", parsed_program->statements.size());
-    spdlog::error("Original AST symbols: {}", program->symbols.size());
-    spdlog::error("Parsed AST symbols: {}", parsed_program->symbols.size());
     return 1;
   }
 
   spdlog::info("AST serialization/deserialization successful");
-  spdlog::info("Original AST: {} statements, {} symbols",
-               program->statements.size(), program->symbols.size());
-  spdlog::info("Parsed AST: {} statements, {} symbols",
-               parsed_program->statements.size(), parsed_program->symbols.size());
   return 0;
 }
 
@@ -250,7 +243,7 @@ int eval_command(int argc, char *argv[]) {
   file >> ast_json;
   spdlog::info("Loaded AST from {}", filename);
 
-  auto program_ptr = ast_json.get<std::shared_ptr<Program>>();
+  auto program_ptr = ast_json.get<Ref<Program>>();
 
   register_builtins();
   EvalContext ctx(*program_ptr);

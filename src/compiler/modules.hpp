@@ -23,15 +23,6 @@ struct ModuleContext {
   }
 
 
-std::shared_ptr<Symbol> get_symbol_from_module(const std::string &module_name, const std::string &symbol_name) {
-  auto module = get_module(module_name);
-  if (module == nullptr) {
-    return nullptr;
-  }
-  return module->symbols[symbol_name];
-}
-
-
   std::shared_ptr<Program> add_module(const std::string &name, const std::string &importing_file = "") {
     // If already loaded, return it
     if (modules.find(name) != modules.end()) {
