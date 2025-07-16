@@ -20,6 +20,8 @@ inline void print_indent(int depth) {
 }
 
 // Forward declarations
+void print_scope(const Ref<Scope>& scope, int depth);
+void print_symbol(const Ref<Symbol>& symbol, int depth);
 void print_ast(const Ref<Expression> &expr, int depth = 0,
                int max_depth = -1);
 void print_ast(const Ref<Statement> &stmt, int depth = 0,
@@ -178,6 +180,9 @@ inline void print_ast(const Ref<Statement> &stmt, int depth,
   if (auto block = std::dynamic_pointer_cast<Block>(stmt)) {
     print_indent(depth);
     std::cout << "Block:" << std::endl;
+    if (block->scope) {
+      print_scope(block->scope, depth + 1);
+    }
     for (const auto &inner_stmt : block->statements) {
       print_ast(inner_stmt, depth + 1, max_depth);
     }
@@ -214,6 +219,18 @@ inline void print_ast(const Ref<Statement> &stmt, int depth,
     print_ast(func_def->body, depth + 2, max_depth);
     return;
   }
+  // Assignment
+  if (auto assign = std::dynamic_pointer_cast<Assigment>(stmt)) {
+    print_indent(depth);
+    std::cout << "Assignment:" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "assignee:" << std::endl;
+    print_ast(assign->assignee, depth + 2, max_depth);
+    print_indent(depth + 1);
+    std::cout << "expression:" << std::endl;
+    print_ast(assign->expression, depth + 2, max_depth);
+    return;
+  }
   // Unknown type
   print_indent(depth);
   std::cout << magic_enum::enum_name(stmt->get_type()) << std::endl;
@@ -224,6 +241,9 @@ inline void print_ast(const Ref<Statement> &stmt, int depth,
 inline void print_ast(const Program &program, int depth, int max_depth) {
   print_indent(depth);
   std::cout << "Program" << std::endl;
+  if (program.scope) {
+    print_scope(program.scope, depth + 1);
+  }
   for (const auto &stmt : program.statements) {
     print_ast(stmt, depth + 1, max_depth);
   }
@@ -242,6 +262,48 @@ inline void print_value(const Value& val, std::ostream& os = std::cout) {
     } else {
         os << "<null>";
     }
+}
+
+// Utility to print a Symbol
+inline void print_symbol(const Ref<Symbol>& symbol, int depth) {
+  if (!symbol) {
+    print_indent(depth);
+    std::cout << "Symbol: <null>" << std::endl;
+    return;
+  }
+  print_indent(depth);
+  std::cout << "Symbol: " << symbol->name << " (" << magic_enum::enum_name(symbol->symbol_type) << ")";
+  if (symbol->type) {
+    std::cout << ", type: ";
+    print_ast(symbol->type, 0);
+  } else {
+    std::cout << ", type: <null>";
+  }
+  std::cout << std::endl;
+}
+// Utility to print a Scope
+inline void print_scope(const Ref<Scope>& scope, int depth) {
+  if (!scope) {
+    print_indent(depth);
+    std::cout << "Scope: <null>" << std::endl;
+    return;
+  }
+  print_indent(depth);
+  std::cout << "Scope:" << std::endl;
+  for (const auto& [name, symbol] : scope->symbols) {
+    if (symbol) print_symbol(symbol, depth + 1);
+    else {
+      print_indent(depth + 1);
+      std::cout << "Symbol: <null>" << std::endl;
+    }
+  }
+  for (const auto& child : scope->children) {
+    if (child) print_scope(child, depth + 1);
+    else {
+      print_indent(depth + 1);
+      std::cout << "Scope: <null>" << std::endl;
+    }
+  }
 }
 
 } // namespace ast

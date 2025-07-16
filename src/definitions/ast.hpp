@@ -26,6 +26,7 @@ enum class ASTType {
   Extern,
   Import,
   ExpressionStatement,
+  Assigment,
   Block,
   If,
   While,
@@ -67,6 +68,12 @@ struct Call : Expression {
   Ref<Expression> callee;
   std::vector<Ref<Expression>> arguments;
   ASTType get_type() const override { return ASTType::FunctionCall; }
+};
+
+struct Assigment : Statement {
+  Ref<Expression> assignee;
+  Ref<Expression> expression;
+  ASTType get_type() const override { return ASTType::Assigment; }
 };
 
 enum class BinaryOpType {

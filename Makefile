@@ -58,5 +58,9 @@ clean:
 	rm -rf $(OBJ_DIR) $(MORPH_EXE)
 	rm -f enki enkieval enkirun
 
+clean_json:
+	@echo "Cleaning json files"
+	rm -f *.json
+
 # Include all dependency files for header dependency tracking
 -include $(wildcard $(DEPFILES))

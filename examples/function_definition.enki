@@ -2,9 +2,9 @@
 
 
 define add(a: int, b: int) -> int {
-    return a + b
+    a = a + b
+    return a
 }
 
 
-let a = 2
 

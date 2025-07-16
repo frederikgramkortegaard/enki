@@ -122,10 +122,10 @@ inline void from_json(const json &j, Type &t) {
 
 // --- VarDecl ---
 inline void to_json(json &j, const VarDecl &l) {
+  j = json{{"type", "VarDecl"}};
   j["identifier"] = l.identifier;
   j["expression"] = l.expression;
   j["span"] = l.span;
-  j["type"] = "VarDecl";
 }
 inline void from_json(const json &j, VarDecl &l) {
   j.at("identifier").get_to(l.identifier);
@@ -135,11 +135,11 @@ inline void from_json(const json &j, VarDecl &l) {
 
 // --- If ---
 inline void to_json(json &j, const If &i) {
+  j = json{{"type", "If"}};
   j["condition"] = i.condition;
   j["then_branch"] = i.then_branch;
   j["else_branch"] = i.else_branch;
   j["span"] = i.span;
-  j["type"] = "If";
 }
 inline void from_json(const json &j, If &i) {
   j.at("condition").get_to(i.condition);
@@ -150,10 +150,10 @@ inline void from_json(const json &j, If &i) {
 
 // --- While ---
 inline void to_json(json &j, const While &w) {
+  j = json{{"type", "While"}};
   j["condition"] = w.condition;
   j["body"] = w.body;
   j["span"] = w.span;
-  j["type"] = "While";
 }
 inline void from_json(const json &j, While &w) {
   j.at("condition").get_to(w.condition);
@@ -163,9 +163,10 @@ inline void from_json(const json &j, While &w) {
 
 // --- Block ---
 inline void to_json(json &j, const Block &b) {
+  j = json{{"type", "Block"}};
   j["statements"] = b.statements;
   j["span"] = b.span;
-  j["type"] = "Block";
+  j["scope"] = b.scope;
 }
 inline void from_json(const json &j, Block &b) {
   j.at("statements").get_to(b.statements);
@@ -175,10 +176,10 @@ inline void from_json(const json &j, Block &b) {
 
 // --- Call ---
 inline void to_json(json &j, const Call &c) {
+  j = json{{"type", "Call"}};
   j["callee"] = c.callee;
   j["arguments"] = c.arguments;
   j["span"] = c.span;
-  j["type"] = "Call";
 }
 inline void from_json(const json &j, Call &c) {
   j.at("callee").get_to(c.callee);
@@ -188,9 +189,10 @@ inline void from_json(const json &j, Call &c) {
 
 // --- Program ---
 inline void to_json(json &j, const Program &p) {
+  j = json{{"type", "Program"}};
   j["statements"] = p.statements;
   j["span"] = p.span;
-  j["type"] = "Program";
+  j["scope"] = p.scope;
 }
 inline void from_json(const json &j, Program &p) {
   j.at("statements").get_to(p.statements);
@@ -199,9 +201,9 @@ inline void from_json(const json &j, Program &p) {
 
 // --- ExpressionStatement ---
 inline void to_json(json &j, const ExpressionStatement &es) {
+  j = json{{"type", "ExpressionStatement"}};
   j["expression"] = es.expression;
   j["span"] = es.span;
-  j["type"] = "ExpressionStatement";
 }
 inline void from_json(const json &j, ExpressionStatement &es) {
   j.at("expression").get_to(es.expression);
@@ -210,6 +212,7 @@ inline void from_json(const json &j, ExpressionStatement &es) {
 
 // --- Extern ---
 inline void to_json(json &j, const Extern &e) {
+  j = json{{"type", "Extern"}};
   j["identifier"] = e.identifier;
   j["args"] = json::array();
   for (const auto &arg : e.args) {
@@ -218,7 +221,6 @@ inline void to_json(json &j, const Extern &e) {
   j["return_type"] = *e.return_type;
   j["module_path"] = e.module_path;
   j["span"] = e.span;
-  j["type"] = "Extern";
 }
 inline void from_json(const json &j, Extern &e) {
   j.at("identifier").get_to(e.identifier);
@@ -233,9 +235,9 @@ inline void from_json(const json &j, Extern &e) {
 
 // --- Import ---
 inline void to_json(json &j, const Import &imp) {
+  j = json{{"type", "Import"}};
   j["module_path"] = imp.module_path;
   j["span"] = imp.span;
-  j["type"] = "Import";
 }
 inline void from_json(const json &j, Import &imp) {
   j.at("module_path").get_to(imp.module_path);
@@ -293,13 +295,13 @@ inline void from_json(const json &j, Ref<Expression> &expr) {
 
 // --- FunctionDefinition ---
 inline void to_json(json &j, const FunctionDefinition &f) {
+  j = json{{"type", "FunctionDefinition"}};
   j["identifier"] = f.identifier;
   j["return_type"] = f.return_type;
   j["parameters"] = f.parameters;
   j["returns"] = f.returns;
   j["body"] = f.body;
   j["span"] = f.span;
-  j["type"] = "FunctionDefinition";
 }
 inline void from_json(const json &j, FunctionDefinition &f) {
   j.at("identifier").get_to(f.identifier);
@@ -311,6 +313,18 @@ inline void from_json(const json &j, FunctionDefinition &f) {
   // Optionally: check type tag
 }
 
+// --- Assigment ---
+inline void to_json(json &j, const Assigment &a) {
+  j = json{{"type", "Assigment"}};
+  j["assignee"] = a.assignee;
+  j["expression"] = a.expression;
+  j["span"] = a.span;
+}
+inline void from_json(const json &j, Assigment &a) {
+  j.at("assignee").get_to(a.assignee);
+  j.at("expression").get_to(a.expression);
+  j.at("span").get_to(a.span);
+}
 // --- Polymorphic pointer serialization for Statement ---
 inline void to_json(json &j, const Ref<Statement> &stmt) {
   if (!stmt) {
@@ -342,6 +356,9 @@ inline void to_json(json &j, const Ref<Statement> &stmt) {
   } else if (auto func_def = std::dynamic_pointer_cast<FunctionDefinition>(stmt)) {
     to_json(j, *func_def);
     j["type"] = "FunctionDefinition";
+  } else if (auto assign = std::dynamic_pointer_cast<Assigment>(stmt)) {
+    to_json(j, *assign);
+    j["type"] = "Assigment";
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -384,6 +401,10 @@ inline void from_json(const json &j, Ref<Statement> &stmt) {
     auto func_def = std::make_shared<FunctionDefinition>();
     from_json(j, *func_def);
     stmt = func_def;
+  } else if (type == "Assigment") {
+    auto assign = std::make_shared<Assigment>();
+    from_json(j, *assign);
+    stmt = assign;
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }
@@ -391,12 +412,36 @@ inline void from_json(const json &j, Ref<Statement> &stmt) {
 
 // --- Return ---
 inline void to_json(json &j, const Return &r) {
+  j = json{{"type", "Return"}};
   j["expression"] = r.expression;
   j["span"] = r.span;
 }
 inline void from_json(const json &j, Return &r) {
   j.at("expression").get_to(r.expression);
   j.at("span").get_to(r.span);
+}
+
+// --- Symbol ---
+inline void to_json(json &j, const Symbol &s) {
+  j = json{{"name", s.name}};
+  j["symbol_type"] = s.symbol_type;
+  j["type"] = s.type;
+  j["span"] = s.span;
+}
+// --- Scope ---
+inline void to_json(json &j, const Scope &s) {
+  j = json{};
+  j["parent"] = nullptr; // avoid recursion
+  j["children"] = json::array();
+  for (const auto& child : s.children) {
+    if (child) j["children"].push_back(*child);
+    else j["children"].push_back(nullptr);
+  }
+  j["symbols"] = json::object();
+  for (const auto& [name, symbol] : s.symbols) {
+    if (symbol) j["symbols"][name] = *symbol;
+    else j["symbols"][name] = nullptr;
+  }
 }
 
 // --- End of file ---

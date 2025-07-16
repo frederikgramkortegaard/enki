@@ -3,7 +3,13 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
+
+bool is_assignable(Ref<Expression> expr) {
+  return expr->get_type() == ASTType::Identifier;
+}
+
 Ref<Expression> parse_atom(ParserContext &ctx) {
+  spdlog::debug("Entering parse_atom at token {}", magic_enum::enum_name(ctx.current_token().type));
   const Token &tok = ctx.tokens[ctx.current];
 
   switch (tok.type) {
@@ -71,6 +77,7 @@ Ref<Expression> parse_atom(ParserContext &ctx) {
 
 //@TODO : Only handles simple types for now
 Ref<Type> parse_type(ParserContext &ctx) {
+  spdlog::debug("Entering parse_type at token {}", magic_enum::enum_name(ctx.current_token().type));
   auto type = std::make_shared<Type>();
   type->span = ctx.current_token().span;
   ctx.consume();
@@ -78,6 +85,7 @@ Ref<Type> parse_type(ParserContext &ctx) {
 }
 
 Ref<Identifier> parse_identifier(ParserContext &ctx) {
+  spdlog::debug("Entering parse_identifier at token {}", magic_enum::enum_name(ctx.current_token().type));
   const Token &tok = ctx.tokens[ctx.current];
   if (tok.type != TokenType::Identifier) {
     std::cerr << std::format("Expected Identifier at {} but got {}\n",
@@ -93,6 +101,7 @@ Ref<Identifier> parse_identifier(ParserContext &ctx) {
 }
 
 Ref<Expression> parse_expression(ParserContext &ctx) {
+  spdlog::debug("Entering parse_expression at token {}", magic_enum::enum_name(ctx.current_token().type));
   auto left = parse_atom(ctx);
   if (!left)
     return nullptr;
@@ -156,6 +165,7 @@ Ref<Expression> parse_expression(ParserContext &ctx) {
 
 
 Ref<VarDecl> parse_parameter(ParserContext &ctx) {
+  spdlog::debug("Entering parse_parameter at token {}", magic_enum::enum_name(ctx.current_token().type));
   auto var_decl = std::make_shared<VarDecl>();
   var_decl->identifier = parse_identifier(ctx);
   ctx.consume_assert(TokenType::Colon, "Missing ':' in Variable Declaration");
@@ -166,9 +176,15 @@ Ref<VarDecl> parse_parameter(ParserContext &ctx) {
   
 // @NOTE DOES NOT CONSUME {}
 Ref<Block> parse_block(ParserContext &ctx) {
+  spdlog::debug("Entering parse_block at token {}", magic_enum::enum_name(ctx.current_token().type));
   auto block = std::make_shared<Block>();
-  block->scope = ctx.current_scope;
-  block->scope->children.push_back(block->scope);
+  // Create a new scope for this block
+  block->scope = std::make_shared<Scope>();
+  block->scope->parent = ctx.current_scope;
+  ctx.current_scope->children.push_back(block->scope);
+
+  // Enter the new scope
+  ctx.current_scope = block->scope;
 
   while (ctx.current < ctx.tokens.size() &&
          ctx.current_token().type != TokenType::RCurly) {
@@ -179,15 +195,18 @@ Ref<Block> parse_block(ParserContext &ctx) {
       break; // error handling or end
     }
   }
+  // Restore previous scope
   ctx.current_scope = block->scope->parent;
   return block;
 }
 
 Ref<Statement> parse_statement(ParserContext &ctx) {
+  spdlog::debug("Entering parse_statement at token {}", magic_enum::enum_name(ctx.current_token().type));
   const Token &tok = ctx.tokens[ctx.current];
   Span statement_start = tok.span;
 
   if (tok.type == TokenType::Define) {
+    spdlog::debug("Entering parse_statement at token {}", magic_enum::enum_name(ctx.current_token().type));
     // define add(a: int, b: int) -> int {
     // return a + b;
     // }
@@ -208,18 +227,15 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
     ctx.consume_assert(TokenType::Arrow, "Missing '->' in Function Definition");
     function_def->return_type = parse_type(ctx);
     ctx.consume_assert(TokenType::LCurly, "Missing '{' in Function Definition");
-    std::cout << ctx.current_token().value << std::endl;
     function_def->body = parse_block(ctx);
-    std::cout << ctx.current_token().value << std::endl;
     ctx.consume_assert(TokenType::RCurly, "Missing '}' in Function Definition");
-    std::cout << ctx.current_token().value << std::endl;
     function_def->span = Span(tok.span.start, ctx.previous_token_span().end);
     ctx.consume_if(TokenType::Semicolon);
     return function_def;
   }
 
   if (tok.type == TokenType::Import) {
-    spdlog::debug("Parsing Import statement");
+    spdlog::debug("Entering parse_statement at token {}", magic_enum::enum_name(ctx.current_token().type));
     auto import_stmt = std::make_shared<Import>();
     ctx.consume();
     ctx.consume_assert(TokenType::LessThan, "Missing '<' in Import statement");
@@ -361,8 +377,22 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
     auto expr_stmt = std::make_shared<ExpressionStatement>();
     expr_stmt->expression = expr;
     expr_stmt->span = expr->span;
+    
+
+    if (ctx.current_token().type == TokenType::Equals && is_assignable(expr)) {
+      auto assigment = std::make_shared<Assigment>();
+      assigment->assignee = expr;
+      ctx.consume_assert(TokenType::Equals, "Missing '=' in Assigment");
+      assigment->expression = parse_expression(ctx);
+      assigment->span = Span(expr_stmt->span.start, assigment->expression->span.end);
+      return assigment;
+    }
+
     return expr_stmt;
   }
+
+
+  
 
   return nullptr;
 }
