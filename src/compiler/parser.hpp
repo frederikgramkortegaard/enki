@@ -1,15 +1,16 @@
 #pragma once
 #include "../definitions/ast.hpp"
 #include "../definitions/tokens.hpp"
+#include "modules.hpp"
+#include <iostream>
 #include <spdlog/spdlog.h>
 #include <string_view>
 #include <vector>
-#include <iostream>
-#include "modules.hpp"
-
 
 struct ModuleContext;
-Ref<Program> parse(const std::vector<Token> &tokens);
+Ref<Program> parse(const std::vector<Token> &tokens,
+                   std::shared_ptr<std::string> source_buffer,
+                   Ref<ModuleContext> module_context);
 
 struct ParserContext {
   Ref<Program> program;

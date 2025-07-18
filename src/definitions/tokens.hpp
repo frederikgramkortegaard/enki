@@ -19,7 +19,15 @@ enum class TokenType {
   True,
   False,
   While,
+  Return,
   Define, // for 'define' keyword
+
+  // Type keywords
+  IntType,
+  FloatType,
+  StringType,
+  BoolType,
+  VoidType,
 
   // Characters
   LParens,

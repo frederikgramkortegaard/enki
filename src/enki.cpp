@@ -1,7 +1,9 @@
 
-#include <nlohmann/json.hpp>
+#include <cctype>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
@@ -10,25 +12,79 @@
 
 #include "compiler/lexer.hpp"
 #include "compiler/parser.hpp"
+#include "compiler/typecheck.hpp"
 #include "definitions/serializations.hpp"
-#include "interpreter/eval.hpp"
-#include "runtime/builtins.hpp"
 #include "utils/logging.hpp"
 
-Ref<Program> compile(const std::string &source,
-                               const std::string &filename) {
-  std::vector<Token> tokens = lex(source, filename);
-  return parse(tokens);
+// Utility to print a string_view as hex for debugging
+void print_string_view_hex(const std::string_view &sv, const char *label) {
+  std::cout << label << ": length=" << sv.size() << ", data=";
+  for (unsigned char c : sv) {
+    if (std::isprint(c))
+      std::cout << c;
+    else
+      std::cout << "\\x" << std::hex << std::setw(2) << std::setfill('0')
+                << (int)c << std::dec;
+  }
+  std::cout << std::endl;
+}
+
+// Recursively print all string_view fields in the AST
+void debug_print_ast_string_views(const Ref<Program> &program) {
+  for (const auto &stmt : program->statements) {
+    if (!stmt)
+      continue;
+    if (auto func = std::dynamic_pointer_cast<FunctionDefinition>(stmt)) {
+      if (func->identifier)
+        print_string_view_hex(func->identifier->name, "Function identifier");
+      for (const auto &param : func->parameters) {
+        if (param && param->identifier)
+          print_string_view_hex(param->identifier->name,
+                                "Parameter identifier");
+      }
+    }
+    if (auto var = std::dynamic_pointer_cast<VarDecl>(stmt)) {
+      if (var->identifier)
+        print_string_view_hex(var->identifier->name, "VarDecl identifier");
+    }
+    if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStatement>(stmt)) {
+      if (auto ident =
+              std::dynamic_pointer_cast<Identifier>(expr_stmt->expression)) {
+        print_string_view_hex(ident->name, "ExprStmt identifier");
+      }
+    }
+    if (auto import = std::dynamic_pointer_cast<Import>(stmt)) {
+      if (import->module_path)
+        print_string_view_hex(import->module_path->value, "Import module_path");
+    }
+  }
+  // Print scope symbol names
+  if (program->scope) {
+    for (const auto &[name, symbol] : program->scope->symbols) {
+      if (symbol)
+        print_string_view_hex(symbol->name, "Scope symbol name");
+    }
+  }
+}
+
+Ref<Program> compile(const std::string &source, const std::string &filename,
+                     Ref<ModuleContext> module_context) {
+  auto buffer_ptr = std::make_shared<std::string>(source);
+  std::vector<Token> tokens = lex(*buffer_ptr, filename);
+  auto program = parse(tokens, buffer_ptr, module_context);
+  typecheck(program);
+  return program;
 }
 
 void print_global_usage(const char *prog_name) {
   fmt::println("Usage: {} <command> [options] [arguments]", prog_name);
   fmt::println("Commands:");
   fmt::println("  compile: Compile a enki source file to AST JSON");
-  fmt::println("  eval: Evaluate a compiled AST JSON file");
-  fmt::println("  run: Compile and run a enki source file");
+  fmt::println("  serde: Test AST serialization/deserialization");
   fmt::println("");
-  fmt::println("Run '{} <command> -h' for more information on a specific command", prog_name);
+  fmt::println(
+      "Run '{} <command> -h' for more information on a specific command",
+      prog_name);
 }
 
 void print_compile_usage(const char *prog_name) {
@@ -40,18 +96,6 @@ void print_compile_usage(const char *prog_name) {
 
 void print_serde_usage(const char *prog_name) {
   fmt::println("Usage: {} serde [options] <input-file>", prog_name);
-  fmt::println("Options:");
-  fmt::println("  -h: Show this help message");
-}
-
-void print_eval_usage(const char *prog_name) {
-  fmt::println("Usage: {} eval [options] <ast-file>", prog_name);
-  fmt::println("Options:");
-  fmt::println("  -h: Show this help message");
-}
-
-void print_run_usage(const char *prog_name) {
-  fmt::println("Usage: {} run [options] <enki-file>", prog_name);
   fmt::println("Options:");
   fmt::println("  -h: Show this help message");
 }
@@ -92,6 +136,7 @@ int compile_command(int argc, char *argv[]) {
   }
 
   Ref<Program> program;
+  Ref<ModuleContext> module_context = std::make_shared<ModuleContext>();
 
   // If input file, lex, parse, and print to output file
   std::ifstream file(input_filename);
@@ -102,11 +147,12 @@ int compile_command(int argc, char *argv[]) {
   std::stringstream buffer;
   buffer << file.rdbuf();
   std::string source = buffer.str();
-  program = compile(source, input_filename);
+  program = compile(source, input_filename, module_context);
 
   if (output_filename.empty()) {
     output_filename = input_filename;
-    output_filename = output_filename.substr(output_filename.find_last_of("/") + 1);
+    output_filename =
+        output_filename.substr(output_filename.find_last_of("/") + 1);
     size_t dot_pos = output_filename.find_last_of('.');
     if (dot_pos != std::string::npos) {
       output_filename = output_filename.substr(0, dot_pos);
@@ -120,6 +166,7 @@ int compile_command(int argc, char *argv[]) {
     spdlog::error("Could not open output file: {}", output_filename);
     return 1;
   }
+  debug_print_ast_string_views(program);
   nlohmann::json j = *program;
   output << j.dump(2) << std::endl;
   spdlog::info("Wrote AST to {}", output_filename);
@@ -152,8 +199,8 @@ int serde_command(int argc, char *argv[]) {
     return 1;
   }
 
-
   Ref<Program> program;
+  Ref<ModuleContext> module_context = std::make_shared<ModuleContext>();
 
   {
     // If input file, lex, parse, and print to output file
@@ -165,7 +212,7 @@ int serde_command(int argc, char *argv[]) {
     std::stringstream buffer;
     buffer << file.rdbuf();
     std::string source = buffer.str();
-    program = compile(source, input_filename);
+    program = compile(source, input_filename, module_context);
   }
 
   std::string json_path = input_filename;
@@ -204,93 +251,12 @@ int serde_command(int argc, char *argv[]) {
   if (program->statements.size() != parsed_program->statements.size()) {
     spdlog::error("AST mismatch after serialization/deserialization");
     spdlog::error("Original AST statements: {}", program->statements.size());
-    spdlog::error("Parsed AST statements: {}", parsed_program->statements.size());
+    spdlog::error("Parsed AST statements: {}",
+                  parsed_program->statements.size());
     return 1;
   }
 
   spdlog::info("AST serialization/deserialization successful");
-  return 0;
-}
-
-int eval_command(int argc, char *argv[]) {
-  optind = 1; // Reset getopt
-  int opt;
-  while ((opt = getopt(argc, argv, "h")) != -1) {
-    switch (opt) {
-    case 'h':
-      print_eval_usage(argv[0]);
-      return 0;
-    default: /* '?' */
-      print_eval_usage(argv[0]);
-      return 1;
-    }
-  }
-
-  if (optind >= argc) {
-    spdlog::error("Input file required");
-    print_eval_usage(argv[0]);
-    return 1;
-  }
-
-  std::string filename = argv[optind];
-
-  std::ifstream file(filename);
-  if (!file.is_open()) {
-    spdlog::error("Failed to open file: {}", filename);
-    return 1;
-  }
-  nlohmann::json ast_json;
-  file >> ast_json;
-  spdlog::info("Loaded AST from {}", filename);
-
-  auto program_ptr = ast_json.get<Ref<Program>>();
-
-  register_builtins();
-  EvalContext ctx(*program_ptr);
-  spdlog::debug("Program: {} statements", program_ptr->statements.size());
-  interpret(ctx);
-
-  return 0;
-}
-
-int run_command(int argc, char *argv[]) {
-  optind = 1; // Reset getopt
-  int opt;
-  while ((opt = getopt(argc, argv, "h")) != -1) {
-    switch (opt) {
-    case 'h':
-      print_run_usage(argv[0]);
-      return 0;
-    default: /* '?' */
-      print_run_usage(argv[0]);
-      return 1;
-    }
-  }
-
-  if (optind >= argc) {
-    spdlog::error("Input file required");
-    print_run_usage(argv[0]);
-    return 1;
-  }
-
-  std::string filename = argv[optind];
-
-  std::ifstream file(filename);
-  if (!file.is_open()) {
-    spdlog::error("Could not open file: {}", filename);
-    return 1;
-  }
-
-  std::stringstream buffer;
-  buffer << file.rdbuf();
-  std::string source = buffer.str();
-
-  auto program = compile(source, filename);
-
-  register_builtins();
-  EvalContext ctx(*program);
-  interpret(ctx);
-
   return 0;
 }
 
@@ -312,10 +278,6 @@ int main(int argc, char *argv[]) {
     return compile_command(argc, argv);
   } else if (command == "serde") {
     return serde_command(argc, argv);
-  } else if (command == "eval") {
-    return eval_command(argc, argv);
-  } else if (command == "run") {
-    return run_command(argc, argv);
   } else if (command == "-h" || command == "--help") {
     print_global_usage(argv[0]);
     return 0;

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <format>
-#include <string>
-#include <string_view>
 #include <ostream>
 #include <sstream>
+#include <string>
+#include <string_view>
 
 struct Location {
   int row, col, pos;
@@ -19,4 +19,4 @@ struct Span {
   std::string to_string() const {
     return std::format("Start {}, End {}", start.to_string(), end.to_string());
   }
-}; 
+};

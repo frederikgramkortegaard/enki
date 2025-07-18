@@ -22,15 +22,13 @@ inline void from_json(const json &j, std::string_view &sv) {
 }
 
 // --- shared_ptr helpers for concrete types ---
-template <typename T>
-inline void to_json(json &j, const Ref<T> &ptr) {
+template <typename T> inline void to_json(json &j, const Ref<T> &ptr) {
   if (ptr)
     j = *ptr;
   else
     j = nullptr;
 }
-template <typename T>
-inline void from_json(const json &j, Ref<T> &ptr) {
+template <typename T> inline void from_json(const json &j, Ref<T> &ptr) {
   if (j.is_null())
     ptr = nullptr;
   else {
@@ -85,7 +83,8 @@ inline void to_json(json &j, const BinaryOp &id) {
 inline void from_json(const json &j, BinaryOp &id) {
   j.at("left").get_to(id.left);
   j.at("right").get_to(id.right);
-  id.op = magic_enum::enum_cast<BinaryOpType>(j.at("op").get<std::string>()).value();
+  id.op = magic_enum::enum_cast<BinaryOpType>(j.at("op").get<std::string>())
+              .value();
   j.at("span").get_to(id.span);
 }
 
@@ -94,12 +93,12 @@ inline void to_json(json &j, const Literal &lit) {
   j["value"] = lit.value;
   j["span"] = lit.span;
   j["type"] = "Literal";
-  j["base_type"] = lit.type.base_type;
+  j["base_type"] = lit.type->base_type;
 }
 inline void from_json(const json &j, Literal &lit) {
   j.at("value").get_to(lit.value);
   j.at("span").get_to(lit.span);
-  lit.type.base_type = j.at("base_type").get<BaseType>();
+  lit.type->base_type = j.at("base_type").get<BaseType>();
 }
 
 // --- BaseType (enum) ---
@@ -172,7 +171,6 @@ inline void from_json(const json &j, Block &b) {
   j.at("statements").get_to(b.statements);
   j.at("span").get_to(b.span);
 }
-
 
 // --- Call ---
 inline void to_json(json &j, const Call &c) {
@@ -313,17 +311,28 @@ inline void from_json(const json &j, FunctionDefinition &f) {
   // Optionally: check type tag
 }
 
-// --- Assigment ---
-inline void to_json(json &j, const Assigment &a) {
-  j = json{{"type", "Assigment"}};
+// --- Assignment ---
+inline void to_json(json &j, const Assignment &a) {
+  j = json{{"type", "Assignment"}};
   j["assignee"] = a.assignee;
   j["expression"] = a.expression;
   j["span"] = a.span;
 }
-inline void from_json(const json &j, Assigment &a) {
+inline void from_json(const json &j, Assignment &a) {
   j.at("assignee").get_to(a.assignee);
   j.at("expression").get_to(a.expression);
   j.at("span").get_to(a.span);
+}
+
+// --- Return ---
+inline void to_json(json &j, const Return &r) {
+  j = json{{"type", "Return"}};
+  j["expression"] = r.expression;
+  j["span"] = r.span;
+}
+inline void from_json(const json &j, Return &r) {
+  j.at("expression").get_to(r.expression);
+  j.at("span").get_to(r.span);
 }
 // --- Polymorphic pointer serialization for Statement ---
 inline void to_json(json &j, const Ref<Statement> &stmt) {
@@ -353,12 +362,16 @@ inline void to_json(json &j, const Ref<Statement> &stmt) {
   } else if (auto import_stmt = std::dynamic_pointer_cast<Import>(stmt)) {
     to_json(j, *import_stmt);
     j["type"] = "Import";
-  } else if (auto func_def = std::dynamic_pointer_cast<FunctionDefinition>(stmt)) {
+  } else if (auto func_def =
+                 std::dynamic_pointer_cast<FunctionDefinition>(stmt)) {
     to_json(j, *func_def);
     j["type"] = "FunctionDefinition";
-  } else if (auto assign = std::dynamic_pointer_cast<Assigment>(stmt)) {
+  } else if (auto assign = std::dynamic_pointer_cast<Assignment>(stmt)) {
     to_json(j, *assign);
-    j["type"] = "Assigment";
+    j["type"] = "Assignment";
+  } else if (auto return_stmt = std::dynamic_pointer_cast<Return>(stmt)) {
+    to_json(j, *return_stmt);
+    j["type"] = "Return";
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -401,24 +414,17 @@ inline void from_json(const json &j, Ref<Statement> &stmt) {
     auto func_def = std::make_shared<FunctionDefinition>();
     from_json(j, *func_def);
     stmt = func_def;
-  } else if (type == "Assigment") {
-    auto assign = std::make_shared<Assigment>();
+  } else if (type == "Assignment") {
+    auto assign = std::make_shared<Assignment>();
     from_json(j, *assign);
     stmt = assign;
+  } else if (type == "Return") {
+    auto return_stmt = std::make_shared<Return>();
+    from_json(j, *return_stmt);
+    stmt = return_stmt;
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }
-}
-
-// --- Return ---
-inline void to_json(json &j, const Return &r) {
-  j = json{{"type", "Return"}};
-  j["expression"] = r.expression;
-  j["span"] = r.span;
-}
-inline void from_json(const json &j, Return &r) {
-  j.at("expression").get_to(r.expression);
-  j.at("span").get_to(r.span);
 }
 
 // --- Symbol ---
@@ -433,14 +439,18 @@ inline void to_json(json &j, const Scope &s) {
   j = json{};
   j["parent"] = nullptr; // avoid recursion
   j["children"] = json::array();
-  for (const auto& child : s.children) {
-    if (child) j["children"].push_back(*child);
-    else j["children"].push_back(nullptr);
+  for (const auto &child : s.children) {
+    if (child)
+      j["children"].push_back(*child);
+    else
+      j["children"].push_back(nullptr);
   }
   j["symbols"] = json::object();
-  for (const auto& [name, symbol] : s.symbols) {
-    if (symbol) j["symbols"][name] = *symbol;
-    else j["symbols"][name] = nullptr;
+  for (const auto &[name, symbol] : s.symbols) {
+    if (symbol)
+      j["symbols"][name] = *symbol;
+    else
+      j["symbols"][name] = nullptr;
   }
 }
 

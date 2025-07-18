@@ -1,7 +1,0 @@
-print("loadig image")
-let image = open("sample-bmp-files-sample_640x426.bmp")
-print(image)
-print("saving and grayscaling as nested dangling expression")
-let greyscale_image = greyscale(image)
-print(greyscale_image)
-save(greyscale_image, "greyscale.bmp")

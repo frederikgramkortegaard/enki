@@ -3,13 +3,11 @@
 #include "../definitions/serializations.hpp"
 #include "../definitions/types.hpp"
 #include <iostream>
-#include <spdlog/spdlog.h>
 #include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <string>
-#include "../interpreter/eval.hpp"
-
 
 namespace utils {
 namespace ast {
@@ -20,12 +18,10 @@ inline void print_indent(int depth) {
 }
 
 // Forward declarations
-void print_scope(const Ref<Scope>& scope, int depth);
-void print_symbol(const Ref<Symbol>& symbol, int depth);
-void print_ast(const Ref<Expression> &expr, int depth = 0,
-               int max_depth = -1);
-void print_ast(const Ref<Statement> &stmt, int depth = 0,
-               int max_depth = -1);
+void print_scope(const Ref<Scope> &scope, int depth);
+void print_symbol(const Ref<Symbol> &symbol, int depth);
+void print_ast(const Ref<Expression> &expr, int depth = 0, int max_depth = -1);
+void print_ast(const Ref<Statement> &stmt, int depth = 0, int max_depth = -1);
 void print_ast(const Program &program, int depth = 0, int max_depth = -1);
 void print_ast(const Ref<Type> &type, int depth = 0);
 
@@ -42,8 +38,7 @@ inline void print_ast(const Ref<Type> &type, int depth) {
 }
 
 // Print Expression (polymorphic)
-inline void print_ast(const Ref<Expression> &expr, int depth,
-                      int max_depth) {
+inline void print_ast(const Ref<Expression> &expr, int depth, int max_depth) {
   if (!expr) {
     print_indent(depth);
     std::cout << "<null>" << std::endl;
@@ -96,8 +91,7 @@ inline void print_ast(const Ref<Expression> &expr, int depth,
 }
 
 // Print Statement (polymorphic)
-inline void print_ast(const Ref<Statement> &stmt, int depth,
-                      int max_depth) {
+inline void print_ast(const Ref<Statement> &stmt, int depth, int max_depth) {
   if (!stmt) {
     print_indent(depth);
     std::cout << "<null>" << std::endl;
@@ -220,7 +214,7 @@ inline void print_ast(const Ref<Statement> &stmt, int depth,
     return;
   }
   // Assignment
-  if (auto assign = std::dynamic_pointer_cast<Assigment>(stmt)) {
+  if (auto assign = std::dynamic_pointer_cast<Assignment>(stmt)) {
     print_indent(depth);
     std::cout << "Assignment:" << std::endl;
     print_indent(depth + 1);
@@ -250,29 +244,24 @@ inline void print_ast(const Program &program, int depth, int max_depth) {
 }
 
 // Overload to print a shared_ptr<Program>
-inline void print_ast(const Ref<Program>& program, int depth = 0, int max_depth = -1) {
-    if (program) print_ast(*program, depth, max_depth);
-    else std::cout << "<null Program>" << std::endl;
-}
-
-// Utility to print a Value (shared_ptr<ValueBase>)
-inline void print_value(const Value& val, std::ostream& os = std::cout) {
-    if (val) {
-        val->print(os);
-    } else {
-        os << "<null>";
-    }
+inline void print_ast(const Ref<Program> &program, int depth = 0,
+                      int max_depth = -1) {
+  if (program)
+    print_ast(*program, depth, max_depth);
+  else
+    std::cout << "<null Program>" << std::endl;
 }
 
 // Utility to print a Symbol
-inline void print_symbol(const Ref<Symbol>& symbol, int depth) {
+inline void print_symbol(const Ref<Symbol> &symbol, int depth) {
   if (!symbol) {
     print_indent(depth);
     std::cout << "Symbol: <null>" << std::endl;
     return;
   }
   print_indent(depth);
-  std::cout << "Symbol: " << symbol->name << " (" << magic_enum::enum_name(symbol->symbol_type) << ")";
+  std::cout << "Symbol: " << symbol->name << " ("
+            << magic_enum::enum_name(symbol->symbol_type) << ")";
   if (symbol->type) {
     std::cout << ", type: ";
     print_ast(symbol->type, 0);
@@ -282,7 +271,7 @@ inline void print_symbol(const Ref<Symbol>& symbol, int depth) {
   std::cout << std::endl;
 }
 // Utility to print a Scope
-inline void print_scope(const Ref<Scope>& scope, int depth) {
+inline void print_scope(const Ref<Scope> &scope, int depth) {
   if (!scope) {
     print_indent(depth);
     std::cout << "Scope: <null>" << std::endl;
@@ -290,15 +279,17 @@ inline void print_scope(const Ref<Scope>& scope, int depth) {
   }
   print_indent(depth);
   std::cout << "Scope:" << std::endl;
-  for (const auto& [name, symbol] : scope->symbols) {
-    if (symbol) print_symbol(symbol, depth + 1);
+  for (const auto &[name, symbol] : scope->symbols) {
+    if (symbol)
+      print_symbol(symbol, depth + 1);
     else {
       print_indent(depth + 1);
       std::cout << "Symbol: <null>" << std::endl;
     }
   }
-  for (const auto& child : scope->children) {
-    if (child) print_scope(child, depth + 1);
+  for (const auto &child : scope->children) {
+    if (child)
+      print_scope(child, depth + 1);
     else {
       print_indent(depth + 1);
       std::cout << "Scope: <null>" << std::endl;

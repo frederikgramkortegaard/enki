@@ -56,7 +56,7 @@ install: $(MORPH_EXE)
 clean:
 	@echo "Cleaning build artifacts"
 	rm -rf $(OBJ_DIR) $(MORPH_EXE)
-	rm -f enki enkieval enkirun
+	rm -f enki 
 
 clean_json:
 	@echo "Cleaning json files"

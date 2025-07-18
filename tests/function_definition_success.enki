@@ -1,0 +1,10 @@
+
+
+
+define add(a: int, b: int) -> int {
+    let c = a + b + 1
+    return c
+}
+
+
+

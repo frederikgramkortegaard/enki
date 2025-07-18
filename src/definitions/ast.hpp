@@ -3,13 +3,14 @@
 #include "tokens.hpp"
 #include <string_view>
 
+struct ModuleContext; // Forward declaration for module context
+
 #include "types.hpp"
+#include <memory>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 
-template <typename T>
-using Ref = std::shared_ptr<T>;
+template <typename T> using Ref = std::shared_ptr<T>;
 
 enum class ASTType {
   StringLiteral,
@@ -26,14 +27,13 @@ enum class ASTType {
   Extern,
   Import,
   ExpressionStatement,
-  Assigment,
+  Assignment,
   Block,
   If,
   While,
-  Return
+  Return,
+  Unknown
 };
-
-
 
 struct ASTNode {
   Span span;
@@ -70,10 +70,10 @@ struct Call : Expression {
   ASTType get_type() const override { return ASTType::FunctionCall; }
 };
 
-struct Assigment : Statement {
+struct Assignment : Statement {
   Ref<Expression> assignee;
   Ref<Expression> expression;
-  ASTType get_type() const override { return ASTType::Assigment; }
+  ASTType get_type() const override { return ASTType::Assignment; }
 };
 
 enum class BinaryOpType {
@@ -127,13 +127,16 @@ struct Block : Statement {
 };
 
 struct Literal : Expression {
-  Type type;
-  std::string value;
+  Ref<Type> type;
+  std::string_view value;
   ASTType get_type() const override { return ASTType::Literal; }
 };
 
 struct Return : Statement {
   Ref<Expression> expression;
+  Span span;
+  Ref<Type> type;
+  Ref<Function> function;
   ASTType get_type() const override { return ASTType::Return; }
 };
 
@@ -141,8 +144,8 @@ struct Program {
   Span span;
   std::vector<Ref<Statement>> statements;
   Ref<Scope> scope = std::make_shared<Scope>(); // Global Scope
-  std::unordered_map<std::string, Ref<Function>> functions;
-
+  std::shared_ptr<std::string> source_buffer;   // Holds the source buffer
+  Ref<ModuleContext> module_context; // Holds the module context for lifetime
 };
 
 struct Import : Statement {
@@ -161,7 +164,6 @@ struct FunctionDefinition : Statement {
 
   ASTType get_type() const override { return ASTType::FunctionDefinition; }
 };
-
 
 inline BaseType token_to_literal_type(TokenType type) {
   switch (type) {

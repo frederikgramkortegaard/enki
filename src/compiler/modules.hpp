@@ -1,29 +1,30 @@
 #pragma once
+#include "../compiler/lexer.hpp"
+#include "../compiler/parser.hpp"
 #include "../definitions/ast.hpp"
 #include "../definitions/tokens.hpp"
-#include "../compiler/parser.hpp"
-#include "../compiler/lexer.hpp"
 #include "../utils/printer.hpp"
+#include <filesystem>
+#include <fstream>
+#include <spdlog/spdlog.h>
+#include <sstream>
 #include <string_view>
 #include <vector>
-#include <fstream>
-#include <sstream>
-#include <spdlog/spdlog.h>
-#include <filesystem>
 
+// Forward declaration for the new parse signature
+Ref<Program> parse(const std::vector<Token> &tokens,
+                   std::shared_ptr<std::string> source_buffer,
+                   Ref<ModuleContext> module_context);
 
-std::shared_ptr<Program> parse(const std::vector<Token> &tokens);
-
-struct ModuleContext {
+struct ModuleContext : std::enable_shared_from_this<ModuleContext> {
   std::unordered_map<std::string, std::shared_ptr<Program>> modules;
-
 
   std::shared_ptr<Program> get_module(const std::string &name) {
     return modules[name];
   }
 
-
-  std::shared_ptr<Program> add_module(const std::string &name, const std::string &importing_file = "") {
+  std::shared_ptr<Program> add_module(const std::string &name,
+                                      const std::string &importing_file = "") {
     // If already loaded, return it
     if (modules.find(name) != modules.end()) {
       return modules[name];
@@ -45,7 +46,8 @@ struct ModuleContext {
 
     std::ifstream file(resolved_path);
     if (!file.is_open()) {
-      spdlog::error("Failed to open file: {} (resolved from: {} in {})", resolved_path, name, importing_file);
+      spdlog::error("Failed to open file: {} (resolved from: {} in {})",
+                    resolved_path, name, importing_file);
       return nullptr;
     }
     std::stringstream buffer;
@@ -53,7 +55,8 @@ struct ModuleContext {
     std::string code = buffer.str();
 
     auto tokens = lex(code, resolved_path);
-    auto program = parse(tokens);
+    auto self = std::static_pointer_cast<ModuleContext>(shared_from_this());
+    auto program = parse(tokens, std::make_shared<std::string>(code), self);
 
     modules[name] = program;
     utils::ast::print_ast(*program, 0, 10);
