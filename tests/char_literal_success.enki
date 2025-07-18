@@ -1,3 +1,0 @@
-let c = 'a'
-let d = 'b'
-let equal = c == d 
