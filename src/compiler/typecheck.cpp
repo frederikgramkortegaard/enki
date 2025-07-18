@@ -52,7 +52,7 @@ Ref<Type> get_binary_op_result_type(BinaryOpType op, Ref<Type> left_type, Ref<Ty
 // Helper function to check if a binary operation is valid for the given types
 bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type, Ref<Type> right_type) {
   switch (op) {
-    // Arithmetic operations: require numeric types
+    // Arithmetic operations: require numeric types (int or float, NOT char)
     case BinaryOpType::Add:
     case BinaryOpType::Subtract:
     case BinaryOpType::Multiply:
@@ -71,7 +71,7 @@ bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type, Ref<Type> right_ty
     case BinaryOpType::GreaterThan:
     case BinaryOpType::LessThanOrEqual:
     case BinaryOpType::GreaterThanOrEqual:
-      // Can only compare numeric types
+      // Can only compare numeric types (int or float, NOT char)
       return (left_type->base_type == BaseType::Int || left_type->base_type == BaseType::Float) &&
              (right_type->base_type == BaseType::Int || right_type->base_type == BaseType::Float);
       

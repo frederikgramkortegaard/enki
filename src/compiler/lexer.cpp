@@ -54,6 +54,9 @@ TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
   if (str == "void") {
     return TokenType::VoidType;
   }
+  if (str == "char") {
+    return TokenType::CharType;
+  }
   return TokenType::Identifier;
 }
 
@@ -233,6 +236,39 @@ std::vector<Token> lex(const std::string_view &source,
         start.pos += 1;
         start.col += 1;
         create_token(TokenType::String, start);
+        increment(); // skip closing quote
+      }
+      continue;
+    }
+
+      // Character literal
+    case '\'': {
+      spdlog::debug("[lexer] Found character literal at {}:{}", row, col);
+      increment(); // skip opening quote
+      
+      if (cursor >= source.size()) {
+        Location error_loc = {row, col, cursor, file_name};
+        Span error_span = {error_loc, error_loc};
+        LOG_ERROR_EXIT("[lexer] Unterminated character literal at " + std::to_string(row) + ":" + std::to_string(col),
+                       error_span);
+      }
+      
+      // Handle escaped characters
+      if (source[cursor] == '\\' && cursor + 1 < source.size()) {
+        increment(2); // skip backslash and escaped character
+      } else {
+        increment(); // skip the character
+      }
+      
+      if (cursor >= source.size() || source[cursor] != '\'') {
+        Location error_loc = {row, col, cursor, file_name};
+        Span error_span = {error_loc, error_loc};
+        LOG_ERROR_EXIT("[lexer] Unterminated character literal at " + std::to_string(row) + ":" + std::to_string(col),
+                       error_span);
+      } else {
+        start.pos += 1;
+        start.col += 1;
+        create_token(TokenType::Char, start);
         increment(); // skip closing quote
       }
       continue;

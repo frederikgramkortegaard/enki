@@ -173,6 +173,8 @@ inline BaseType token_to_literal_type(TokenType type) {
     return BaseType::Float;
   case TokenType::String:
     return BaseType::String;
+  case TokenType::Char:
+    return BaseType::Char;
   default:
     throw std::invalid_argument("TokenType is not a literal");
   }

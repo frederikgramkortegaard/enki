@@ -16,7 +16,8 @@ Ref<Expression> parse_atom(ParserContext &ctx) {
   switch (tok.type) {
   case TokenType::Int:
   case TokenType::Float:
-  case TokenType::String: {
+  case TokenType::String:
+  case TokenType::Char: {
     auto lit = std::make_shared<Literal>();
     lit->type = std::make_shared<Type>(Type{token_to_literal_type(tok.type)});
     lit->value = tok.value;
@@ -111,6 +112,9 @@ Ref<Type> parse_type(ParserContext &ctx) {
     break;
   case TokenType::VoidType:
     type->base_type = BaseType::Void;
+    break;
+  case TokenType::CharType:
+    type->base_type = BaseType::Char;
     break;
   default:
     LOG_ERROR_EXIT(

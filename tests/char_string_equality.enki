@@ -1,0 +1,3 @@
+let c = 'a'
+let s = "a"
+let equal = c == s 

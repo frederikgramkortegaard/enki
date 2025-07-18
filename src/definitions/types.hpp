@@ -23,7 +23,7 @@ struct Function {
   Ref<Scope> scope;
 };
 
-enum class BaseType { Void, Int, Float, String, Bool, Identifier, Function };
+enum class BaseType { Void, Int, Float, String, Bool, Char, Identifier, Function };
 enum class SymbolType { Function, Variable, Argument };
 
 struct Type {
