@@ -1,6 +1,6 @@
-# enkiIR
+# Enki
 
-enkiIR is a C++-based interpreter and runtime for a custom programming language designed for data and image manipulation, extensible computation, and robust AST handling. It features a modern type system, JSON serialization, and a flexible built-in function system.
+Enki is a C++-based custom programming language and runtime designed for data and image manipulation, extensible computation, and robust AST handling. It features a modern type system, JSON serialization, and a flexible built-in function system.
 
 ## Features
 - **Custom Language:** Supports variables, expressions, function calls, and let-statements.
@@ -59,7 +59,7 @@ make clean
 ```
 
 ## Usage
-### 1. Write a enkiIR Program
+### 1. Write an Enki Program
 Example (`examples/test.enki`):
 ```enki
 print("loadig image")
