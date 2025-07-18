@@ -4,7 +4,6 @@ Enki is a C++-based custom programming language and runtime designed for data an
 
 ## Features
 - **Custom Language:** Supports variables, expressions, function calls, and let-statements.
-- **Image Processing Builtins:** Includes `open`, `save`, `greyscale`, and more for BMP images.
 - **AST & Type System:** Strongly-typed AST with extensible node and value types.
 - **Serialization:** Full JSON serialization/deserialization of ASTs using [nlohmann/json](https://github.com/nlohmann/json).
 - **Interpreter:** Polyenkiic value system for extensibility and type safety.
@@ -36,70 +35,6 @@ On MacOS:
 ```
 brew install spdlog nlohmann-json magic_enum
 ```
-
-To build:
-```sh
-make
-```
-
-This creates a single executable `enki` with the following subcommands:
-- `enki compile` — Compiles `.enki` files and outputs JSON AST
-- `enki run`     — Compiles and directly interprets `.enki` files
-- `enki serde`   — Compile, then serialize/deserialize AST to/from JSON
-- `enki eval`    — Loads JSON AST and executes it
-
-To install to /usr/local/bin:
-```sh
-sudo make install
-```
-
-To clean build artifacts:
-```sh
-make clean
-```
-
-## Usage
-### 1. Write an Enki Program
-Example (`examples/test.enki`):
-```enki
-print("loadig image")
-let image = open("sample-bmp-files-sample_640x426.bmp")
-print(image)
-print("saving and grayscaling as nested dangling expression")
-let greyscale_image = greyscale(image)
-print(greyscale_image)
-save(greyscale_image, "greyscale.bmp")
-```
-
-### 2. Compile to JSON AST
-```sh
-./enki compile -o test.json examples/test.enki
-```
-
-### 3. Run the Interpreter
-```sh
-./enki eval test.json
-```
-
-### 4. Or do both in one step
-```sh
-./enki run examples/test.enki
-```
-
-## Language Features
-- **let statements:** Variable binding
-- **Control flow:** `if` and `else` statements
-- **Function calls:** User and builtin functions
-- **Literals:** Int, float, string
-- **Identifiers:** Variable and function names
-- **Expression statements:** Dangling expressions
-
-## Built-in Functions
-- `open(filename)` — Load a BMP image
-- `save(image, filename)` — Save an image as BMP
-- `greyscale(image)` — Convert image to greyscale
-- `print(...)` — Print any value(s)
-- *(plus stubs for invert, threshold, brightness, etc.)*
 
 ## Extensibility
 - **Add new AST nodes:** Edit `ast.hpp` and update serializers/printers
