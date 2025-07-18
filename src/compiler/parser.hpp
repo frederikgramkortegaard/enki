@@ -34,7 +34,7 @@ struct ParserContext {
   const Token &consume() {
     if (eof())
       throw std::runtime_error("Unexpected end of input while consuming");
-    spdlog::debug("Consuming token {}: {} at {}", current,
+    spdlog::debug("[parser] Consuming token {}: {} at {}", current,
                   magic_enum::enum_name(tokens[current].type),
                   tokens[current].span.start.to_string());
     return tokens[current++];

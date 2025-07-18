@@ -59,7 +59,7 @@ TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
 
 std::vector<Token> lex(const std::string_view &source,
                        const std::string_view &file_name) {
-  spdlog::debug("Lexer: Starting with source: '{}'", source);
+  spdlog::debug("[lexer] Starting with source: '{}'", source);
   std::vector<Token> tokens;
 
   int cursor = 0;
@@ -227,7 +227,7 @@ std::vector<Token> lex(const std::string_view &source,
       if (cursor >= source.size()) {
         Location error_loc = {row, col, cursor, file_name};
         Span error_span = {error_loc, error_loc};
-        LOG_ERROR_EXIT("Unterminated string literal at " + std::to_string(row) + ":" + std::to_string(col),
+        LOG_ERROR_EXIT("[lexer] Unterminated string literal at " + std::to_string(row) + ":" + std::to_string(col),
                        error_span);
       } else {
         start.pos += 1;
@@ -280,7 +280,7 @@ std::vector<Token> lex(const std::string_view &source,
       // If we reach here, it means we have an unknown character
       Location error_loc = {row, col, cursor, file_name};
       Span error_span = {error_loc, error_loc};
-      LOG_ERROR_EXIT("Unknown character '" + std::string(1, source[cursor]) + "' at " + std::to_string(row) + ":" + std::to_string(col),
+      LOG_ERROR_EXIT("[lexer] Unknown character '" + std::string(1, source[cursor]) + "' at " + std::to_string(row) + ":" + std::to_string(col),
                      error_span);
       increment();
       continue;

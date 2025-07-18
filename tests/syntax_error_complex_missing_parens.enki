@@ -1,0 +1,64 @@
+define main() -> int {
+    let x = 42
+    let y = 10
+    let result = 0
+    
+    if x > y {
+        result = x + y
+        print("x is greater than y")
+    } else {
+        result = x - y
+        print("x is less than or equal to y")
+    }
+    
+    let counter = 0
+    while counter < 5 {
+        result = result + counter
+        counter = counter + 1
+        print("Counter is: " + counter)
+    }
+    
+    let temp = calculate_something(x, y, result
+    let final_result = temp * 2
+    
+    if final_result > 100 {
+        print("Final result is large: " + final_result)
+        return final_result
+    } else {
+        print("Final result is small: " + final_result)
+        return final_result / 2
+    }
+}
+
+define calculate_something(a: int, b: int, c: int) -> int {
+    let sum = a + b + c
+    let product = a * b * c
+    
+    if sum > product {
+        return sum
+    } else {
+        return product
+    }
+}
+
+define helper_function(x: int) -> bool {
+    if x > 0 {
+        return true
+    } else if x < 0 {
+        return false
+    } else {
+        return true
+    }
+}
+
+define process_data(data: string) -> string {
+    let processed = "Processed: " + data
+    let length = 0
+    
+    while length < 10 {
+        processed = processed + "!"
+        length = length + 1
+    }
+    
+    return processed
+} 

@@ -19,8 +19,8 @@ struct TypecheckContext {
   TypecheckContext(Ref<Program> program) : program(program) {
     global_scope = program->scope;
     scope_stack.push_back(global_scope);
-    spdlog::debug("TypecheckContext created, global_scope = {}",
-                  fmt::ptr(global_scope.get()));
+      spdlog::debug("[typechecker] TypecheckContext created, global_scope = {}",
+                fmt::ptr(global_scope.get()));
   }
 
   // Helper methods for function stack management
