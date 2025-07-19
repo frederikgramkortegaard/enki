@@ -253,15 +253,6 @@ Ref<Type> typecheck_dot_expression(Ref<TypecheckContext> ctx,
     return member->second->type;
   }
 
-  if (left_type->base_type == BaseType::Enum &&
-      dot_expr->right->get_type() == ASTType::Call) {
-    auto call = std::static_pointer_cast<Call>(dot_expr->right);
-    auto callee = std::static_pointer_cast<Identifier>(call->callee);
-    if (callee->name == "str") {
-      return std::make_shared<Type>(Type{BaseType::String});
-    }
-  }
-
   LOG_ERROR_EXIT(
       "[typechecker] Invalid dot expression: " +
           std::string(magic_enum::enum_name(left_type->base_type)) + " " +
@@ -570,7 +561,6 @@ void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
   return;
 }
 
-// namespace
 
 void typecheck_function_definition(Ref<TypecheckContext> ctx,
                                    Ref<FunctionDefinition> func_def) {
@@ -722,5 +712,4 @@ void typecheck(Ref<Program> program) {
                 program->body->statements.size());
   typecheck_block(ctx, program->body);
 
-  utils::ast::print_ast(program);
 }

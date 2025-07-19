@@ -9,7 +9,7 @@ enum Color {
 let color = Color
 
 if color == Color.Red {
-    print(color.str())
+    print(Color_to_string(color))
 }
 
 define ret(color: Color) -> Color {

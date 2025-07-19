@@ -111,7 +111,7 @@ Ref<Call> inject_enum_to_string_call(Ref<Enum> enum_struct,
 
   // Create a proper string that owns its memory and intern it
   std::string enum_name_str(enum_struct->name);
-  std::string func_name = "enki_" + enum_name_str + "_to_string";
+  std::string func_name = enum_name_str + "_to_string";
 
   // Intern the function name to ensure it persists - use map to avoid
   // reallocation issues
@@ -139,7 +139,7 @@ Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct) {
 
   // Create a proper string that owns its memory and intern it
   std::string enum_name_str(enum_struct->name);
-  std::string func_name = "enki_" + enum_name_str + "_to_string";
+  std::string func_name = enum_name_str + "_to_string";
 
   // Intern the function name to ensure it persists - use map to avoid
   // reallocation issues
