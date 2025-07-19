@@ -11,6 +11,9 @@ using json = nlohmann::json;
 #include <vector>
 // ... include other relevant headers as needed ...
 
+// Global flag for visualization mode
+extern bool g_visualization_mode;
+
 // --- String view helpers ---
 inline std::vector<std::string> _interned_strings;
 inline void to_json(json &j, const std::string_view &sv) {
@@ -64,8 +67,13 @@ inline void from_json(const json &j, Span &s) {
 
 // --- Identifier ---
 inline void to_json(json &j, const Identifier &id) {
-  j["name"] = std::string(id.name);
-  j["span"] = id.span;
+  if (g_visualization_mode) {
+    j["name"] = std::string(id.name);
+    j["type"] = "Identifier";
+  } else {
+    j["name"] = std::string(id.name);
+    j["span"] = id.span;
+  }
 }
 inline void from_json(const json &j, Identifier &id) {
   j.at("name").get_to(id.name);
@@ -77,8 +85,10 @@ inline void to_json(json &j, const BinaryOp &id) {
   j["left"] = id.left;
   j["right"] = id.right;
   j["op"] = magic_enum::enum_name(id.op);
-  j["span"] = id.span;
   j["type"] = "BinaryOp";
+  if (!g_visualization_mode) {
+    j["span"] = id.span;
+  }
 }
 inline void from_json(const json &j, BinaryOp &id) {
   j.at("left").get_to(id.left);
@@ -88,12 +98,29 @@ inline void from_json(const json &j, BinaryOp &id) {
   j.at("span").get_to(id.span);
 }
 
+// --- Dot ---
+inline void to_json(json &j, const Dot &dot) {
+  j["left"] = dot.left;
+  j["right"] = dot.right;
+  j["type"] = "Dot";
+  if (!g_visualization_mode) {
+    j["span"] = dot.span;
+  }
+}
+inline void from_json(const json &j, Dot &dot) {
+  j.at("left").get_to(dot.left);
+  j.at("right").get_to(dot.right);
+  j.at("span").get_to(dot.span);
+}
+
 // --- Literal ---
 inline void to_json(json &j, const Literal &lit) {
   j["value"] = lit.value;
-  j["span"] = lit.span;
   j["type"] = "Literal";
   j["base_type"] = lit.type->base_type;
+  if (!g_visualization_mode) {
+    j["span"] = lit.span;
+  }
 }
 inline void from_json(const json &j, Literal &lit) {
   j.at("value").get_to(lit.value);
@@ -107,6 +134,20 @@ inline void to_json(json &j, const BaseType &t) {
 }
 inline void from_json(const json &j, BaseType &t) {
   t = magic_enum::enum_cast<BaseType>(j.get<std::string>()).value();
+}
+
+// --- Variable ---
+inline void to_json(json &j, const Variable &v) {
+  j["name"] = v.name;
+  j["type"] = v.type;
+  if (!g_visualization_mode) {
+    j["span"] = v.span;
+  }
+}
+inline void from_json(const json &j, Variable &v) {
+  j.at("name").get_to(v.name);
+  j.at("span").get_to(v.span);
+  j.at("type").get_to(v.type);
 }
 
 // --- Type (new, from types.hpp) ---
@@ -124,7 +165,9 @@ inline void to_json(json &j, const VarDecl &l) {
   j = json{{"type", "VarDecl"}};
   j["identifier"] = l.identifier;
   j["expression"] = l.expression;
-  j["span"] = l.span;
+  if (!g_visualization_mode) {
+    j["span"] = l.span;
+  }
 }
 inline void from_json(const json &j, VarDecl &l) {
   j.at("identifier").get_to(l.identifier);
@@ -138,7 +181,9 @@ inline void to_json(json &j, const If &i) {
   j["condition"] = i.condition;
   j["then_branch"] = i.then_branch;
   j["else_branch"] = i.else_branch;
-  j["span"] = i.span;
+  if (!g_visualization_mode) {
+    j["span"] = i.span;
+  }
 }
 inline void from_json(const json &j, If &i) {
   j.at("condition").get_to(i.condition);
@@ -152,7 +197,9 @@ inline void to_json(json &j, const While &w) {
   j = json{{"type", "While"}};
   j["condition"] = w.condition;
   j["body"] = w.body;
-  j["span"] = w.span;
+  if (!g_visualization_mode) {
+    j["span"] = w.span;
+  }
 }
 inline void from_json(const json &j, While &w) {
   j.at("condition").get_to(w.condition);
@@ -164,8 +211,10 @@ inline void from_json(const json &j, While &w) {
 inline void to_json(json &j, const Block &b) {
   j = json{{"type", "Block"}};
   j["statements"] = b.statements;
-  j["span"] = b.span;
-  j["scope"] = b.scope;
+  if (!g_visualization_mode) {
+    j["span"] = b.span;
+    j["scope"] = b.scope;
+  }
 }
 inline void from_json(const json &j, Block &b) {
   j.at("statements").get_to(b.statements);
@@ -177,7 +226,9 @@ inline void to_json(json &j, const Call &c) {
   j = json{{"type", "Call"}};
   j["callee"] = c.callee;
   j["arguments"] = c.arguments;
-  j["span"] = c.span;
+  if (!g_visualization_mode) {
+    j["span"] = c.span;
+  }
 }
 inline void from_json(const json &j, Call &c) {
   j.at("callee").get_to(c.callee);
@@ -189,8 +240,10 @@ inline void from_json(const json &j, Call &c) {
 inline void to_json(json &j, const Program &p) {
   j = json{{"type", "Program"}};
   j["statements"] = p.statements;
-  j["span"] = p.span;
-  j["scope"] = p.scope;
+  if (!g_visualization_mode) {
+    j["span"] = p.span;
+    j["scope"] = p.scope;
+  }
 }
 inline void from_json(const json &j, Program &p) {
   j.at("statements").get_to(p.statements);
@@ -201,7 +254,9 @@ inline void from_json(const json &j, Program &p) {
 inline void to_json(json &j, const ExpressionStatement &es) {
   j = json{{"type", "ExpressionStatement"}};
   j["expression"] = es.expression;
-  j["span"] = es.span;
+  if (!g_visualization_mode) {
+    j["span"] = es.span;
+  }
 }
 inline void from_json(const json &j, ExpressionStatement &es) {
   j.at("expression").get_to(es.expression);
@@ -218,7 +273,9 @@ inline void to_json(json &j, const Extern &e) {
   }
   j["return_type"] = *e.return_type;
   j["module_path"] = e.module_path;
-  j["span"] = e.span;
+  if (!g_visualization_mode) {
+    j["span"] = e.span;
+  }
 }
 inline void from_json(const json &j, Extern &e) {
   j.at("identifier").get_to(e.identifier);
@@ -235,7 +292,9 @@ inline void from_json(const json &j, Extern &e) {
 inline void to_json(json &j, const Import &imp) {
   j = json{{"type", "Import"}};
   j["module_path"] = imp.module_path;
-  j["span"] = imp.span;
+  if (!g_visualization_mode) {
+    j["span"] = imp.span;
+  }
 }
 inline void from_json(const json &j, Import &imp) {
   j.at("module_path").get_to(imp.module_path);
@@ -260,6 +319,9 @@ inline void to_json(json &j, const Ref<Expression> &expr) {
   } else if (auto bin_op = std::dynamic_pointer_cast<BinaryOp>(expr)) {
     to_json(j, *bin_op);
     j["type"] = "BinaryOp";
+  } else if (auto dot_expr = std::dynamic_pointer_cast<Dot>(expr)) {
+    to_json(j, *dot_expr);
+    j["type"] = "Dot";
   } else {
     throw std::runtime_error("Unknown Expression type for to_json");
   }
@@ -286,6 +348,10 @@ inline void from_json(const json &j, Ref<Expression> &expr) {
     auto bin_op = std::make_shared<BinaryOp>();
     from_json(j, *bin_op);
     expr = bin_op;
+  } else if (type == "Dot") {
+    auto dot_expr = std::make_shared<Dot>();
+    from_json(j, *dot_expr);
+    expr = dot_expr;
   } else {
     throw std::runtime_error("Unknown Expression type for from_json: " + type);
   }
@@ -299,7 +365,9 @@ inline void to_json(json &j, const FunctionDefinition &f) {
   j["parameters"] = f.parameters;
   j["returns"] = f.returns;
   j["body"] = f.body;
-  j["span"] = f.span;
+  if (!g_visualization_mode) {
+    j["span"] = f.span;
+  }
 }
 inline void from_json(const json &j, FunctionDefinition &f) {
   j.at("identifier").get_to(f.identifier);
@@ -311,12 +379,31 @@ inline void from_json(const json &j, FunctionDefinition &f) {
   // Optionally: check type tag
 }
 
+// --- EnumDefinition ---
+inline void to_json(json &j, const EnumDefinition &e) {
+  j = json{{"type", "EnumDefinition"}};
+  j["identifier"] = e.identifier;
+  j["members"] = e.members;
+  j["enum_type"] = e.enum_type;
+  if (!g_visualization_mode) {
+    j["span"] = e.span;
+  }
+}
+inline void from_json(const json &j, EnumDefinition &e) {
+  j.at("identifier").get_to(e.identifier);
+  j.at("members").get_to(e.members);
+  j.at("enum_type").get_to(e.enum_type);
+  j.at("span").get_to(e.span);
+}
+
 // --- Assignment ---
 inline void to_json(json &j, const Assignment &a) {
   j = json{{"type", "Assignment"}};
   j["assignee"] = a.assignee;
   j["expression"] = a.expression;
-  j["span"] = a.span;
+  if (!g_visualization_mode) {
+    j["span"] = a.span;
+  }
 }
 inline void from_json(const json &j, Assignment &a) {
   j.at("assignee").get_to(a.assignee);
@@ -328,7 +415,9 @@ inline void from_json(const json &j, Assignment &a) {
 inline void to_json(json &j, const Return &r) {
   j = json{{"type", "Return"}};
   j["expression"] = r.expression;
-  j["span"] = r.span;
+  if (!g_visualization_mode) {
+    j["span"] = r.span;
+  }
 }
 inline void from_json(const json &j, Return &r) {
   j.at("expression").get_to(r.expression);
@@ -372,6 +461,9 @@ inline void to_json(json &j, const Ref<Statement> &stmt) {
   } else if (auto return_stmt = std::dynamic_pointer_cast<Return>(stmt)) {
     to_json(j, *return_stmt);
     j["type"] = "Return";
+  } else if (auto enum_def = std::dynamic_pointer_cast<EnumDefinition>(stmt)) {
+    to_json(j, *enum_def);
+    j["type"] = "EnumDefinition";
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -422,6 +514,10 @@ inline void from_json(const json &j, Ref<Statement> &stmt) {
     auto return_stmt = std::make_shared<Return>();
     from_json(j, *return_stmt);
     stmt = return_stmt;
+  } else if (type == "EnumDefinition") {
+    auto enum_def = std::make_shared<EnumDefinition>();
+    from_json(j, *enum_def);
+    stmt = enum_def;
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
   }

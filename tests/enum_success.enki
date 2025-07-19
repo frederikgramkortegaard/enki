@@ -1,0 +1,25 @@
+
+
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+let color = Color
+
+if color == Color.Red {
+    print(color.str())
+}
+
+define ret(color: Color) -> Color {
+    return color
+}
+
+
+define print_color(color: Color) -> void {
+    print(color)
+}
+
+print_color(ret(Color.Red))
+

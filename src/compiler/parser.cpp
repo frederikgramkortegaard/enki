@@ -8,6 +8,7 @@ bool is_assignable(Ref<Expression> expr) {
   return expr->get_type() == ASTType::Identifier;
 }
 
+Ref<Identifier> parse_identifier(ParserContext &ctx);
 Ref<Expression> parse_atom(ParserContext &ctx) {
   spdlog::debug("[parser] Entering parse_atom at token {}",
                 magic_enum::enum_name(ctx.current_token().type));
@@ -42,27 +43,33 @@ Ref<Expression> parse_atom(ParserContext &ctx) {
              ctx.current_token().type != TokenType::RParens) {
         auto arg = parse_expression(ctx);
         if (!arg) {
-          LOG_ERROR_EXIT("[parser] Expected expression as function argument but found '" + 
-                         std::string(ctx.current_token().value) + "' (" + 
-                         std::string(magic_enum::enum_name(ctx.current_token().type)) + ")",
-                         ctx.current_token().span, *ctx.program->source_buffer);
+          LOG_ERROR_EXIT(
+              "[parser] Expected expression as function argument but found '" +
+                  std::string(ctx.current_token().value) + "' (" +
+                  std::string(magic_enum::enum_name(ctx.current_token().type)) +
+                  ")",
+              ctx.current_token().span, *ctx.program->source_buffer);
         }
         call_expr->arguments.push_back(arg);
         ctx.consume_if(TokenType::Comma);
       }
 
       if (ctx.eof()) {
-        LOG_ERROR_EXIT("[parser] Missing closing parenthesis ')' in function call",
-                       call_expr->callee->span, *ctx.program->source_buffer);
+        LOG_ERROR_EXIT(
+            "[parser] Missing closing parenthesis ')' in function call",
+            call_expr->callee->span, *ctx.program->source_buffer);
       }
-      
+
       if (ctx.current_token().type != TokenType::RParens) {
-        LOG_ERROR_EXIT("[parser] Missing closing parenthesis ')' in function call, found '" + 
-                       std::string(ctx.current_token().value) + "' (" + 
-                       std::string(magic_enum::enum_name(ctx.current_token().type)) + ") instead",
-                       ctx.current_token().span, *ctx.program->source_buffer);
+        LOG_ERROR_EXIT(
+            "[parser] Missing closing parenthesis ')' in function call, found "
+            "'" +
+                std::string(ctx.current_token().value) + "' (" +
+                std::string(magic_enum::enum_name(ctx.current_token().type)) +
+                ") instead",
+            ctx.current_token().span, *ctx.program->source_buffer);
       }
-      
+
       ctx.consume(); // consume the RParens
       call_expr->span = tok.span;
       return call_expr;
@@ -72,6 +79,21 @@ Ref<Expression> parse_atom(ParserContext &ctx) {
     ident->name = tok.value;
     ident->span = tok.span;
     ctx.consume();
+
+    if (ctx.current < ctx.tokens.size() && ctx.current_token().type == TokenType::Dot) {
+      ctx.consume();
+      auto dot_expr = std::make_shared<Dot>();
+      dot_expr->left = ident;
+      dot_expr->right = parse_expression(ctx); // Parse as full expression, not just identifier
+      if (!dot_expr->right) {
+        LOG_ERROR_EXIT("[parser] Expected expression after '.' in dot expression",
+                       ctx.current_token().span, *ctx.program->source_buffer);
+      }
+      dot_expr->span = Span(ident->span.start, dot_expr->right->span.end);
+      utils::ast::print_ast(dot_expr);
+      return dot_expr;
+    }
+
     return ident;
   }
   case TokenType::True:
@@ -89,7 +111,6 @@ Ref<Expression> parse_atom(ParserContext &ctx) {
 
   return nullptr;
 }
-
 Ref<Type> parse_type(ParserContext &ctx) {
   spdlog::debug("[parser] Entering parse_type at token {}",
                 magic_enum::enum_name(ctx.current_token().type));
@@ -116,6 +137,13 @@ Ref<Type> parse_type(ParserContext &ctx) {
   case TokenType::CharType:
     type->base_type = BaseType::Char;
     break;
+
+  //@NOTE : This could be an enum or a struct, but we don't know yet before the typechecker
+  case TokenType::Identifier:
+    type->base_type = BaseType::Unknown;
+    break;
+
+
   default:
     LOG_ERROR_EXIT(
         "[parser] Expected type keyword but got " +
@@ -125,6 +153,75 @@ Ref<Type> parse_type(ParserContext &ctx) {
 
   ctx.consume();
   return type;
+}
+
+
+
+
+Ref<Variable> parse_enum_member(ParserContext &ctx) {
+
+    spdlog::debug("[parser] Entering parse_enum_member at token {}",
+                magic_enum::enum_name(ctx.current_token().type));
+
+                
+    auto var = std::make_shared<Variable>();
+    var->name = ctx.current_token().value;
+    auto ident = parse_identifier(ctx);
+    if (!ident) {
+      LOG_ERROR_EXIT("[parser] Expected identifier after 'enum' keyword",
+                     ctx.current_token().span, *ctx.program->source_buffer);
+    }
+    var->span = ident->span;
+    return var;
+}
+
+Ref<EnumDefinition> parse_enum(ParserContext &ctx) {
+  spdlog::debug("[parser] Entering parse_enum at token {}",
+                magic_enum::enum_name(ctx.current_token().type));
+  
+  auto enum_def = std::make_shared<EnumDefinition>();
+  ctx.consume_assert(TokenType::EnumType, "Missing 'enum' keyword");
+  
+  // Parse the enum identifier
+  enum_def->identifier = parse_identifier(ctx);
+  if (!enum_def->identifier) {
+    LOG_ERROR_EXIT("[parser] Expected identifier after 'enum' keyword",
+                   ctx.current_token().span, *ctx.program->source_buffer);
+  }
+  
+  ctx.consume_assert(TokenType::LCurly, "Missing '{' in Enum Definition");
+
+  // Create the enum type
+  auto enum_type = std::make_shared<Type>();
+  enum_type->base_type = BaseType::Enum;
+  enum_def->enum_type = enum_type;
+  
+  // Create the Enum struct for the variant (There really isn't a lot of reason to even have this EnumDefinition AST node, since we can just use the Enum struct directly, maybe &ref the Token/AST but it's fine to have both I want it.)
+  auto enum_struct = std::make_shared<Enum>();
+  enum_struct->name = enum_def->identifier->name;
+  enum_struct->span = enum_def->span;
+  enum_type->structure = enum_struct;
+
+  // Parse enum members
+  while (ctx.current < ctx.tokens.size() &&
+         ctx.current_token().type != TokenType::RCurly) {
+    auto member = parse_enum_member(ctx);
+    if (!member) {
+      break;
+    }
+
+    member->type = enum_type;
+    enum_def->members.push_back(member);
+    enum_struct->members[member->name] = member;
+    
+    ctx.consume_if(TokenType::Comma);
+  }
+  
+  ctx.consume_assert(TokenType::RCurly, "Missing '}' in Enum Definition");
+  
+  // Set the span
+  enum_def->span = Span(enum_def->identifier->span.start, ctx.previous_token_span().end);
+  return enum_def;
 }
 
 Ref<Identifier> parse_identifier(ParserContext &ctx) {
@@ -180,8 +277,8 @@ Ref<Expression> parse_expression(ParserContext &ctx) {
 
     auto right = parse_atom(ctx);
     if (!right) {
-      LOG_ERROR_EXIT("[parser] Expected right operand for binary operator", tok.span,
-                     *ctx.program->source_buffer);
+      LOG_ERROR_EXIT("[parser] Expected right operand for binary operator",
+                     tok.span, *ctx.program->source_buffer);
     }
 
     output.push_back(right);
@@ -268,6 +365,12 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
   Span statement_start = tok.span;
 
+
+  if (tok.type == TokenType::EnumType) {
+    auto enum_def = parse_enum(ctx);
+    return enum_def;
+  }
+
   if (tok.type == TokenType::Define) {
     spdlog::debug("[parser] Entering function definition parsing at token {} "
                   "with value '{}'",
@@ -275,6 +378,9 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
                   ctx.current_token().value);
 
     auto function_def = std::make_shared<FunctionDefinition>();
+    function_def->function = std::make_shared<Function>();
+    function_def->function->definition = function_def;
+      
     ctx.consume();
     function_def->identifier = parse_identifier(ctx);
     ctx.consume_assert(TokenType::LParens,
@@ -323,8 +429,8 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
     ctx.consume_assert(TokenType::LessThan, "Missing '<' in Import statement");
     auto module_path = parse_atom(ctx);
     if (!module_path) {
-      LOG_ERROR_EXIT("[parser] Expected module path in Import statement", tok.span,
-                     *ctx.program->source_buffer);
+      LOG_ERROR_EXIT("[parser] Expected module path in Import statement",
+                     tok.span, *ctx.program->source_buffer);
     }
     import_stmt->module_path = std::dynamic_pointer_cast<Literal>(module_path);
     spdlog::debug("[parser] Module path: {}", import_stmt->module_path->value);
@@ -335,7 +441,8 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
     ctx.module_context->add_module(std::string(import_stmt->module_path->value),
                                    ctx.current_file_path);
 
-    ctx.consume_assert(TokenType::GreaterThan, "Missing '>' in Import statement");
+    ctx.consume_assert(TokenType::GreaterThan,
+                       "Missing '>' in Import statement");
     return import_stmt;
   }
 
@@ -374,10 +481,12 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
 
     auto expr = parse_expression(ctx);
     if (!expr) {
-      LOG_ERROR_EXIT("[parser] Expected expression after '=' but found '" + 
-                     std::string(ctx.current_token().value) + "' (" + 
-                     std::string(magic_enum::enum_name(ctx.current_token().type)) + ")",
-                     ctx.current_token().span, *ctx.program->source_buffer);
+      LOG_ERROR_EXIT(
+          "[parser] Expected expression after '=' but found '" +
+              std::string(ctx.current_token().value) + "' (" +
+              std::string(magic_enum::enum_name(ctx.current_token().type)) +
+              ")",
+          ctx.current_token().span, *ctx.program->source_buffer);
     }
     var_decl->expression = expr;
     var_decl->span = {statement_start.start, expr->span.end};
@@ -427,31 +536,37 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
 
     auto condition = parse_expression(ctx);
     if (!condition) {
-      LOG_ERROR_EXIT("[parser] Expected condition expression but found '" + 
-                     std::string(ctx.current_token().value) + "' (" + 
-                     std::string(magic_enum::enum_name(ctx.current_token().type)) + ")",
-                     ctx.current_token().span, *ctx.program->source_buffer);
+      LOG_ERROR_EXIT(
+          "[parser] Expected condition expression but found '" +
+              std::string(ctx.current_token().value) + "' (" +
+              std::string(magic_enum::enum_name(ctx.current_token().type)) +
+              ")",
+          ctx.current_token().span, *ctx.program->source_buffer);
     }
     if_node->condition = condition;
 
-    auto then_branch = parse_statement(ctx);
+    auto then_branch = parse_block(ctx);
     if (!then_branch) {
-      LOG_ERROR_EXIT("[parser] Expected then branch statement but found '" + 
-                     std::string(ctx.current_token().value) + "' (" + 
-                     std::string(magic_enum::enum_name(ctx.current_token().type)) + ")",
-                     ctx.current_token().span, *ctx.program->source_buffer);
+      LOG_ERROR_EXIT(
+          "[parser] Expected then branch block but found '" +
+              std::string(ctx.current_token().value) + "' (" +
+              std::string(magic_enum::enum_name(ctx.current_token().type)) +
+              ")",
+          ctx.current_token().span, *ctx.program->source_buffer);
     }
     if_node->then_branch = then_branch;
 
     if (ctx.current < ctx.tokens.size() &&
         ctx.current_token().type == TokenType::Else) {
       ctx.consume();
-      auto else_branch = parse_statement(ctx);
-            if (!else_branch) {
-        LOG_ERROR_EXIT("[parser] Expected else branch statement but found '" + 
-                       std::string(ctx.current_token().value) + "' (" + 
-                       std::string(magic_enum::enum_name(ctx.current_token().type)) + ")",
-                       ctx.current_token().span, *ctx.program->source_buffer);
+      auto else_branch = parse_block(ctx);
+      if (!else_branch) {
+        LOG_ERROR_EXIT(
+            "[parser] Expected else branch block but found '" +
+                std::string(ctx.current_token().value) + "' (" +
+                std::string(magic_enum::enum_name(ctx.current_token().type)) +
+                ")",
+            ctx.current_token().span, *ctx.program->source_buffer);
       }
       if_node->else_branch = else_branch;
     }
@@ -466,19 +581,23 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
 
     auto condition = parse_expression(ctx);
     if (!condition) {
-      LOG_ERROR_EXIT("[parser] Expected condition expression but found '" + 
-                     std::string(ctx.current_token().value) + "' (" + 
-                     std::string(magic_enum::enum_name(ctx.current_token().type)) + ")",
-                     ctx.current_token().span, *ctx.program->source_buffer);
+      LOG_ERROR_EXIT(
+          "[parser] Expected condition expression but found '" +
+              std::string(ctx.current_token().value) + "' (" +
+              std::string(magic_enum::enum_name(ctx.current_token().type)) +
+              ")",
+          ctx.current_token().span, *ctx.program->source_buffer);
     }
     while_stmt->condition = condition;
 
-    auto body = parse_statement(ctx);
+    auto body = parse_block(ctx);
     if (!body) {
-      LOG_ERROR_EXIT("[parser] Expected body statement but found '" + 
-                     std::string(ctx.current_token().value) + "' (" + 
-                     std::string(magic_enum::enum_name(ctx.current_token().type)) + ")",
-                     ctx.current_token().span, *ctx.program->source_buffer);
+      LOG_ERROR_EXIT(
+          "[parser] Expected body block but found '" +
+              std::string(ctx.current_token().value) + "' (" +
+              std::string(magic_enum::enum_name(ctx.current_token().type)) +
+              ")",
+          ctx.current_token().span, *ctx.program->source_buffer);
     }
     while_stmt->body = body;
 
@@ -500,17 +619,19 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
           Span(expr->span.start, assignment->expression->span.end);
       return assignment;
     }
-    
+
     // Only allow function calls as expression statements
-    if (expr->get_type() == ASTType::FunctionCall) {
+    if (expr->get_type() == ASTType::Call) {
       auto expr_stmt = std::make_shared<ExpressionStatement>();
       expr_stmt->expression = expr;
       expr_stmt->span = expr->span;
       return expr_stmt;
     } else {
       // Dangling expressions that are not function calls are syntax errors
-      LOG_ERROR_EXIT("[parser] Dangling expression is not allowed. Only function calls can be used as statements. "
-                     "Did you mean to assign this to a variable or use it in a different context?",
+      LOG_ERROR_EXIT("[parser] Dangling expression is not allowed. Only "
+                     "function calls can be used as statements. "
+                     "Did you mean to assign this to a variable or use it in a "
+                     "different context?",
                      expr->span, *ctx.program->source_buffer);
     }
   }

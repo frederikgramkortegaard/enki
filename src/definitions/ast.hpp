@@ -4,6 +4,7 @@
 #include <string_view>
 
 struct ModuleContext; // Forward declaration for module context
+struct Block; // Forward declaration for Block
 
 #include "types.hpp"
 #include <memory>
@@ -22,7 +23,6 @@ enum class ASTType {
   UnaryOp,
   BinaryOp,
   Literal,
-  FunctionCall,
   FunctionDefinition,
   Extern,
   Import,
@@ -32,6 +32,8 @@ enum class ASTType {
   If,
   While,
   Return,
+  EnumDefinition,
+  Dot,
   Unknown
 };
 
@@ -67,7 +69,7 @@ struct Extern : Statement {
 struct Call : Expression {
   Ref<Expression> callee;
   std::vector<Ref<Expression>> arguments;
-  ASTType get_type() const override { return ASTType::FunctionCall; }
+  ASTType get_type() const override { return ASTType::Call; }
 };
 
 struct Assignment : Statement {
@@ -109,14 +111,14 @@ struct VarDecl : Statement {
 
 struct If : Statement {
   Ref<Expression> condition;
-  Ref<Statement> then_branch;
-  Ref<Statement> else_branch;
+  Ref<Block> then_branch;
+  Ref<Block> else_branch;
   ASTType get_type() const override { return ASTType::If; }
 };
 
 struct While : Statement {
   Ref<Expression> condition;
-  Ref<Statement> body;
+  Ref<Block> body;
   ASTType get_type() const override { return ASTType::While; }
 };
 
@@ -161,8 +163,24 @@ struct FunctionDefinition : Statement {
   std::vector<Ref<Parameter>> parameters;
   std::vector<Ref<Return>> returns;
   Ref<Block> body;
+  Ref<Function> function;
 
   ASTType get_type() const override { return ASTType::FunctionDefinition; }
+};
+
+
+struct Dot : Expression {
+  Ref<Expression> left;
+  Ref<Expression> right;
+  ASTType get_type() const override { return ASTType::Dot; }
+};
+
+struct EnumDefinition : Statement {
+  Ref<Identifier> identifier;
+  std::vector<Ref<Variable>> members;
+  Ref<Type> enum_type;
+
+  ASTType get_type() const override { return ASTType::EnumDefinition; }
 };
 
 inline BaseType token_to_literal_type(TokenType type) {

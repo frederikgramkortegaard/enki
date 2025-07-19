@@ -7,55 +7,20 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
+std::unordered_map<std::string_view, TokenType> keyword_to_token_type = {
+    {"let", TokenType::Let},         {"extern", TokenType::Extern},
+    {"import", TokenType::Import},   {"from", TokenType::From},
+    {"if", TokenType::If},           {"else", TokenType::Else},
+    {"true", TokenType::True},       {"false", TokenType::False},
+    {"while", TokenType::While},     {"return", TokenType::Return},
+    {"define", TokenType::Define},   {"int", TokenType::IntType},
+    {"float", TokenType::FloatType}, {"string", TokenType::StringType},
+    {"bool", TokenType::BoolType},   {"void", TokenType::VoidType},
+    {"char", TokenType::CharType},   {"enum", TokenType::EnumType}};
+
 TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
-  if (str == "let") {
-    return TokenType::Let;
-  } else if (str == "extern") {
-    return TokenType::Extern;
-  } else if (str == "import") {
-    return TokenType::Import;
-  } else if (str == "from") {
-    return TokenType::From;
-  }
-  if (str == "if") {
-    return TokenType::If;
-  }
-  if (str == "else") {
-    return TokenType::Else;
-  }
-  if (str == "true") {
-    return TokenType::True;
-  }
-  if (str == "false") {
-    return TokenType::False;
-  }
-  if (str == "while") {
-    return TokenType::While;
-  }
-  if (str == "return") {
-    return TokenType::Return;
-  }
-  if (str == "define") {
-    return TokenType::Define;
-  }
-  // Type keywords
-  if (str == "int") {
-    return TokenType::IntType;
-  }
-  if (str == "float") {
-    return TokenType::FloatType;
-  }
-  if (str == "string") {
-    return TokenType::StringType;
-  }
-  if (str == "bool") {
-    return TokenType::BoolType;
-  }
-  if (str == "void") {
-    return TokenType::VoidType;
-  }
-  if (str == "char") {
-    return TokenType::CharType;
+  if (keyword_to_token_type.find(str) != keyword_to_token_type.end()) {
+    return keyword_to_token_type.at(str);
   }
   return TokenType::Identifier;
 }
@@ -230,7 +195,8 @@ std::vector<Token> lex(const std::string_view &source,
       if (cursor >= source.size()) {
         Location error_loc = {row, col, cursor, file_name};
         Span error_span = {error_loc, error_loc};
-        LOG_ERROR_EXIT("[lexer] Unterminated string literal at " + std::to_string(row) + ":" + std::to_string(col),
+        LOG_ERROR_EXIT("[lexer] Unterminated string literal at " +
+                           std::to_string(row) + ":" + std::to_string(col),
                        error_span);
       } else {
         start.pos += 1;
@@ -245,25 +211,27 @@ std::vector<Token> lex(const std::string_view &source,
     case '\'': {
       spdlog::debug("[lexer] Found character literal at {}:{}", row, col);
       increment(); // skip opening quote
-      
+
       if (cursor >= source.size()) {
         Location error_loc = {row, col, cursor, file_name};
         Span error_span = {error_loc, error_loc};
-        LOG_ERROR_EXIT("[lexer] Unterminated character literal at " + std::to_string(row) + ":" + std::to_string(col),
+        LOG_ERROR_EXIT("[lexer] Unterminated character literal at " +
+                           std::to_string(row) + ":" + std::to_string(col),
                        error_span);
       }
-      
+
       // Handle escaped characters
       if (source[cursor] == '\\' && cursor + 1 < source.size()) {
         increment(2); // skip backslash and escaped character
       } else {
         increment(); // skip the character
       }
-      
+
       if (cursor >= source.size() || source[cursor] != '\'') {
         Location error_loc = {row, col, cursor, file_name};
         Span error_span = {error_loc, error_loc};
-        LOG_ERROR_EXIT("[lexer] Unterminated character literal at " + std::to_string(row) + ":" + std::to_string(col),
+        LOG_ERROR_EXIT("[lexer] Unterminated character literal at " +
+                           std::to_string(row) + ":" + std::to_string(col),
                        error_span);
       } else {
         start.pos += 1;
@@ -316,17 +284,19 @@ std::vector<Token> lex(const std::string_view &source,
       // If we reach here, it means we have an unknown character
       Location error_loc = {row, col, cursor, file_name};
       Span error_span = {error_loc, error_loc};
-      LOG_ERROR_EXIT("[lexer] Unknown character '" + std::string(1, source[cursor]) + "' at " + std::to_string(row) + ":" + std::to_string(col),
+      LOG_ERROR_EXIT("[lexer] Unknown character '" +
+                         std::string(1, source[cursor]) + "' at " +
+                         std::to_string(row) + ":" + std::to_string(col),
                      error_span);
       increment();
       continue;
     }
     }
   }
-  
+
   // Add EOF token at the end
   Location eof_start = {row, col, cursor, file_name};
   tokens.push_back(Token{TokenType::Eof, "", {eof_start, eof_start}});
-  
+
   return tokens;
 }

@@ -46,7 +46,7 @@ std::string get_error_context(const std::string &source_buffer,
 
   // Show underline for the error span
   context << "     | ";
-  for (int i = 0; i < span.start.col; i++) {
+  for (int i = 0; i < span.start.col - 1; i++) {
     context << " ";
   }
   for (int i = span.start.col;

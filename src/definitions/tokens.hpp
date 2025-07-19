@@ -29,6 +29,7 @@ enum class TokenType {
   BoolType,
   VoidType,
   CharType,
+  EnumType,
 
   // Characters
   LParens,
@@ -61,6 +62,7 @@ enum class TokenType {
   Int,
   Float,
   Char,
+  Enum,
 
   // Misc
   Arrow,

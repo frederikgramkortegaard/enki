@@ -23,12 +23,29 @@ struct Function {
   Ref<Scope> scope;
 };
 
-enum class BaseType { Void, Int, Float, String, Bool, Char, Identifier, Function };
-enum class SymbolType { Function, Variable, Argument };
+enum class BaseType {
+  Void,
+  Int,
+  Float,
+  String,
+  Bool,
+  Char,
+  Identifier,
+  Function,
+  Enum,
+  Unknown, // Assigned by e.g. Parser before Typechecker, if a Type is referenced by an Identifier e.g. the name of an Enum or a Struct
+};
+enum class SymbolType { Function, Variable, Argument, Enum };
+
+struct Enum {
+  std::string_view name;
+  Span span;
+  std::unordered_map<std::string_view, Ref<Variable>> members;
+};
 
 struct Type {
   BaseType base_type;
-  std::variant<Function> structure;
+  std::variant<Ref<Function>, Ref<Enum>> structure;
   Span span;
 };
 

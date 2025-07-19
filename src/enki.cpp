@@ -16,6 +16,9 @@
 #include "definitions/serializations.hpp"
 #include "utils/logging.hpp"
 
+// External declaration of the global visualization flag
+extern bool g_visualization_mode;
+
 // Utility to print a string_view as hex for debugging
 void print_string_view_hex(const std::string_view &sv, const char *label) {
   std::cout << label << ": length=" << sv.size() << ", data=";
@@ -91,6 +94,7 @@ void print_compile_usage(const char *prog_name) {
   fmt::println("Usage: {} compile [options] <input-file>", prog_name);
   fmt::println("Options:");
   fmt::println("  -o <file>: Output file for compiled AST");
+  fmt::println("  --vis: Output minimal AST for visualization (no spans/locations)");
   fmt::println("  -h: Show this help message");
 }
 
@@ -103,7 +107,26 @@ void print_serde_usage(const char *prog_name) {
 int compile_command(int argc, char *argv[]) {
   optind = 1; // Reset getopt
   std::string output_filename;
+  bool visualization_mode = false;
   int opt;
+  
+  // Handle --vis flag first
+  for (int i = 1; i < argc; i++) {
+    if (std::string(argv[i]) == "--vis") {
+      visualization_mode = true;
+      // Remove the flag from argv
+      for (int j = i; j < argc - 1; j++) {
+        argv[j] = argv[j + 1];
+      }
+      argc--;
+      i--; // Adjust index since we removed an element
+      break;
+    }
+  }
+  
+  // Reset optind after modifying argc/argv
+  optind = 1;
+  
   while ((opt = getopt(argc, argv, "o:h")) != -1) {
     switch (opt) {
     case 'o':
@@ -166,6 +189,10 @@ int compile_command(int argc, char *argv[]) {
     spdlog::error("Could not open output file: {}", output_filename);
     return 1;
   }
+  
+  // Set visualization mode if requested
+  g_visualization_mode = visualization_mode;
+  
   debug_print_ast_string_views(program);
   nlohmann::json j = *program;
   output << j.dump(2) << std::endl;
