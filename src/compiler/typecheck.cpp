@@ -2,9 +2,39 @@
 #include "../definitions/ast.hpp"
 #include "../definitions/types.hpp"
 #include "../utils/logging.hpp"
-#include "injections.hpp"
 #include <spdlog/spdlog.h>
 #include <variant>
+
+// Helper function to log scope symbols for debugging
+void log_scope_symbols(const Ref<Scope> &scope, const std::string &context) {
+  if (!scope) {
+    spdlog::debug("[typecheck]   {}: Scope is null", context);
+    return;
+  }
+  int depth = 0;
+  auto curr = scope;
+  while (curr && curr->parent) {
+    ++depth;
+    curr = curr->parent;
+  }
+  spdlog::debug("[typecheck]   {}: Scope depth = {}", context, depth);
+  if (scope->symbols.empty()) {
+    spdlog::debug("[typecheck]   {}: No symbols in scope", context);
+    return;
+  }
+  for (const auto &[name, symbol] : scope->symbols) {
+    if (symbol) {
+      spdlog::debug(
+          "[typecheck]   {}: Symbol '{}' (type: {}, kind: {})", context, name,
+          symbol->type ? magic_enum::enum_name(symbol->type->base_type)
+                       : "<null type>",
+          magic_enum::enum_name(symbol->symbol_type));
+    } else {
+      spdlog::debug("[typecheck]   {}: Symbol '{}' is null", context, name);
+    }
+  }
+}
+
 void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt);
 Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx, Ref<Expression> expr);
 void typecheck_function_definition(Ref<TypecheckContext> ctx,
@@ -147,6 +177,9 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
                 std::static_pointer_cast<Identifier>(call->callee)->name),
         call->span, *ctx->program->source_buffer);
   }
+  
+  // Log the current scope symbols when looking for function
+  log_scope_symbols(ctx->current_scope(), "Current scope when looking for function");
 
   // For built-in functions like print, we accept any arguments for now
   if (function_symbol->name == "print") {
@@ -161,6 +194,22 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
   // This will need to be implemented when we have proper function parameter
   // tracking
 
+  spdlog::debug("[typecheck] Function symbol type: {}", magic_enum::enum_name(function_symbol->type->base_type));
+  
+  // Check if it's a Function type and get the return type
+  if (function_symbol->type->base_type == BaseType::Function) {
+    auto func_type = std::get<Ref<Function>>(function_symbol->type->structure);
+    spdlog::debug("[typecheck] Function return type: {}", magic_enum::enum_name(func_type->return_type->base_type));
+    spdlog::debug("[typecheck] Function type address in call: {}", fmt::ptr(func_type.get()));
+    spdlog::debug("[typecheck] Function return type address in call: {}", fmt::ptr(func_type->return_type.get()));
+    
+    // Log the function symbol details
+    spdlog::debug("[typecheck] Function symbol name: {}", function_symbol->name);
+    spdlog::debug("[typecheck] Function symbol type address: {}", fmt::ptr(function_symbol->type.get()));
+    
+    return func_type->return_type;
+  }
+  
   return function_symbol->type;
 }
 
@@ -240,7 +289,6 @@ Ref<Type> typecheck_dot_expression(Ref<TypecheckContext> ctx,
     return member->second->type;
   }
 
-  utils::ast::print_ast(dot_expr);
   if (left_type->base_type == BaseType::Enum &&
       dot_expr->right->get_type() == ASTType::Call) {
     auto call = std::static_pointer_cast<Call>(dot_expr->right);
@@ -301,7 +349,6 @@ void typecheck_block(Ref<TypecheckContext> ctx, Ref<Block> block) {
         "[typechecker] About to call get_type() on statement at address: {}",
         (void *)stmt.get());
 
-    utils::ast::print_ast(stmt);
 
     auto stmt_type = stmt->get_type();
     spdlog::debug("[typechecker] Block first pass: Statement type: {}",
@@ -324,20 +371,9 @@ void typecheck_block(Ref<TypecheckContext> ctx, Ref<Block> block) {
     }
   }
 
-  // Add any pending injected functions to the block statements
-  if (!ctx->pending_injected_functions.empty()) {
-    spdlog::debug("[typechecker] Adding {} pending injected functions to block",
-                  ctx->pending_injected_functions.size());
-    for (auto &injected_func : ctx->pending_injected_functions) {
-      spdlog::debug("[typechecker] Adding injected function: {}",
-                    injected_func->identifier->name);
-      block->statements.push_back(injected_func);
-    }
-    ctx->pending_injected_functions.clear();
-  }
 
-  spdlog::debug("[typechecker] Block now has {} statements after adding injected functions",
-                block->statements.size());
+
+
 
   // Second pass: Typecheck all statements
   spdlog::debug("[typechecker] Block second pass: Typechecking all statements");
@@ -368,6 +404,7 @@ void typecheck_return(Ref<TypecheckContext> ctx, Ref<Return> ret) {
                      ret->span, *ctx->program->source_buffer);
     }
     ret->type = current_func->return_type;
+  std::cout << "return func_type->return_type: " << magic_enum::enum_name(current_func->return_type->base_type) << std::endl;
     ret->function = current_func;
     spdlog::debug(
         "[typechecker] typecheck_return: void function, no return value");
@@ -583,30 +620,6 @@ int get_scope_depth(const Ref<Scope> &scope) {
   }
   return depth;
 }
-
-void log_scope_symbols(const Ref<Scope> &scope, const std::string &context) {
-  if (!scope) {
-    spdlog::debug("[typecheck]   {}: Scope is null", context);
-    return;
-  }
-  spdlog::debug("[typecheck]   {}: Scope depth = {}", context,
-                get_scope_depth(scope));
-  if (scope->symbols.empty()) {
-    spdlog::debug("[typecheck]   {}: No symbols in scope", context);
-    return;
-  }
-  for (const auto &[name, symbol] : scope->symbols) {
-    if (symbol) {
-      spdlog::debug(
-          "[typecheck]   {}: Symbol '{}' (type: {}, kind: {})", context, name,
-          symbol->type ? magic_enum::enum_name(symbol->type->base_type)
-                       : "<null type>",
-          magic_enum::enum_name(symbol->symbol_type));
-    } else {
-      spdlog::debug("[typecheck]   {}: Symbol '{}' is null", context, name);
-    }
-  }
-}
 } // namespace
 
 void typecheck_function_definition(Ref<TypecheckContext> ctx,
@@ -635,6 +648,17 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
   // Get the function type from the symbol
   auto func_type = std::get<Ref<Function>>(func_symbol->type->structure);
   func_def->function = func_type;
+  
+  std::cout << "tcheck func_def->return_type: " << magic_enum::enum_name(func_def->return_type->base_type) << std::endl;
+  spdlog::debug("[typecheck] Function type return type: {}",
+                magic_enum::enum_name(func_type->return_type->base_type));
+  
+  // Debug: Check if the function type in the symbol table is being mutated
+  spdlog::debug("[typecheck] Function type address: {}", fmt::ptr(func_type.get()));
+  spdlog::debug("[typecheck] Function return type address: {}", fmt::ptr(func_type->return_type.get()));
+  
+  // Log the current scope symbols before entering function scope
+  log_scope_symbols(ctx->current_scope(), "Before entering function scope");
 
   // Set up function scope and metadata
   func_def->function->scope = func_def->body->scope;
@@ -681,8 +705,20 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
   spdlog::debug(
       "[typecheck]   Exited function scope for: {} (depth = {})", func_name,
       ctx->current_scope() ? get_scope_depth(ctx->current_scope()) : 0);
+  spdlog::debug("[typecheck] Function type return type after exit: {}",
+                magic_enum::enum_name(func_def->function->return_type->base_type));
+  
+  // Debug: Check if the function type was mutated
+  spdlog::debug("[typecheck] Function type address after exit: {}", fmt::ptr(func_def->function.get()));
+  spdlog::debug("[typecheck] Function return type address after exit: {}", fmt::ptr(func_def->function->return_type.get()));
+  
+  // Log the current scope symbols after exiting function scope
   if (ctx->current_scope())
     log_scope_symbols(ctx->current_scope(), "After exiting function scope");
+  
+  // Also log the global scope to see if the function symbol was modified there
+  log_scope_symbols(ctx->global_scope, "Global scope after function definition");
+  
   spdlog::debug("[typecheck] Finished function definition: {}", func_name);
 }
 
@@ -696,6 +732,7 @@ void register_function_signature(Ref<TypecheckContext> ctx,
   auto func_type = std::make_shared<Function>();
   func_type->name = func_name;
   func_type->return_type = func_def->return_type;
+  std::cout << " reg sig func_type->return_type: " << magic_enum::enum_name(func_type->return_type->base_type) << std::endl;
   func_type->span = func_def->span;
 
   // Add parameters to function type
@@ -708,7 +745,9 @@ void register_function_signature(Ref<TypecheckContext> ctx,
 
   // Create type wrapper
   auto type = std::make_shared<Type>();
+  type->base_type = BaseType::Function; // Ensure correct base_type
   type->structure = func_type;
+  type->span = func_def->span;
 
   // Register symbol
   auto func_symbol = std::make_shared<Symbol>();
@@ -721,6 +760,10 @@ void register_function_signature(Ref<TypecheckContext> ctx,
   spdlog::debug(
       "[typechecker] Registered function signature: {} (return type: {})",
       func_name, magic_enum::enum_name(func_type->return_type->base_type));
+  // Log the scope symbols after registration
+  log_scope_symbols(ctx->current_scope(), "After registering function signature");
+  // Print pointer and return type for this function
+  spdlog::debug("[typechecker] Function symbol '{}' type ptr: {} return type: {}", func_name, fmt::ptr(type.get()), magic_enum::enum_name(func_type->return_type->base_type));
 }
 
 void register_enum_signature(Ref<TypecheckContext> ctx,
@@ -736,52 +779,6 @@ void register_enum_signature(Ref<TypecheckContext> ctx,
   enum_symbol->span = enum_def->span;
   ctx->current_scope()->symbols[enum_name] = enum_symbol;
 
-  // Inject the enum-to-string function
-  spdlog::debug("[typechecker] Injecting enum-to-string function for enum: {}",
-                enum_name);
-
-  // Get the enum structure from the type
-  auto enum_type = std::get<Ref<Enum>>(enum_def->enum_type->structure);
-
-  if (!enum_type) {
-    spdlog::error("[typechecker] Failed to get enum structure for: {}",
-                  enum_name);
-    return;
-  }
-
-  utils::ast::print_ast(enum_type);
-
-  // // Create the injected function
-  auto injected_func = inject_enum_to_string(enum_type);
-  if (!injected_func) {
-    spdlog::error(
-        "[typechecker] Failed to create injected function for enum: {}",
-        enum_name);
-    return;
-  }
-
-  // Store the injected function to add later (avoid iterator invalidation)
-  spdlog::debug(
-      "[typechecker] Storing injected function for later addition for enum: {}",
-      enum_name);
-
-  // Validate the injected function before storing it
-  if (!injected_func) {
-    spdlog::error("[typechecker] Injected function is null for enum: {}",
-                  enum_name);
-    return;
-  }
-
-  spdlog::debug("[typechecker] Injected function address: {}",
-                (void *)injected_func.get());
-  spdlog::debug("[typechecker] Injected function name: {}",
-                injected_func->identifier->name);
-
-  // Store the injected function to add after iteration is complete
-  ctx->pending_injected_functions.push_back(injected_func);
-
-  register_function_signature(ctx, injected_func);
-
   spdlog::debug("[typechecker] Registered enum signature: {}", enum_name);
 }
 
@@ -789,17 +786,6 @@ void typecheck(Ref<Program> program) {
   spdlog::debug("[typechecker] program at {}", fmt::ptr(program.get()));
 
   auto ctx = std::make_shared<TypecheckContext>(program);
-
-  // Register built-in functions
-  auto print_symbol = std::make_shared<Symbol>();
-  print_symbol->name = "print";
-  print_symbol->type = std::make_shared<Type>();
-  print_symbol->type->base_type = BaseType::Void;
-  print_symbol->symbol_type = SymbolType::Function;
-  ctx->global_scope->symbols["print"] = print_symbol;
-
-  spdlog::debug("Registered print built-in in global scope");
-  log_scope_symbols(ctx->global_scope, "Global scope");
 
   spdlog::debug("[typechecker] Typechecking program body with {} statements",
                 program->body->statements.size());

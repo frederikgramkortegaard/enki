@@ -592,6 +592,16 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
     }
     while_stmt->condition = condition;
 
+    // Check for opening brace before parsing block
+    if (ctx.current_token().type != TokenType::LCurly) {
+      LOG_ERROR_EXIT(
+          "[parser] Expected '{' for while loop body but found '" +
+              std::string(ctx.current_token().value) + "' (" +
+              std::string(magic_enum::enum_name(ctx.current_token().type)) +
+              ")",
+          ctx.current_token().span, *ctx.program->source_buffer);
+    }
+
     auto body = parse_block(ctx);
     if (!body) {
       LOG_ERROR_EXIT(

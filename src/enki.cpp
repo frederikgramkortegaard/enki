@@ -13,6 +13,7 @@
 #include "compiler/lexer.hpp"
 #include "compiler/parser.hpp"
 #include "compiler/typecheck.hpp"
+#include "compiler/injections.hpp"
 #include "definitions/serializations.hpp"
 #include "utils/logging.hpp"
 
@@ -75,6 +76,7 @@ Ref<Program> compile(const std::string &source, const std::string &filename,
   auto buffer_ptr = std::make_shared<std::string>(source);
   std::vector<Token> tokens = lex(*buffer_ptr, filename);
   auto program = parse(tokens, buffer_ptr, module_context);
+  perform_injections(program);  // New injection pass
   typecheck(program);
   return program;
 }

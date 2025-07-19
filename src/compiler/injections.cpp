@@ -13,6 +13,92 @@ instead of making it a codegen level features*/
 
 std::unordered_map<std::string, std::string> _interned_strings_injections;
 
+// Forward declaration
+Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct);
+
+// Recursively scan statements and inject necessary functions
+void scan_and_inject_statements(std::vector<Ref<Statement>>& statements) {
+  std::vector<Ref<FunctionDefinition>> injected_functions;
+  
+  for (const auto& stmt : statements) {
+    if (!stmt) continue;
+    
+    auto stmt_type = stmt->get_type();
+    switch (stmt_type) {
+      case ASTType::EnumDefinition: {
+        auto enum_def = std::static_pointer_cast<EnumDefinition>(stmt);
+        if (enum_def && enum_def->enum_type && enum_def->enum_type->structure.index() == 0) {
+          auto enum_struct = std::get<Ref<Enum>>(enum_def->enum_type->structure);
+          if (enum_struct) {
+            spdlog::debug("[injections] Found enum definition: {}", enum_struct->name);
+            auto injected_func = inject_enum_to_string(enum_struct);
+            if (injected_func) {
+              injected_functions.push_back(injected_func);
+            }
+          }
+        }
+        break;
+      }
+      case ASTType::Block: {
+        auto block = std::static_pointer_cast<Block>(stmt);
+        if (block) {
+          scan_and_inject_statements(block->statements);
+        }
+        break;
+      }
+      case ASTType::FunctionDefinition: {
+        auto func_def = std::static_pointer_cast<FunctionDefinition>(stmt);
+        if (func_def && func_def->body) {
+          scan_and_inject_statements(func_def->body->statements);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  
+  // Add all injected functions to the statements
+  for (auto& injected_func : injected_functions) {
+    statements.push_back(injected_func);
+  }
+}
+
+// Helper to inject the built-in print function
+void inject_builtin_print(std::vector<Ref<Statement>>& statements) {
+  auto print_func_def = std::make_shared<FunctionDefinition>();
+  print_func_def->identifier = std::make_shared<Identifier>();
+  print_func_def->identifier->name = "print";
+  print_func_def->identifier->span = Span{};
+  print_func_def->return_type = std::make_shared<Type>();
+  print_func_def->return_type->base_type = BaseType::Void;
+  print_func_def->function = std::make_shared<Function>();
+  print_func_def->function->name = "print";
+  print_func_def->function->return_type = print_func_def->return_type;
+  print_func_def->function->definition = print_func_def;
+  print_func_def->function->scope = std::make_shared<Scope>();
+  print_func_def->body = std::make_shared<Block>();
+  print_func_def->body->scope = std::make_shared<Scope>();
+  print_func_def->body->span = Span{};
+  print_func_def->span = Span{};
+  // No parameters for now (could add variadic or string param if needed)
+  statements.insert(statements.begin(), print_func_def);
+  spdlog::debug("[injections] Injected built-in print function");
+}
+
+void perform_injections(Ref<Program> program) {
+  spdlog::debug("[injections] Starting injection pass");
+  if (!program || !program->body) {
+    spdlog::error("[injections] Program or program body is null");
+    return;
+  }
+  // Inject built-in print function at the start
+  inject_builtin_print(program->body->statements);
+  // Scan the program body and inject necessary functions
+  scan_and_inject_statements(program->body->statements);
+  spdlog::debug("[injections] Injection pass complete");
+}
+
 Ref<Call> inject_enum_to_string_call(Ref<Enum> enum_struct,
                                      Ref<Expression> enum_value, Span span) {
   spdlog::debug("[injections] Injecting enum to string call for enum: {}",
