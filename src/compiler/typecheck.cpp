@@ -1,4 +1,5 @@
 #include "typecheck.hpp"
+#include "injections.hpp"
 #include "../definitions/ast.hpp"
 #include "../definitions/types.hpp"
 #include "../utils/logging.hpp"
@@ -57,6 +58,18 @@ Ref<Type> get_binary_op_result_type(BinaryOpType op, Ref<Type> left_type,
   return result_type;
 }
 
+// Helper function to check if two enum types are the same
+bool are_enum_types_equal(Ref<Type> left_type, Ref<Type> right_type) {
+  if (left_type->base_type != BaseType::Enum || right_type->base_type != BaseType::Enum) {
+    return false;
+  }
+  
+  auto left_enum = std::get<Ref<Enum>>(left_type->structure);
+  auto right_enum = std::get<Ref<Enum>>(right_type->structure);
+  
+  return left_enum->name == right_enum->name;
+}
+
 // Helper function to check if a binary operation is valid for the given types
 bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type,
                         Ref<Type> right_type) {
@@ -75,7 +88,11 @@ bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type,
   // Comparison operations: require compatible types
   case BinaryOpType::Equals:
   case BinaryOpType::NotEquals:
-    // Can compare any types for equality
+    // For enums, can only compare same enum types
+    if (left_type->base_type == BaseType::Enum && right_type->base_type == BaseType::Enum) {
+      return are_enum_types_equal(left_type, right_type);
+    }
+    // For other types, can compare any types for equality
     return true;
 
   case BinaryOpType::LessThan:
@@ -159,16 +176,43 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
         call->span, *ctx->program->source_buffer);
   }
 
-  // TODO: Type checking function args
-  // This will need to be implemented when we have proper function parameter
-  // tracking
-
-  spdlog::debug("[typecheck] Function symbol type: {}",
-                magic_enum::enum_name(function_symbol->type->base_type));
-
-  // Check if it's a Function type and get the return type
+  // Typecheck function arguments
   if (function_symbol->type->base_type == BaseType::Function) {
     auto func_type = std::get<Ref<Function>>(function_symbol->type->structure);
+    
+    // Check argument count
+    if (call->arguments.size() != func_type->parameters.size()) {
+      LOG_ERROR_EXIT(
+          "[typechecker] Function argument count mismatch: expected " +
+              std::to_string(func_type->parameters.size()) + ", got " +
+              std::to_string(call->arguments.size()),
+          call->span, *ctx->program->source_buffer);
+    }
+    
+    // Typecheck each argument against its corresponding parameter
+    for (size_t i = 0; i < call->arguments.size(); ++i) {
+      auto arg_type = typecheck_expression(ctx, call->arguments[i]);
+      auto param_type = func_type->parameters[i]->type;
+      
+      // For enums, check that they're the same enum type
+      if (arg_type->base_type == BaseType::Enum && param_type->base_type == BaseType::Enum) {
+        if (!are_enum_types_equal(arg_type, param_type)) {
+          LOG_ERROR_EXIT(
+              "[typechecker] Enum type mismatch in argument " + std::to_string(i + 1) + 
+              ": expected enum type, got different enum type",
+              call->arguments[i]->span, *ctx->program->source_buffer);
+        }
+      }
+      // For other types, check base type equality
+      else if (arg_type->base_type != param_type->base_type) {
+        LOG_ERROR_EXIT(
+            "[typechecker] Type mismatch in argument " + std::to_string(i + 1) + 
+            ": expected " + std::string(magic_enum::enum_name(param_type->base_type)) + 
+            ", got " + std::string(magic_enum::enum_name(arg_type->base_type)),
+            call->arguments[i]->span, *ctx->program->source_buffer);
+      }
+    }
+    
     spdlog::debug("[typecheck] Function return type: {}",
                   magic_enum::enum_name(func_type->return_type->base_type));
     return func_type->return_type;
@@ -224,8 +268,21 @@ Ref<Type> typecheck_literal(Ref<TypecheckContext> ctx, Ref<Literal> lit) {
 
 Ref<Type> typecheck_parameter(Ref<TypecheckContext> ctx, Ref<Parameter> param) {
   spdlog::debug(
-      "typecheck_parameter: param type = {}",
+      "[typechecker] typecheck_parameter: param type = {}",
       magic_enum::enum_name(param ? param->get_type() : ASTType::Unknown));
+  
+  // If the parameter type is Unknown, try to resolve it as an enum type
+  if (param->type->base_type == BaseType::Unknown) {
+    // Look up the type name in the scope chain
+    auto type_symbol = find_symbol_in_scope_chain(ctx->current_scope(), param->type->name);
+    if (type_symbol && type_symbol->symbol_type == SymbolType::Enum) {
+      spdlog::debug("[typechecker] Resolved unknown parameter type '{}' to enum", param->type->name);
+      return type_symbol->type;
+    } else {
+      spdlog::error("[typechecker] Could not resolve unknown parameter type '{}'", param->type->name);
+    }
+  }
+  
   return param->type;
 }
 
@@ -297,31 +354,24 @@ void typecheck_block(Ref<TypecheckContext> ctx, Ref<Block> block) {
 
   ctx->push_scope(block->scope);
 
-  // First pass: Register all function and enum definitions in this block
-  spdlog::debug("[typechecker] Block first pass: Registering signatures");
+  // First pass: Register all enum definitions first, then function definitions
+  spdlog::debug("[typechecker] Block first pass: Registering enums first");
   for (auto &stmt : block->statements) {
-    spdlog::debug(
-        "[typechecker] About to call get_type() on statement at address: {}",
-        (void *)stmt.get());
-
     auto stmt_type = stmt->get_type();
-    spdlog::debug("[typechecker] Block first pass: Statement type: {}",
-                  magic_enum::enum_name(stmt_type));
-
-    switch (stmt_type) {
-    case ASTType::FunctionDefinition:
-      spdlog::debug("[typechecker] Block first pass: Registering function");
-      register_function_signature(
-          ctx, std::static_pointer_cast<FunctionDefinition>(stmt));
-      break;
-    case ASTType::EnumDefinition:
+    if (stmt_type == ASTType::EnumDefinition) {
       spdlog::debug("[typechecker] Block first pass: Registering enum");
       register_enum_signature(ctx,
                               std::static_pointer_cast<EnumDefinition>(stmt));
-      break;
-    default:
-      // Skip other statements in first pass
-      break;
+    }
+  }
+  
+  spdlog::debug("[typechecker] Block first pass: Registering functions");
+  for (auto &stmt : block->statements) {
+    auto stmt_type = stmt->get_type();
+    if (stmt_type == ASTType::FunctionDefinition) {
+      spdlog::debug("[typechecker] Block first pass: Registering function");
+      register_function_signature(
+          ctx, std::static_pointer_cast<FunctionDefinition>(stmt));
     }
   }
 
@@ -368,7 +418,17 @@ void typecheck_return(Ref<TypecheckContext> ctx, Ref<Return> ret) {
         ret->span, *ctx->program->source_buffer);
   }
   auto return_type = typecheck_expression(ctx, ret->expression);
-  if (return_type->base_type != current_func->return_type->base_type) {
+  
+  // For enums, check that they're the same enum type
+  if (return_type->base_type == BaseType::Enum && current_func->return_type->base_type == BaseType::Enum) {
+    if (!are_enum_types_equal(return_type, current_func->return_type)) {
+      LOG_ERROR_EXIT(
+          "[typechecker] Return enum type mismatch: function expects different enum type",
+          ret->span, *ctx->program->source_buffer);
+    }
+  }
+  // For other types, check base type equality
+  else if (return_type->base_type != current_func->return_type->base_type) {
     LOG_ERROR_EXIT(
         "[typechecker] Return type mismatch: " +
             std::string(magic_enum::enum_name(return_type->base_type)) +
@@ -390,7 +450,17 @@ void typecheck_assignment(Ref<TypecheckContext> ctx,
                                                  : ASTType::Unknown));
   auto assignee_type = typecheck_expression(ctx, assignment->assignee);
   auto expression_type = typecheck_expression(ctx, assignment->expression);
-  if (assignee_type->base_type != expression_type->base_type) {
+  
+  // For enums, check that they're the same enum type
+  if (assignee_type->base_type == BaseType::Enum && expression_type->base_type == BaseType::Enum) {
+    if (!are_enum_types_equal(assignee_type, expression_type)) {
+      LOG_ERROR_EXIT(
+          "[typechecker] Assignment enum type mismatch: cannot assign different enum types",
+          assignment->span, *ctx->program->source_buffer);
+    }
+  }
+  // For other types, check base type equality
+  else if (assignee_type->base_type != expression_type->base_type) {
     LOG_ERROR_EXIT(
         "[typechecker] Assignment type mismatch: " +
             std::string(magic_enum::enum_name(assignee_type->base_type)) +
@@ -510,6 +580,9 @@ void typecheck_enum_definition(Ref<TypecheckContext> ctx,
     member_symbol->span = member_var->span;
     ctx->current_scope()->symbols[member_name] = member_symbol;
   }
+
+  // Inject the enum-to-string function into the current scope
+  inject_enum_to_string_in_scope(ctx, enum_type);
 }
 
 void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
@@ -619,12 +692,19 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
 
     ctx->current_scope()->symbols[param->identifier->name] =
         std::static_pointer_cast<Symbol>(param_symbol);
-    func_def->function->parameters.push_back(param_variable);
     spdlog::debug("[typecheck]     Added parameter symbol: {} (type: {})",
                   param_symbol->name,
                   param_symbol->type
                       ? magic_enum::enum_name(param_symbol->type->base_type)
                       : "<null type>");
+    
+    // Also update the function type parameter to have the resolved type
+    for (auto &func_param : func_def->function->parameters) {
+      if (func_param->name == param->identifier->name) {
+        func_param->type = param_type;
+        break;
+      }
+    }
   }
 
   // Use typecheck_block to process the function body (handles nested functions
@@ -652,7 +732,20 @@ void register_function_signature(Ref<TypecheckContext> ctx,
   // Create function type
   auto func_type = std::make_shared<Function>();
   func_type->name = func_name;
-  func_type->return_type = func_def->return_type;
+  
+  // Resolve return type if it's an identifier (e.g., "Color" -> Color enum type)
+  if (func_def->return_type->base_type == BaseType::Unknown) {
+    auto return_type_symbol = find_symbol_in_scope_chain(ctx->current_scope(), func_def->return_type->name);
+    if (return_type_symbol && return_type_symbol->symbol_type == SymbolType::Enum) {
+      func_type->return_type = return_type_symbol->type;
+      spdlog::debug("[typechecker] Resolved unknown return type '{}' to enum", func_def->return_type->name);
+    } else {
+      func_type->return_type = func_def->return_type;
+      spdlog::error("[typechecker] Could not resolve unknown return type '{}'", func_def->return_type->name);
+    }
+  } else {
+    func_type->return_type = func_def->return_type;
+  }
 
   func_type->span = func_def->span;
 

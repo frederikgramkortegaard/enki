@@ -9,6 +9,7 @@ instead of making it a codegen level features*/
 #include "../definitions/types.hpp"
 #include "../utils/logging.hpp"
 #include "../utils/printer.hpp"
+#include "typecheck.hpp"
 #include <unordered_map>
 
 std::unordered_map<std::string, std::string> _interned_strings_injections;
@@ -18,53 +19,8 @@ Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct);
 
 // Recursively scan statements and inject necessary functions
 void scan_and_inject_statements(std::vector<Ref<Statement>> &statements) {
-  std::vector<Ref<FunctionDefinition>> injected_functions;
-
-  for (const auto &stmt : statements) {
-    if (!stmt)
-      continue;
-
-    auto stmt_type = stmt->get_type();
-    switch (stmt_type) {
-    case ASTType::EnumDefinition: {
-      auto enum_def = std::static_pointer_cast<EnumDefinition>(stmt);
-      if (enum_def && enum_def->enum_type &&
-          enum_def->enum_type->structure.index() == 0) {
-        auto enum_struct = std::get<Ref<Enum>>(enum_def->enum_type->structure);
-        if (enum_struct) {
-          spdlog::debug("[injections] Found enum definition: {}",
-                        enum_struct->name);
-          auto injected_func = inject_enum_to_string(enum_struct);
-          if (injected_func) {
-            injected_functions.push_back(injected_func);
-          }
-        }
-      }
-      break;
-    }
-    case ASTType::Block: {
-      auto block = std::static_pointer_cast<Block>(stmt);
-      if (block) {
-        scan_and_inject_statements(block->statements);
-      }
-      break;
-    }
-    case ASTType::FunctionDefinition: {
-      auto func_def = std::static_pointer_cast<FunctionDefinition>(stmt);
-      if (func_def && func_def->body) {
-        scan_and_inject_statements(func_def->body->statements);
-      }
-      break;
-    }
-    default:
-      break;
-    }
-  }
-
-  // Add all injected functions to the statements
-  for (auto &injected_func : injected_functions) {
-    statements.push_back(injected_func);
-  }
+  // We'll handle enum-to-string function injection during typechecking instead
+  // This ensures they're added to the correct scope
 }
 
 // Helper to inject the built-in print function
@@ -80,13 +36,22 @@ void inject_builtin_print(std::vector<Ref<Statement>> &statements) {
   print_func_def->function->return_type = print_func_def->return_type;
   print_func_def->function->definition = print_func_def;
   print_func_def->function->scope = std::make_shared<Scope>();
+  
+  // Add a string parameter to print function
+  auto param = std::make_shared<Parameter>();
+  param->identifier = std::make_shared<Identifier>();
+  param->identifier->name = "value";
+  param->identifier->span = Span{};
+  param->type = std::make_shared<Type>();
+  param->type->base_type = BaseType::String;
+  print_func_def->parameters.push_back(param);
+  
   print_func_def->body = std::make_shared<Block>();
   print_func_def->body->scope = std::make_shared<Scope>();
   print_func_def->body->span = Span{};
   print_func_def->span = Span{};
-  // No parameters for now (could add variadic or string param if needed)
   statements.insert(statements.begin(), print_func_def);
-  spdlog::debug("[injections] Injected built-in print function");
+  spdlog::debug("[injections] Injected built-in print function with string parameter");
 }
 
 void perform_injections(Ref<Program> program) {
@@ -238,4 +203,43 @@ Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct) {
   utils::ast::print_ast(func_def);
 
   return func_def;
+}
+
+void inject_enum_to_string_in_scope(Ref<TypecheckContext> ctx, Ref<Enum> enum_struct) {
+  auto injected_func = inject_enum_to_string(enum_struct);
+  if (injected_func) {
+    // Register the injected function in the current scope
+    auto func_name = injected_func->identifier->name;
+    spdlog::debug("[injections] Injecting enum-to-string function: {} in scope", func_name);
+    
+    // Create function type
+    auto func_type = std::make_shared<Function>();
+    func_type->name = func_name;
+    func_type->return_type = injected_func->return_type;
+    func_type->span = injected_func->span;
+
+    // Add parameters to function type
+    for (auto &param : injected_func->parameters) {
+      auto param_var = std::make_shared<Variable>();
+      param_var->name = param->identifier->name;
+      param_var->type = param->type;
+      func_type->parameters.push_back(param_var);
+    }
+
+    // Create type wrapper
+    auto type = std::make_shared<Type>();
+    type->base_type = BaseType::Function;
+    type->structure = func_type;
+    type->span = injected_func->span;
+
+    // Register symbol in current scope
+    auto func_symbol = std::make_shared<Symbol>();
+    func_symbol->name = func_name;
+    func_symbol->type = type;
+    func_symbol->symbol_type = SymbolType::Function;
+    func_symbol->span = injected_func->span;
+    ctx->current_scope()->symbols[func_name] = func_symbol;
+    
+    spdlog::debug("[injections] Registered injected function: {} in current scope", func_name);
+  }
 }

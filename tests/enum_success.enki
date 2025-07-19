@@ -18,7 +18,7 @@ define ret(color: Color) -> Color {
 
 
 define print_color(color: Color) -> void {
-    print(color)
+    print(Color_to_string(color))
 }
 
 print_color(ret(Color.Red))

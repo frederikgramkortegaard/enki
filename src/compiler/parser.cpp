@@ -145,6 +145,7 @@ Ref<Type> parse_type(ParserContext &ctx) {
   // typechecker
   case TokenType::Identifier:
     type->base_type = BaseType::Unknown;
+    type->name = ctx.current_token().value; // Store the type name
     break;
 
   default:

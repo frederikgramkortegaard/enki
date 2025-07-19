@@ -122,8 +122,8 @@ run_all_tests() {
     # Success tests (should exit with 0)
     for test_file in "$test_dir"/*_success.enki; do
         if [ -f "$test_file" ]; then
-            test_name=$(basename "$test_file" .enki)
-            run_test "$test_file" "$test_name" 0
+                test_name=$(basename "$test_file" .enki)
+    run_test "$test_file" "$test_name" 0
         fi
     done
     

@@ -1,0 +1,26 @@
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+enum Tree {
+    Oak,
+    Pine,
+    Maple,
+}
+
+define test_color(color: Color) -> void {
+    print(Color_to_string(color))
+}
+
+// This should fail - wrong enum type in function call
+test_color(Tree.Oak)
+
+// This should fail - wrong enum type in assignment
+let color = Tree.Oak
+
+// This should fail - comparing different enum types
+if Color.Red == Tree.Oak {
+    print("This should not compile")
+} 

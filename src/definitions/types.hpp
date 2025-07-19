@@ -48,6 +48,7 @@ struct Type {
   BaseType base_type;
   std::variant<Ref<Function>, Ref<Enum>> structure;
   Span span;
+  std::string_view name; // Store the type name when base_type is Unknown (e.g., "Color")
 };
 
 struct Variable {
