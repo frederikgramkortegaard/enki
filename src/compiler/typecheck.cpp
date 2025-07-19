@@ -5,36 +5,6 @@
 #include <spdlog/spdlog.h>
 #include <variant>
 
-// Helper function to log scope symbols for debugging
-void log_scope_symbols(const Ref<Scope> &scope, const std::string &context) {
-  if (!scope) {
-    spdlog::debug("[typecheck]   {}: Scope is null", context);
-    return;
-  }
-  int depth = 0;
-  auto curr = scope;
-  while (curr && curr->parent) {
-    ++depth;
-    curr = curr->parent;
-  }
-  spdlog::debug("[typecheck]   {}: Scope depth = {}", context, depth);
-  if (scope->symbols.empty()) {
-    spdlog::debug("[typecheck]   {}: No symbols in scope", context);
-    return;
-  }
-  for (const auto &[name, symbol] : scope->symbols) {
-    if (symbol) {
-      spdlog::debug(
-          "[typecheck]   {}: Symbol '{}' (type: {}, kind: {})", context, name,
-          symbol->type ? magic_enum::enum_name(symbol->type->base_type)
-                       : "<null type>",
-          magic_enum::enum_name(symbol->symbol_type));
-    } else {
-      spdlog::debug("[typecheck]   {}: Symbol '{}' is null", context, name);
-    }
-  }
-}
-
 void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt);
 Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx, Ref<Expression> expr);
 void typecheck_function_definition(Ref<TypecheckContext> ctx,
@@ -123,6 +93,17 @@ bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type,
   }
 }
 
+// Helper function to get the depth of a scope in the scope chain
+int get_scope_depth(const Ref<Scope> &scope) {
+  int depth = 0;
+  auto current_scope = scope;
+  while (current_scope && current_scope->parent) {
+    ++depth;
+    current_scope = current_scope->parent;
+  }
+  return depth;
+}
+
 // Helper function for scope chain traversal
 Ref<Symbol> find_symbol_in_scope_chain(const Ref<Scope> &scope,
                                        const std::string_view &name) {
@@ -177,39 +158,22 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
                 std::static_pointer_cast<Identifier>(call->callee)->name),
         call->span, *ctx->program->source_buffer);
   }
-  
-  // Log the current scope symbols when looking for function
-  log_scope_symbols(ctx->current_scope(), "Current scope when looking for function");
 
-  // For built-in functions like print, we accept any arguments for now
-  if (function_symbol->name == "print") {
-    // Typecheck all arguments (but don't enforce specific types for print)
-    for (auto &arg : call->arguments) {
-      typecheck_expression(ctx, arg);
-    }
-    return function_symbol->type; // Returns void
-  }
-
-  // TODO: For user-defined functions, check argument count and types
+  // TODO: Type checking function args
   // This will need to be implemented when we have proper function parameter
   // tracking
 
-  spdlog::debug("[typecheck] Function symbol type: {}", magic_enum::enum_name(function_symbol->type->base_type));
-  
+  spdlog::debug("[typecheck] Function symbol type: {}",
+                magic_enum::enum_name(function_symbol->type->base_type));
+
   // Check if it's a Function type and get the return type
   if (function_symbol->type->base_type == BaseType::Function) {
     auto func_type = std::get<Ref<Function>>(function_symbol->type->structure);
-    spdlog::debug("[typecheck] Function return type: {}", magic_enum::enum_name(func_type->return_type->base_type));
-    spdlog::debug("[typecheck] Function type address in call: {}", fmt::ptr(func_type.get()));
-    spdlog::debug("[typecheck] Function return type address in call: {}", fmt::ptr(func_type->return_type.get()));
-    
-    // Log the function symbol details
-    spdlog::debug("[typecheck] Function symbol name: {}", function_symbol->name);
-    spdlog::debug("[typecheck] Function symbol type address: {}", fmt::ptr(function_symbol->type.get()));
-    
+    spdlog::debug("[typecheck] Function return type: {}",
+                  magic_enum::enum_name(func_type->return_type->base_type));
     return func_type->return_type;
   }
-  
+
   return function_symbol->type;
 }
 
@@ -349,7 +313,6 @@ void typecheck_block(Ref<TypecheckContext> ctx, Ref<Block> block) {
         "[typechecker] About to call get_type() on statement at address: {}",
         (void *)stmt.get());
 
-
     auto stmt_type = stmt->get_type();
     spdlog::debug("[typechecker] Block first pass: Statement type: {}",
                   magic_enum::enum_name(stmt_type));
@@ -371,15 +334,12 @@ void typecheck_block(Ref<TypecheckContext> ctx, Ref<Block> block) {
     }
   }
 
-
-
-
-
   // Second pass: Typecheck all statements
   spdlog::debug("[typechecker] Block second pass: Typechecking all statements");
   for (auto &stmt : block->statements) {
-    spdlog::debug("[typechecker] Second pass: Processing statement at address: {}",
-                  (void *)stmt.get());
+    spdlog::debug(
+        "[typechecker] Second pass: Processing statement at address: {}",
+        (void *)stmt.get());
     spdlog::debug("[typechecker] Second pass: Statement type: {}",
                   magic_enum::enum_name(stmt->get_type()));
     typecheck_statement(ctx, std::static_pointer_cast<Statement>(stmt));
@@ -404,7 +364,7 @@ void typecheck_return(Ref<TypecheckContext> ctx, Ref<Return> ret) {
                      ret->span, *ctx->program->source_buffer);
     }
     ret->type = current_func->return_type;
-  std::cout << "return func_type->return_type: " << magic_enum::enum_name(current_func->return_type->base_type) << std::endl;
+
     ret->function = current_func;
     spdlog::debug(
         "[typechecker] typecheck_return: void function, no return value");
@@ -610,17 +570,7 @@ void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
   return;
 }
 
-namespace {
-int get_scope_depth(const Ref<Scope> &scope) {
-  int depth = 0;
-  auto curr = scope;
-  while (curr && curr->parent) {
-    ++depth;
-    curr = curr->parent;
-  }
-  return depth;
-}
-} // namespace
+// namespace
 
 void typecheck_function_definition(Ref<TypecheckContext> ctx,
                                    Ref<FunctionDefinition> func_def) {
@@ -648,17 +598,9 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
   // Get the function type from the symbol
   auto func_type = std::get<Ref<Function>>(func_symbol->type->structure);
   func_def->function = func_type;
-  
-  std::cout << "tcheck func_def->return_type: " << magic_enum::enum_name(func_def->return_type->base_type) << std::endl;
+
   spdlog::debug("[typecheck] Function type return type: {}",
                 magic_enum::enum_name(func_type->return_type->base_type));
-  
-  // Debug: Check if the function type in the symbol table is being mutated
-  spdlog::debug("[typecheck] Function type address: {}", fmt::ptr(func_type.get()));
-  spdlog::debug("[typecheck] Function return type address: {}", fmt::ptr(func_type->return_type.get()));
-  
-  // Log the current scope symbols before entering function scope
-  log_scope_symbols(ctx->current_scope(), "Before entering function scope");
 
   // Set up function scope and metadata
   func_def->function->scope = func_def->body->scope;
@@ -671,8 +613,8 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
   ctx->push_scope(func_def->function->scope);
   spdlog::debug("[typecheck]   Entered function scope (depth = {})",
                 get_scope_depth(func_def->function->scope));
-  log_scope_symbols(ctx->current_scope(), "On scope entry");
 
+  // Add parameters to function scope
   for (auto &param : func_def->parameters) {
     auto param_type = typecheck_parameter(ctx, param);
     auto param_variable = std::make_shared<Variable>();
@@ -693,32 +635,21 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
                   param_symbol->type
                       ? magic_enum::enum_name(param_symbol->type->base_type)
                       : "<null type>");
-    log_scope_symbols(ctx->current_scope(), "After adding parameter");
   }
 
-  for (auto &stmt : func_def->body->statements) {
-    typecheck_statement(ctx, std::static_pointer_cast<Statement>(stmt));
-  }
+  // Use typecheck_block to process the function body (handles nested functions
+  // automatically)
+  typecheck_block(ctx, func_def->body);
 
   ctx->pop_function();
   ctx->pop_scope();
   spdlog::debug(
       "[typecheck]   Exited function scope for: {} (depth = {})", func_name,
       ctx->current_scope() ? get_scope_depth(ctx->current_scope()) : 0);
-  spdlog::debug("[typecheck] Function type return type after exit: {}",
-                magic_enum::enum_name(func_def->function->return_type->base_type));
-  
-  // Debug: Check if the function type was mutated
-  spdlog::debug("[typecheck] Function type address after exit: {}", fmt::ptr(func_def->function.get()));
-  spdlog::debug("[typecheck] Function return type address after exit: {}", fmt::ptr(func_def->function->return_type.get()));
-  
-  // Log the current scope symbols after exiting function scope
-  if (ctx->current_scope())
-    log_scope_symbols(ctx->current_scope(), "After exiting function scope");
-  
-  // Also log the global scope to see if the function symbol was modified there
-  log_scope_symbols(ctx->global_scope, "Global scope after function definition");
-  
+  spdlog::debug(
+      "[typecheck] Function type return type after exit: {}",
+      magic_enum::enum_name(func_def->function->return_type->base_type));
+
   spdlog::debug("[typecheck] Finished function definition: {}", func_name);
 }
 
@@ -732,7 +663,7 @@ void register_function_signature(Ref<TypecheckContext> ctx,
   auto func_type = std::make_shared<Function>();
   func_type->name = func_name;
   func_type->return_type = func_def->return_type;
-  std::cout << " reg sig func_type->return_type: " << magic_enum::enum_name(func_type->return_type->base_type) << std::endl;
+
   func_type->span = func_def->span;
 
   // Add parameters to function type
@@ -760,10 +691,10 @@ void register_function_signature(Ref<TypecheckContext> ctx,
   spdlog::debug(
       "[typechecker] Registered function signature: {} (return type: {})",
       func_name, magic_enum::enum_name(func_type->return_type->base_type));
-  // Log the scope symbols after registration
-  log_scope_symbols(ctx->current_scope(), "After registering function signature");
-  // Print pointer and return type for this function
-  spdlog::debug("[typechecker] Function symbol '{}' type ptr: {} return type: {}", func_name, fmt::ptr(type.get()), magic_enum::enum_name(func_type->return_type->base_type));
+  spdlog::debug(
+      "[typechecker] Function symbol '{}' type ptr: {} return type: {}",
+      func_name, fmt::ptr(type.get()),
+      magic_enum::enum_name(func_type->return_type->base_type));
 }
 
 void register_enum_signature(Ref<TypecheckContext> ctx,

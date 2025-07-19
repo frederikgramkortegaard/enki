@@ -144,7 +144,7 @@ struct Return : Statement {
 
 struct Program {
   Span span;
-  Ref<Block> body;  // Global block containing all statements
+  Ref<Block> body; // Global block containing all statements
   Ref<Scope> scope = std::make_shared<Scope>(); // Global Scope
   std::shared_ptr<std::string> source_buffer;   // Holds the source buffer
   Ref<ModuleContext> module_context; // Holds the module context for lifetime

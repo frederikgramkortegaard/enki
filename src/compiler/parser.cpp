@@ -436,7 +436,6 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
     }
     import_stmt->module_path = std::dynamic_pointer_cast<Literal>(module_path);
     spdlog::debug("[parser] Module path: {}", import_stmt->module_path->value);
-    std::cout << ctx.current_token().span.start.to_string() << std::endl;
     import_stmt->span = Span(tok.span.start, module_path->span.end);
 
     // Use CTX Module Context to add the module to the program

@@ -17,55 +17,58 @@ std::unordered_map<std::string, std::string> _interned_strings_injections;
 Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct);
 
 // Recursively scan statements and inject necessary functions
-void scan_and_inject_statements(std::vector<Ref<Statement>>& statements) {
+void scan_and_inject_statements(std::vector<Ref<Statement>> &statements) {
   std::vector<Ref<FunctionDefinition>> injected_functions;
-  
-  for (const auto& stmt : statements) {
-    if (!stmt) continue;
-    
+
+  for (const auto &stmt : statements) {
+    if (!stmt)
+      continue;
+
     auto stmt_type = stmt->get_type();
     switch (stmt_type) {
-      case ASTType::EnumDefinition: {
-        auto enum_def = std::static_pointer_cast<EnumDefinition>(stmt);
-        if (enum_def && enum_def->enum_type && enum_def->enum_type->structure.index() == 0) {
-          auto enum_struct = std::get<Ref<Enum>>(enum_def->enum_type->structure);
-          if (enum_struct) {
-            spdlog::debug("[injections] Found enum definition: {}", enum_struct->name);
-            auto injected_func = inject_enum_to_string(enum_struct);
-            if (injected_func) {
-              injected_functions.push_back(injected_func);
-            }
+    case ASTType::EnumDefinition: {
+      auto enum_def = std::static_pointer_cast<EnumDefinition>(stmt);
+      if (enum_def && enum_def->enum_type &&
+          enum_def->enum_type->structure.index() == 0) {
+        auto enum_struct = std::get<Ref<Enum>>(enum_def->enum_type->structure);
+        if (enum_struct) {
+          spdlog::debug("[injections] Found enum definition: {}",
+                        enum_struct->name);
+          auto injected_func = inject_enum_to_string(enum_struct);
+          if (injected_func) {
+            injected_functions.push_back(injected_func);
           }
         }
-        break;
       }
-      case ASTType::Block: {
-        auto block = std::static_pointer_cast<Block>(stmt);
-        if (block) {
-          scan_and_inject_statements(block->statements);
-        }
-        break;
+      break;
+    }
+    case ASTType::Block: {
+      auto block = std::static_pointer_cast<Block>(stmt);
+      if (block) {
+        scan_and_inject_statements(block->statements);
       }
-      case ASTType::FunctionDefinition: {
-        auto func_def = std::static_pointer_cast<FunctionDefinition>(stmt);
-        if (func_def && func_def->body) {
-          scan_and_inject_statements(func_def->body->statements);
-        }
-        break;
+      break;
+    }
+    case ASTType::FunctionDefinition: {
+      auto func_def = std::static_pointer_cast<FunctionDefinition>(stmt);
+      if (func_def && func_def->body) {
+        scan_and_inject_statements(func_def->body->statements);
       }
-      default:
-        break;
+      break;
+    }
+    default:
+      break;
     }
   }
-  
+
   // Add all injected functions to the statements
-  for (auto& injected_func : injected_functions) {
+  for (auto &injected_func : injected_functions) {
     statements.push_back(injected_func);
   }
 }
 
 // Helper to inject the built-in print function
-void inject_builtin_print(std::vector<Ref<Statement>>& statements) {
+void inject_builtin_print(std::vector<Ref<Statement>> &statements) {
   auto print_func_def = std::make_shared<FunctionDefinition>();
   print_func_def->identifier = std::make_shared<Identifier>();
   print_func_def->identifier->name = "print";
@@ -233,7 +236,6 @@ Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct) {
   spdlog::debug("[injections] Created enum-to-string function: {}",
                 interned_func_name);
   utils::ast::print_ast(func_def);
-  std::cout << ",,,, " << std::endl;
-  std::cout << magic_enum::enum_name(func_def->get_type()) << std::endl;
+
   return func_def;
 }
