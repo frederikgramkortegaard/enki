@@ -34,30 +34,47 @@ inline void print_ast(const Ref<Type> &type, int depth) {
   }
   print_indent(depth);
   std::cout << "Type: base_type=" << magic_enum::enum_name(type->base_type);
-  
+
   // Handle enum and struct members
   if (type->base_type == BaseType::Enum) {
     try {
-      const auto& enum_data = std::get<Ref<Enum>>(type->structure);
+      const auto &enum_data = std::get<Ref<Enum>>(type->structure);
       std::cout << " (enum: " << enum_data->name << ")" << std::endl;
       print_indent(depth + 1);
       std::cout << "members:" << std::endl;
-      for (const auto& [name, member] : enum_data->members) {
+      for (const auto &[name, member] : enum_data->members) {
         print_indent(depth + 2);
         std::cout << "Member: " << name << std::endl;
       }
-    } catch (const std::bad_variant_access&) {
+    } catch (const std::bad_variant_access &) {
       std::cout << " (enum data not available)" << std::endl;
     }
   } else if (type->base_type == BaseType::Function) {
     try {
-      const auto& func_data = std::get<Ref<Function>>(type->structure);
+      const auto &func_data = std::get<Ref<Function>>(type->structure);
       std::cout << " (function: " << func_data->name << ")" << std::endl;
-    } catch (const std::bad_variant_access&) {
+    } catch (const std::bad_variant_access &) {
       std::cout << " (function data not available)" << std::endl;
     }
   } else {
     std::cout << std::endl;
+  }
+}
+
+// Print Enum
+inline void print_ast(const Ref<Enum> &enum_type, int depth = 0) {
+  if (!enum_type) {
+    print_indent(depth);
+    std::cout << "<null Enum>" << std::endl;
+    return;
+  }
+  print_indent(depth);
+  std::cout << "Enum: " << enum_type->name << std::endl;
+  print_indent(depth + 1);
+  std::cout << "members:" << std::endl;
+  for (const auto &[name, member] : enum_type->members) {
+    print_indent(depth + 2);
+    std::cout << "Member: " << name << std::endl;
   }
 }
 
@@ -279,6 +296,15 @@ inline void print_ast(const Ref<Statement> &stmt, int depth, int max_depth) {
     print_ast(assign->expression, depth + 2, max_depth);
     return;
   }
+  // Return
+  if (auto ret_stmt = std::dynamic_pointer_cast<Return>(stmt)) {
+    print_indent(depth);
+    std::cout << "Return" << std::endl;
+    if (ret_stmt->expression) {
+      print_ast(ret_stmt->expression, depth + 1, max_depth);
+    }
+    return;
+  }
   // Unknown type
   print_indent(depth);
   std::cout << magic_enum::enum_name(stmt->get_type()) << std::endl;
@@ -292,8 +318,8 @@ inline void print_ast(const Program &program, int depth, int max_depth) {
   if (program.scope) {
     print_scope(program.scope, depth + 1);
   }
-  for (const auto &stmt : program.statements) {
-    print_ast(stmt, depth + 1, max_depth);
+  if (program.body) {
+    print_ast(program.body, depth + 1, max_depth);
   }
 }
 

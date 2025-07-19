@@ -13,6 +13,9 @@ struct TypecheckContext {
   std::vector<Ref<Function>> function_stack;
   std::vector<Ref<Scope>> scope_stack;
   Ref<Scope> global_scope;
+  Ref<Block> current_block; // Track the current block being processed
+  std::vector<Ref<FunctionDefinition>>
+      pending_injected_functions; // Store injected functions to add later
 
   size_t current = 0;
 

@@ -33,7 +33,8 @@ enum class BaseType {
   Identifier,
   Function,
   Enum,
-  Unknown, // Assigned by e.g. Parser before Typechecker, if a Type is referenced by an Identifier e.g. the name of an Enum or a Struct
+  Unknown, // Assigned by e.g. Parser before Typechecker, if a Type is
+           // referenced by an Identifier e.g. the name of an Enum or a Struct
 };
 enum class SymbolType { Function, Variable, Argument, Enum };
 

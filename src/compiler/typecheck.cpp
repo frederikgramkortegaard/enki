@@ -2,14 +2,17 @@
 #include "../definitions/ast.hpp"
 #include "../definitions/types.hpp"
 #include "../utils/logging.hpp"
-#include <spdlog/spdlog.h>
 #include "injections.hpp"
+#include <spdlog/spdlog.h>
+#include <variant>
 void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt);
 Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx, Ref<Expression> expr);
 void typecheck_function_definition(Ref<TypecheckContext> ctx,
                                    Ref<FunctionDefinition> func_def);
-void register_function_signature(Ref<TypecheckContext> ctx, Ref<FunctionDefinition> func_def);
-void register_enum_signature(Ref<TypecheckContext> ctx, Ref<EnumDefinition> enum_def);
+void register_function_signature(Ref<TypecheckContext> ctx,
+                                 Ref<FunctionDefinition> func_def);
+void register_enum_signature(Ref<TypecheckContext> ctx,
+                             Ref<EnumDefinition> enum_def);
 
 // Helper function to determine the result type of a binary operation
 Ref<Type> get_binary_op_result_type(BinaryOpType op, Ref<Type> left_type,
@@ -213,40 +216,45 @@ Ref<Type> typecheck_parameter(Ref<TypecheckContext> ctx, Ref<Parameter> param) {
   return param->type;
 }
 
-Ref<Type> typecheck_dot_expression(Ref<TypecheckContext> ctx, Ref<Dot> dot_expr) {
+Ref<Type> typecheck_dot_expression(Ref<TypecheckContext> ctx,
+                                   Ref<Dot> dot_expr) {
   spdlog::debug("[typechecker] typecheck_dot_expression: dot_expr type = {}",
                 magic_enum::enum_name(dot_expr ? dot_expr->get_type()
                                                : ASTType::Unknown));
 
-
   auto left_type = typecheck_expression(ctx, dot_expr->left);
 
   // Enum Member Access
-  if (left_type->base_type == BaseType::Enum && dot_expr->right->get_type() == ASTType::Identifier) {
+  if (left_type->base_type == BaseType::Enum &&
+      dot_expr->right->get_type() == ASTType::Identifier) {
 
     auto right = std::static_pointer_cast<Identifier>(dot_expr->right);
     auto right_name = right->name;
-    auto enum_type = std::get<Ref<Enum>>(left_type->structure); 
+    auto enum_type = std::get<Ref<Enum>>(left_type->structure);
     auto member = enum_type->members.find(right_name);
     if (member == enum_type->members.end()) {
-      LOG_ERROR_EXIT("[typechecker] Enum member not found: " + std::string(right_name), right->span, *ctx->program->source_buffer);
+      LOG_ERROR_EXIT("[typechecker] Enum member not found: " +
+                         std::string(right_name),
+                     right->span, *ctx->program->source_buffer);
     }
     return member->second->type;
   }
 
-
   utils::ast::print_ast(dot_expr);
-  if (left_type->base_type == BaseType::Enum && dot_expr->right->get_type() == ASTType::Call) { 
+  if (left_type->base_type == BaseType::Enum &&
+      dot_expr->right->get_type() == ASTType::Call) {
     auto call = std::static_pointer_cast<Call>(dot_expr->right);
     auto callee = std::static_pointer_cast<Identifier>(call->callee);
     if (callee->name == "str") {
       return std::make_shared<Type>(Type{BaseType::String});
     }
-
-
   }
 
-  LOG_ERROR_EXIT("[typechecker] Invalid dot expression: " + std::string(magic_enum::enum_name(left_type->base_type)) + " " + std::string(magic_enum::enum_name(dot_expr->right->get_type())), dot_expr->span, *ctx->program->source_buffer);
+  LOG_ERROR_EXIT(
+      "[typechecker] Invalid dot expression: " +
+          std::string(magic_enum::enum_name(left_type->base_type)) + " " +
+          std::string(magic_enum::enum_name(dot_expr->right->get_type())),
+      dot_expr->span, *ctx->program->source_buffer);
   return nullptr;
 }
 
@@ -280,37 +288,69 @@ void typecheck_block(Ref<TypecheckContext> ctx, Ref<Block> block) {
   spdlog::debug(
       "[typechecker] typecheck_block: block type = {}",
       magic_enum::enum_name(block ? block->get_type() : ASTType::Unknown));
+
+  // Set the current block for injection purposes
+  ctx->current_block = block;
+
   ctx->push_scope(block->scope);
-  
+
   // First pass: Register all function and enum definitions in this block
   spdlog::debug("[typechecker] Block first pass: Registering signatures");
   for (auto &stmt : block->statements) {
+    spdlog::debug(
+        "[typechecker] About to call get_type() on statement at address: {}",
+        (void *)stmt.get());
+
+    utils::ast::print_ast(stmt);
+
     auto stmt_type = stmt->get_type();
-    spdlog::debug("[typechecker] Block first pass: Statement type: {}", 
+    spdlog::debug("[typechecker] Block first pass: Statement type: {}",
                   magic_enum::enum_name(stmt_type));
-    
+
     switch (stmt_type) {
     case ASTType::FunctionDefinition:
       spdlog::debug("[typechecker] Block first pass: Registering function");
-      register_function_signature(ctx, std::static_pointer_cast<FunctionDefinition>(stmt));
+      register_function_signature(
+          ctx, std::static_pointer_cast<FunctionDefinition>(stmt));
       break;
     case ASTType::EnumDefinition:
       spdlog::debug("[typechecker] Block first pass: Registering enum");
-      register_enum_signature(ctx, std::static_pointer_cast<EnumDefinition>(stmt));
+      register_enum_signature(ctx,
+                              std::static_pointer_cast<EnumDefinition>(stmt));
       break;
     default:
       // Skip other statements in first pass
       break;
     }
   }
-  
+
+  // Add any pending injected functions to the block statements
+  if (!ctx->pending_injected_functions.empty()) {
+    spdlog::debug("[typechecker] Adding {} pending injected functions to block",
+                  ctx->pending_injected_functions.size());
+    for (auto &injected_func : ctx->pending_injected_functions) {
+      spdlog::debug("[typechecker] Adding injected function: {}",
+                    injected_func->identifier->name);
+      block->statements.push_back(injected_func);
+    }
+    ctx->pending_injected_functions.clear();
+  }
+
+  spdlog::debug("[typechecker] Block now has {} statements after adding injected functions",
+                block->statements.size());
+
   // Second pass: Typecheck all statements
   spdlog::debug("[typechecker] Block second pass: Typechecking all statements");
   for (auto &stmt : block->statements) {
+    spdlog::debug("[typechecker] Second pass: Processing statement at address: {}",
+                  (void *)stmt.get());
+    spdlog::debug("[typechecker] Second pass: Statement type: {}",
+                  magic_enum::enum_name(stmt->get_type()));
     typecheck_statement(ctx, std::static_pointer_cast<Statement>(stmt));
   }
-  
+
   ctx->pop_scope();
+  ctx->current_block = nullptr; // Clear current block
 }
 
 void typecheck_return(Ref<TypecheckContext> ctx, Ref<Return> ret) {
@@ -456,19 +496,22 @@ void typecheck_extern(Ref<TypecheckContext> ctx, Ref<Extern> extern_stmt) {
   ctx->current_scope()->symbols[extern_stmt->identifier->name] = func_symbol;
 }
 
-void typecheck_enum_definition(Ref<TypecheckContext> ctx, Ref<EnumDefinition> enum_def) {
+void typecheck_enum_definition(Ref<TypecheckContext> ctx,
+                               Ref<EnumDefinition> enum_def) {
   spdlog::debug("[typechecker] typecheck_enum_definition: enum_def type = {}",
                 magic_enum::enum_name(enum_def ? enum_def->get_type()
                                                : ASTType::Unknown));
-  
+
   // The enum was already registered in the first pass, just verify it exists
   auto enum_name = enum_def->identifier->name;
-  auto enum_symbol = find_symbol_in_scope_chain(ctx->current_scope(), enum_name);
+  auto enum_symbol =
+      find_symbol_in_scope_chain(ctx->current_scope(), enum_name);
   if (!enum_symbol || enum_symbol->symbol_type != SymbolType::Enum) {
-    LOG_ERROR_EXIT("[typechecker] Enum not found in symbol table: " + std::string(enum_name),
+    LOG_ERROR_EXIT("[typechecker] Enum not found in symbol table: " +
+                       std::string(enum_name),
                    enum_def->span, *ctx->program->source_buffer);
   }
-  
+
   // Register enum members in the current scope
   auto enum_type = std::get<Ref<Enum>>(enum_symbol->type->structure);
   for (const auto &[member_name, member_var] : enum_type->members) {
@@ -501,7 +544,8 @@ void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
         ctx, std::static_pointer_cast<FunctionDefinition>(stmt));
     break;
   case ASTType::EnumDefinition:
-    typecheck_enum_definition(ctx, std::static_pointer_cast<EnumDefinition>(stmt));
+    typecheck_enum_definition(ctx,
+                              std::static_pointer_cast<EnumDefinition>(stmt));
     break;
   case ASTType::Return:
     typecheck_return(ctx, std::static_pointer_cast<Return>(stmt));
@@ -580,16 +624,18 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
   }
 
   // Get the function from the symbol table (registered in first pass)
-  auto func_symbol = find_symbol_in_scope_chain(ctx->current_scope(), func_name);
+  auto func_symbol =
+      find_symbol_in_scope_chain(ctx->current_scope(), func_name);
   if (!func_symbol || func_symbol->symbol_type != SymbolType::Function) {
-    LOG_ERROR_EXIT("[typechecker] Function not found in symbol table: " + std::string(func_name),
+    LOG_ERROR_EXIT("[typechecker] Function not found in symbol table: " +
+                       std::string(func_name),
                    func_def->span, *ctx->program->source_buffer);
   }
-  
+
   // Get the function type from the symbol
   auto func_type = std::get<Ref<Function>>(func_symbol->type->structure);
   func_def->function = func_type;
-  
+
   // Set up function scope and metadata
   func_def->function->scope = func_def->body->scope;
   func_def->function->definition = func_def;
@@ -641,16 +687,17 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
 }
 
 // Registration functions for forward references
-void register_function_signature(Ref<TypecheckContext> ctx, Ref<FunctionDefinition> func_def) {
+void register_function_signature(Ref<TypecheckContext> ctx,
+                                 Ref<FunctionDefinition> func_def) {
   auto func_name = func_def->identifier->name;
   spdlog::debug("[typechecker] Registering function signature: {}", func_name);
-  
+
   // Create function type
   auto func_type = std::make_shared<Function>();
   func_type->name = func_name;
   func_type->return_type = func_def->return_type;
   func_type->span = func_def->span;
-  
+
   // Add parameters to function type
   for (auto &param : func_def->parameters) {
     auto param_var = std::make_shared<Variable>();
@@ -658,11 +705,11 @@ void register_function_signature(Ref<TypecheckContext> ctx, Ref<FunctionDefiniti
     param_var->type = param->type;
     func_type->parameters.push_back(param_var);
   }
-  
+
   // Create type wrapper
   auto type = std::make_shared<Type>();
   type->structure = func_type;
-  
+
   // Register symbol
   auto func_symbol = std::make_shared<Symbol>();
   func_symbol->name = func_name;
@@ -670,15 +717,17 @@ void register_function_signature(Ref<TypecheckContext> ctx, Ref<FunctionDefiniti
   func_symbol->symbol_type = SymbolType::Function;
   func_symbol->span = func_def->span;
   ctx->current_scope()->symbols[func_name] = func_symbol;
-  
-  spdlog::debug("[typechecker] Registered function signature: {} (return type: {})",
-                func_name, magic_enum::enum_name(func_type->return_type->base_type));
+
+  spdlog::debug(
+      "[typechecker] Registered function signature: {} (return type: {})",
+      func_name, magic_enum::enum_name(func_type->return_type->base_type));
 }
 
-void register_enum_signature(Ref<TypecheckContext> ctx, Ref<EnumDefinition> enum_def) {
+void register_enum_signature(Ref<TypecheckContext> ctx,
+                             Ref<EnumDefinition> enum_def) {
   auto enum_name = enum_def->identifier->name;
   spdlog::debug("[typechecker] Registering enum signature: {}", enum_name);
-  
+
   // Register the enum type
   auto enum_symbol = std::make_shared<Symbol>();
   enum_symbol->name = enum_name;
@@ -686,7 +735,53 @@ void register_enum_signature(Ref<TypecheckContext> ctx, Ref<EnumDefinition> enum
   enum_symbol->symbol_type = SymbolType::Enum;
   enum_symbol->span = enum_def->span;
   ctx->current_scope()->symbols[enum_name] = enum_symbol;
-  
+
+  // Inject the enum-to-string function
+  spdlog::debug("[typechecker] Injecting enum-to-string function for enum: {}",
+                enum_name);
+
+  // Get the enum structure from the type
+  auto enum_type = std::get<Ref<Enum>>(enum_def->enum_type->structure);
+
+  if (!enum_type) {
+    spdlog::error("[typechecker] Failed to get enum structure for: {}",
+                  enum_name);
+    return;
+  }
+
+  utils::ast::print_ast(enum_type);
+
+  // // Create the injected function
+  auto injected_func = inject_enum_to_string(enum_type);
+  if (!injected_func) {
+    spdlog::error(
+        "[typechecker] Failed to create injected function for enum: {}",
+        enum_name);
+    return;
+  }
+
+  // Store the injected function to add later (avoid iterator invalidation)
+  spdlog::debug(
+      "[typechecker] Storing injected function for later addition for enum: {}",
+      enum_name);
+
+  // Validate the injected function before storing it
+  if (!injected_func) {
+    spdlog::error("[typechecker] Injected function is null for enum: {}",
+                  enum_name);
+    return;
+  }
+
+  spdlog::debug("[typechecker] Injected function address: {}",
+                (void *)injected_func.get());
+  spdlog::debug("[typechecker] Injected function name: {}",
+                injected_func->identifier->name);
+
+  // Store the injected function to add after iteration is complete
+  ctx->pending_injected_functions.push_back(injected_func);
+
+  register_function_signature(ctx, injected_func);
+
   spdlog::debug("[typechecker] Registered enum signature: {}", enum_name);
 }
 
@@ -706,11 +801,9 @@ void typecheck(Ref<Program> program) {
   spdlog::debug("Registered print built-in in global scope");
   log_scope_symbols(ctx->global_scope, "Global scope");
 
-  // Create a virtual block for all global statements and use the same two-pass logic
-  auto global_block = std::make_shared<Block>();
-  global_block->statements = program->statements;
-  global_block->scope = program->scope;
-  
-  spdlog::debug("[typechecker] Typechecking global block with {} statements", program->statements.size());
-  typecheck_block(ctx, global_block);
+  spdlog::debug("[typechecker] Typechecking program body with {} statements",
+                program->body->statements.size());
+  typecheck_block(ctx, program->body);
+
+  utils::ast::print_ast(program);
 }

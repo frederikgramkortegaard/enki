@@ -4,7 +4,7 @@
 #include <string_view>
 
 struct ModuleContext; // Forward declaration for module context
-struct Block; // Forward declaration for Block
+struct Block;         // Forward declaration for Block
 
 #include "types.hpp"
 #include <memory>
@@ -144,7 +144,7 @@ struct Return : Statement {
 
 struct Program {
   Span span;
-  std::vector<Ref<Statement>> statements;
+  Ref<Block> body;  // Global block containing all statements
   Ref<Scope> scope = std::make_shared<Scope>(); // Global Scope
   std::shared_ptr<std::string> source_buffer;   // Holds the source buffer
   Ref<ModuleContext> module_context; // Holds the module context for lifetime
@@ -167,7 +167,6 @@ struct FunctionDefinition : Statement {
 
   ASTType get_type() const override { return ASTType::FunctionDefinition; }
 };
-
 
 struct Dot : Expression {
   Ref<Expression> left;

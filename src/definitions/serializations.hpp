@@ -239,14 +239,14 @@ inline void from_json(const json &j, Call &c) {
 // --- Program ---
 inline void to_json(json &j, const Program &p) {
   j = json{{"type", "Program"}};
-  j["statements"] = p.statements;
+  j["body"] = p.body;
   if (!g_visualization_mode) {
     j["span"] = p.span;
     j["scope"] = p.scope;
   }
 }
 inline void from_json(const json &j, Program &p) {
-  j.at("statements").get_to(p.statements);
+  j.at("body").get_to(p.body);
   j.at("span").get_to(p.span);
 }
 

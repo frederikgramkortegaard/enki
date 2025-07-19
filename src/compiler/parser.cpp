@@ -80,14 +80,17 @@ Ref<Expression> parse_atom(ParserContext &ctx) {
     ident->span = tok.span;
     ctx.consume();
 
-    if (ctx.current < ctx.tokens.size() && ctx.current_token().type == TokenType::Dot) {
+    if (ctx.current < ctx.tokens.size() &&
+        ctx.current_token().type == TokenType::Dot) {
       ctx.consume();
       auto dot_expr = std::make_shared<Dot>();
       dot_expr->left = ident;
-      dot_expr->right = parse_expression(ctx); // Parse as full expression, not just identifier
+      dot_expr->right = parse_expression(
+          ctx); // Parse as full expression, not just identifier
       if (!dot_expr->right) {
-        LOG_ERROR_EXIT("[parser] Expected expression after '.' in dot expression",
-                       ctx.current_token().span, *ctx.program->source_buffer);
+        LOG_ERROR_EXIT(
+            "[parser] Expected expression after '.' in dot expression",
+            ctx.current_token().span, *ctx.program->source_buffer);
       }
       dot_expr->span = Span(ident->span.start, dot_expr->right->span.end);
       utils::ast::print_ast(dot_expr);
@@ -138,11 +141,11 @@ Ref<Type> parse_type(ParserContext &ctx) {
     type->base_type = BaseType::Char;
     break;
 
-  //@NOTE : This could be an enum or a struct, but we don't know yet before the typechecker
+  //@NOTE : This could be an enum or a struct, but we don't know yet before the
+  // typechecker
   case TokenType::Identifier:
     type->base_type = BaseType::Unknown;
     break;
-
 
   default:
     LOG_ERROR_EXIT(
@@ -155,48 +158,47 @@ Ref<Type> parse_type(ParserContext &ctx) {
   return type;
 }
 
-
-
-
 Ref<Variable> parse_enum_member(ParserContext &ctx) {
 
-    spdlog::debug("[parser] Entering parse_enum_member at token {}",
+  spdlog::debug("[parser] Entering parse_enum_member at token {}",
                 magic_enum::enum_name(ctx.current_token().type));
 
-                
-    auto var = std::make_shared<Variable>();
-    var->name = ctx.current_token().value;
-    auto ident = parse_identifier(ctx);
-    if (!ident) {
-      LOG_ERROR_EXIT("[parser] Expected identifier after 'enum' keyword",
-                     ctx.current_token().span, *ctx.program->source_buffer);
-    }
-    var->span = ident->span;
-    return var;
+  auto var = std::make_shared<Variable>();
+  var->name = ctx.current_token().value;
+  auto ident = parse_identifier(ctx);
+  if (!ident) {
+    LOG_ERROR_EXIT("[parser] Expected identifier after 'enum' keyword",
+                   ctx.current_token().span, *ctx.program->source_buffer);
+  }
+  var->span = ident->span;
+  return var;
 }
 
 Ref<EnumDefinition> parse_enum(ParserContext &ctx) {
   spdlog::debug("[parser] Entering parse_enum at token {}",
                 magic_enum::enum_name(ctx.current_token().type));
-  
+
   auto enum_def = std::make_shared<EnumDefinition>();
   ctx.consume_assert(TokenType::EnumType, "Missing 'enum' keyword");
-  
+
   // Parse the enum identifier
   enum_def->identifier = parse_identifier(ctx);
   if (!enum_def->identifier) {
     LOG_ERROR_EXIT("[parser] Expected identifier after 'enum' keyword",
                    ctx.current_token().span, *ctx.program->source_buffer);
   }
-  
+
   ctx.consume_assert(TokenType::LCurly, "Missing '{' in Enum Definition");
 
   // Create the enum type
   auto enum_type = std::make_shared<Type>();
   enum_type->base_type = BaseType::Enum;
   enum_def->enum_type = enum_type;
-  
-  // Create the Enum struct for the variant (There really isn't a lot of reason to even have this EnumDefinition AST node, since we can just use the Enum struct directly, maybe &ref the Token/AST but it's fine to have both I want it.)
+
+  // Create the Enum struct for the variant (There really isn't a lot of reason
+  // to even have this EnumDefinition AST node, since we can just use the Enum
+  // struct directly, maybe &ref the Token/AST but it's fine to have both I want
+  // it.)
   auto enum_struct = std::make_shared<Enum>();
   enum_struct->name = enum_def->identifier->name;
   enum_struct->span = enum_def->span;
@@ -213,14 +215,15 @@ Ref<EnumDefinition> parse_enum(ParserContext &ctx) {
     member->type = enum_type;
     enum_def->members.push_back(member);
     enum_struct->members[member->name] = member;
-    
+
     ctx.consume_if(TokenType::Comma);
   }
-  
+
   ctx.consume_assert(TokenType::RCurly, "Missing '}' in Enum Definition");
-  
+
   // Set the span
-  enum_def->span = Span(enum_def->identifier->span.start, ctx.previous_token_span().end);
+  enum_def->span =
+      Span(enum_def->identifier->span.start, ctx.previous_token_span().end);
   return enum_def;
 }
 
@@ -365,7 +368,6 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
   Span statement_start = tok.span;
 
-
   if (tok.type == TokenType::EnumType) {
     auto enum_def = parse_enum(ctx);
     return enum_def;
@@ -380,7 +382,7 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
     auto function_def = std::make_shared<FunctionDefinition>();
     function_def->function = std::make_shared<Function>();
     function_def->function->definition = function_def;
-      
+
     ctx.consume();
     function_def->identifier = parse_identifier(ctx);
     ctx.consume_assert(TokenType::LParens,
@@ -658,13 +660,20 @@ Ref<Program> parse(const std::vector<Token> &tokens,
     ctx.current_file_path = std::string(tokens[0].span.start.file_name);
   }
 
+  // Create a global block to contain all statements
+  auto global_block = std::make_shared<Block>();
+  global_block->scope = program->scope;
+  global_block->span = program->span;
+
   while (!ctx.eof() && ctx.current_token().type != TokenType::Eof) {
     auto stmt = parse_statement(ctx);
     if (stmt) {
-      program->statements.push_back(stmt);
+      global_block->statements.push_back(stmt);
     }
     // If stmt is nullptr, just continue; EOF will break the loop
   }
+
+  program->body = global_block;
 
   return program;
 }

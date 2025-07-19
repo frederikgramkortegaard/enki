@@ -34,7 +34,7 @@ void print_string_view_hex(const std::string_view &sv, const char *label) {
 
 // Recursively print all string_view fields in the AST
 void debug_print_ast_string_views(const Ref<Program> &program) {
-  for (const auto &stmt : program->statements) {
+  for (const auto &stmt : program->body->statements) {
     if (!stmt)
       continue;
     if (auto func = std::dynamic_pointer_cast<FunctionDefinition>(stmt)) {
@@ -94,7 +94,8 @@ void print_compile_usage(const char *prog_name) {
   fmt::println("Usage: {} compile [options] <input-file>", prog_name);
   fmt::println("Options:");
   fmt::println("  -o <file>: Output file for compiled AST");
-  fmt::println("  --vis: Output minimal AST for visualization (no spans/locations)");
+  fmt::println(
+      "  --vis: Output minimal AST for visualization (no spans/locations)");
   fmt::println("  -h: Show this help message");
 }
 
@@ -109,7 +110,7 @@ int compile_command(int argc, char *argv[]) {
   std::string output_filename;
   bool visualization_mode = false;
   int opt;
-  
+
   // Handle --vis flag first
   for (int i = 1; i < argc; i++) {
     if (std::string(argv[i]) == "--vis") {
@@ -123,10 +124,10 @@ int compile_command(int argc, char *argv[]) {
       break;
     }
   }
-  
+
   // Reset optind after modifying argc/argv
   optind = 1;
-  
+
   while ((opt = getopt(argc, argv, "o:h")) != -1) {
     switch (opt) {
     case 'o':
@@ -189,10 +190,10 @@ int compile_command(int argc, char *argv[]) {
     spdlog::error("Could not open output file: {}", output_filename);
     return 1;
   }
-  
+
   // Set visualization mode if requested
   g_visualization_mode = visualization_mode;
-  
+
   debug_print_ast_string_views(program);
   nlohmann::json j = *program;
   output << j.dump(2) << std::endl;
@@ -275,11 +276,11 @@ int serde_command(int argc, char *argv[]) {
     from_json(ast_json, *parsed_program);
   }
 
-  if (program->statements.size() != parsed_program->statements.size()) {
+  if (program->body->statements.size() != parsed_program->body->statements.size()) {
     spdlog::error("AST mismatch after serialization/deserialization");
-    spdlog::error("Original AST statements: {}", program->statements.size());
+    spdlog::error("Original AST statements: {}", program->body->statements.size());
     spdlog::error("Parsed AST statements: {}",
-                  parsed_program->statements.size());
+                  parsed_program->body->statements.size());
     return 1;
   }
 
