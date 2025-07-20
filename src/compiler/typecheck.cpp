@@ -194,6 +194,11 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
       auto arg_type = typecheck_expression(ctx, call->arguments[i]);
       auto param_type = func_type->parameters[i]->type;
       
+      // If parameter type is Any, accept any argument type
+      if (param_type->base_type == BaseType::Any) {
+        continue;
+      }
+      
       // For enums, check that they're the same enum type
       if (arg_type->base_type == BaseType::Enum && param_type->base_type == BaseType::Enum) {
         if (!are_enum_types_equal(arg_type, param_type)) {

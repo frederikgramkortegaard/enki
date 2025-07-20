@@ -37,13 +37,13 @@ void inject_builtin_print(std::vector<Ref<Statement>> &statements) {
   print_func_def->function->definition = print_func_def;
   print_func_def->function->scope = std::make_shared<Scope>();
   
-  // Add a string parameter to print function
+  // Add an Any parameter to print function
   auto param = std::make_shared<Parameter>();
   param->identifier = std::make_shared<Identifier>();
   param->identifier->name = "value";
   param->identifier->span = Span{};
   param->type = std::make_shared<Type>();
-  param->type->base_type = BaseType::String;
+  param->type->base_type = BaseType::Any;
   print_func_def->parameters.push_back(param);
   
   print_func_def->body = std::make_shared<Block>();
@@ -51,7 +51,7 @@ void inject_builtin_print(std::vector<Ref<Statement>> &statements) {
   print_func_def->body->span = Span{};
   print_func_def->span = Span{};
   statements.insert(statements.begin(), print_func_def);
-  spdlog::debug("[injections] Injected built-in print function with string parameter");
+  spdlog::debug("[injections] Injected built-in print function with Any parameter");
 }
 
 void perform_injections(Ref<Program> program) {
