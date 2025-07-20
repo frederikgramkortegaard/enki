@@ -391,7 +391,7 @@ Ref<Block> parse_block(ParserContext &ctx) {
                     magic_enum::enum_name(stmt->get_type()));
       block->statements.push_back(stmt);
     } else {
-      spdlog::debug("[parser] parse_block: got null statement, breaking");
+      spdlog::debug("[parser] parse_block: got null statement, considering this end of block");
       break; // error handling or end
     }
   }
@@ -726,7 +726,21 @@ Ref<Program> parse(const std::vector<Token> &tokens,
     if (stmt) {
       global_block->statements.push_back(stmt);
     }
-    // If stmt is nullptr, just continue; EOF will break the loop
+    else {
+    spdlog::debug("[parser] parse: current token is {} with value '{}'",
+                  magic_enum::enum_name(ctx.current_token().type),
+                  ctx.current_token().value);
+    spdlog::debug("[parser] parse: got null statement, considering this end of file");
+    
+    // To move on, from dangling stuff
+    if (ctx.current_token().type != TokenType::Eof) {
+      LOG_ERROR_EXIT("[parser] Expected EOF but found '" +
+                     std::string(ctx.current_token().value) + "' (" +
+                     std::string(magic_enum::enum_name(ctx.current_token().type)) +
+                     ")",
+                     ctx.current_token().span, *ctx.program->source_buffer);  
+    }
+    }
   }
 
   program->body = global_block;

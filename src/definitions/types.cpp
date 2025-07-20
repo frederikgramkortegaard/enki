@@ -1,6 +1,8 @@
 
 #include "types.hpp"
+
 #include <fmt/format.h>
+#include <iostream>
 
 bool types_are_equal(Ref<Type> dest, Ref<Type> src) {
   if (!dest || !src)

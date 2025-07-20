@@ -1,0 +1,14 @@
+// Test for parser handling of dangling tokens encountered during parse_statement() loops - should now ignore them instead of infinite loop @TODO : We probably want to actually warn the user about this.
+
+define outer() -> int {
+    define inner() -> int {
+        return 42
+    }
+    let result = inner()
+    return result;
+}
+
+// This should fail - dangling tokens while parsing statements block
+let x = outer(),,
+
+let b = 2
