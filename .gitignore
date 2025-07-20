@@ -1,7 +1,4 @@
-morphir
-morpheval
-morphrun
-morph
+enki
 build
 *.dSYM
 *.o
