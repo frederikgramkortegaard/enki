@@ -12,7 +12,7 @@ void logging::setup() {
 }
 
 std::string get_error_context(const std::string &source_buffer,
-                              const Span &span) {
+                              const Span &span, bool colorize = true) {
   if (source_buffer.empty()) {
     return ""; // No source buffer available
   }
@@ -34,31 +34,40 @@ std::string get_error_context(const std::string &source_buffer,
 
   std::stringstream context;
 
+  int line_num_length = std::to_string(line_index + 1).length();
+
   // Show line above (if it exists)
   if (line_index > 0) {
-    context << "  " << (line_index) << " | " << lines[line_index - 1]
-            << std::endl;
+    // Make sure to align the line number
+    context << "  " << std::setw(line_num_length) << (line_index) << " | "
+            << lines[line_index - 1] << std::endl;
   }
 
   // Show error line with line number
-  context << "  " << (line_index + 1) << " | " << lines[line_index]
-          << std::endl;
+  context << "  " << std::setw(line_num_length) << (line_index + 1) << " | "
+          << lines[line_index] << std::endl;
 
   // Show underline for the error span
-  context << "     | ";
-  for (int i = 0; i < span.start.col - 1; i++) {
-    context << " ";
+  if (colorize) {
+    context << "\033[31m"; // Set text color to red
   }
+  context << std::string(line_num_length + 3, ' ') << "> ";
+  context << std::string(span.start.col, ' ');
+
   for (int i = span.start.col;
        i < span.end.col && i < static_cast<int>(lines[line_index].length());
        i++) {
     context << "^";
   }
+  if (colorize) {
+    context << "\033[0m"; // Reset text color
+  }
   context << std::endl;
 
   // Show line below (if it exists)
   if (line_index + 1 < static_cast<int>(lines.size())) {
-    context << "  " << (line_index + 2) << " | " << lines[line_index + 1];
+    context << "  " << std::setw(line_num_length) << (line_index + 2) << " | "
+            << lines[line_index + 1] << std::endl;
   }
 
   return context.str();
@@ -75,7 +84,7 @@ void log_error_exit(const std::string &message, const Span &span,
     std::cerr << "Error at " << std::string(span.start.file_name) << ":"
               << (span.start.row + 1) << ":" << (span.start.col + 1) << ": "
               << message << std::endl;
-    std::string context = get_error_context(source_buffer, span);
+    std::string context = get_error_context(source_buffer, span, /*colorize*/ isatty(STDERR_FILENO));
     if (!context.empty()) {
       std::cerr << context << std::endl;
     }
