@@ -34,11 +34,12 @@ enum class BaseType {
   Function,
   Enum,
   Pointer,
+  Struct,
   Unknown, // Assigned by e.g. Parser before Typechecker, if a Type is
            // referenced by an Identifier e.g. the name of an Enum or a Struct
   Any, // Internal type for functions that accept any type (e.g., print)
 };
-enum class SymbolType { Function, Variable, Argument, Enum };
+enum class SymbolType { Function, Variable, Argument, Enum, Struct };
 
 struct Enum {
   std::string_view name;
@@ -46,9 +47,15 @@ struct Enum {
   std::unordered_map<std::string_view, Ref<Variable>> members;
 };
 
+struct Struct {
+  std::string_view name;
+  Span span;
+  std::unordered_map<std::string_view, Ref<Variable>> fields;
+};
+
 struct Type {
   BaseType base_type;
-  std::variant<Ref<Function>, Ref<Enum>, Ref<Type>> structure;
+  std::variant<Ref<Function>, Ref<Enum>, Ref<Struct>, Ref<Type>> structure;
   Span span;
   std::string_view name; // Store the type name when base_type is Unknown (e.g., "Color")
 
@@ -75,5 +82,4 @@ struct Scope {
   Ref<Scope> parent;
   std::vector<Ref<Scope>> children;
   std::unordered_map<std::string_view, Ref<Symbol>> symbols;
-  std::unordered_map<std::string_view, Ref<Function>> functions;
 };
