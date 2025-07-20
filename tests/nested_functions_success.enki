@@ -2,10 +2,8 @@ define outer() -> int {
     define inner() -> int {
         return 42
     }
-    
     let result = inner()
     return result;
 }
 
 let x = outer()
-print(x)
