@@ -98,6 +98,33 @@ inline void from_json(const json &j, BinaryOp &id) {
   j.at("span").get_to(id.span);
 }
 
+// --- AddressOf ---
+inline void to_json(json &j, const AddressOf &id) {
+  j["expression"] = id.expression;
+  j["type"] = "AddressOf";
+  if (!g_visualization_mode) {
+    j["span"] = id.span;
+  }
+}
+inline void from_json(const json &j, AddressOf &id) {
+  j.at("expression").get_to(id.expression);
+  j.at("span").get_to(id.span);
+}
+
+// --- Dereference ---
+inline void to_json(json &j, const Dereference &id) {
+  j["expression"] = id.expression;
+  j["type"] = "Dereference";
+  if (!g_visualization_mode) {
+    j["span"] = id.span;
+  }
+}
+inline void from_json(const json &j, Dereference &id) {
+  j.at("expression").get_to(id.expression);
+  j.at("span").get_to(id.span);
+}
+
+
 // --- Dot ---
 inline void to_json(json &j, const Dot &dot) {
   j["left"] = dot.left;
@@ -319,6 +346,12 @@ inline void to_json(json &j, const Ref<Expression> &expr) {
   } else if (auto bin_op = std::dynamic_pointer_cast<BinaryOp>(expr)) {
     to_json(j, *bin_op);
     j["type"] = "BinaryOp";
+  } else if (auto bin_op = std::dynamic_pointer_cast<Dereference>(expr)) {
+    to_json(j, *bin_op);
+    j["type"] = "Dereference";
+  } else if (auto addr_of = std::dynamic_pointer_cast<AddressOf>(expr)) {
+    to_json(j, *addr_of);
+    j["type"] = "AddressOf";
   } else if (auto dot_expr = std::dynamic_pointer_cast<Dot>(expr)) {
     to_json(j, *dot_expr);
     j["type"] = "Dot";
@@ -348,6 +381,14 @@ inline void from_json(const json &j, Ref<Expression> &expr) {
     auto bin_op = std::make_shared<BinaryOp>();
     from_json(j, *bin_op);
     expr = bin_op;
+  } else if (type == "Dereference") {
+    auto deref = std::make_shared<Dereference>();
+    from_json(j, *deref);
+    expr = deref;
+  } else if (type == "AddressOf") {
+    auto addr_of = std::make_shared<AddressOf>();
+    from_json(j, *addr_of);
+    expr = addr_of;
   } else if (type == "Dot") {
     auto dot_expr = std::make_shared<Dot>();
     from_json(j, *dot_expr);

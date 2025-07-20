@@ -159,6 +159,9 @@ std::vector<Token> lex(const std::string_view &source,
     case '*':
       simple_token(TokenType::Asterisk);
       continue;
+    case '&':
+      simple_token(TokenType::Ampersand);
+      continue;
     case '<': {
       if (peek(1) == '=') {
         simple_token(TokenType::LessThanEquals, 2);

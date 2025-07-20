@@ -13,7 +13,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Compiler path
-COMPILER="../enki"
+COMPILER="./enki"
+TEST_DIR="./tests"
+TEST_OUTPUT_DIR="./build/tests/"
+
 
 # Test counters
 TOTAL_TESTS=0
@@ -49,52 +52,57 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo -e "${BLUE}=== MorphIR Compiler Test Suite (Debug Mode) ===${NC}"
+echo -e "${BLUE}=== Enki Compiler Test Suite (Debug Mode) ===${NC}"
 echo "Running all tests with LOG=debug..."
 if [ "$PAUSE_ON_ERROR" = true ]; then
     echo -e "${YELLOW}Pause on error: ENABLED${NC}"
 fi
 echo ""
 
+indent() {
+    NUM_SPACES=$1
+    sed "s/^/$(printf ' %.0s' $(seq 1 $NUM_SPACES))/"
+}
+
 # Function to run a test
 run_test() {
     local test_file="$1"
     local test_name="$2"
     local expected_exit="$3"  # 0 for success, 1 for error
-    
+
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
-    
-    echo -e "${YELLOW}--- Running: $test_name ---${NC}"
-    echo "File: $test_file"
-    echo "Expected exit code: $expected_exit"
-    echo ""
-    
-    # Show test content
-    echo "Test content:"
-    echo "\`\`\`"
-    cat "$test_file"
-    echo "\`\`\`"
-    echo ""
-    
-    # Run the test with debug logging
-    echo "Compiler output:"
-    echo "\`\`\`"
-    EXIT_CODE=0
-    if ! LOG=debug $COMPILER compile "$test_file" 2>&1; then
-        EXIT_CODE=1
-    fi
-    echo "\`\`\`"
-    echo ""
-    
+    TMP_OUT_FILE="$TEST_OUTPUT_DIR/${test_name}.ast.json"
+    CMD="$COMPILER compile $test_file -o $TMP_OUT_FILE"
+
+    set +e # Disable exit on error for this test
+    OUTPUT=$($CMD 2>&1)
+    EXIT_CODE=$?
+    set -e # Re-enable exit on error
+
     # Check result
     if [ $EXIT_CODE -eq $expected_exit ]; then
         echo -e "${GREEN}✓ PASSED: $test_name${NC}"
         PASSED_TESTS=$((PASSED_TESTS + 1))
     else
         echo -e "${RED}✗ FAILED: $test_name (expected exit $expected_exit, got $EXIT_CODE)${NC}"
+
+        # Show test content
+        echo -e "${RED}  - Test content: ($test_file)${NC}"
+        cat "$test_file" | indent 6
+        echo ""
+        echo -e "${RED}  - Output:${NC}"
+        echo "$OUTPUT"  | indent 6
+
+        set +e # Disable exit on error for this block
+        LOGS_FILE="$TEST_OUTPUT_DIR/${test_name}.log"
+        LOG=debug $CMD 2>&1 | cat > "$LOGS_FILE"
+        set -e # Re-enable exit on error
+
+        echo -e "${RED}  - Logs saved to: $LOGS_FILE${NC}"
+
         FAILED_TESTS=$((FAILED_TESTS + 1))
         FAILED_FILES+=("$test_file")  # Add failed file to array
-        
+
         # Pause on error if flag is set
         if [ "$PAUSE_ON_ERROR" = true ]; then
             echo ""
@@ -106,45 +114,39 @@ run_test() {
             fi
         fi
     fi
-    
-    echo ""
-    echo "----------------------------------------"
-    echo ""
 }
 
 # Function to run all tests in a directory
 run_all_tests() {
-    local test_dir="$1"
-    
-    echo -e "${BLUE}Running tests from: $test_dir${NC}"
+    echo -e "${BLUE}Running tests from: $TEST_DIR${NC}"
     echo ""
-    
+
     # Success tests (should exit with 0)
-    for test_file in "$test_dir"/*_success.enki; do
+    for test_file in "$TEST_DIR"/*_success.enki; do
         if [ -f "$test_file" ]; then
                 test_name=$(basename "$test_file" .enki)
     run_test "$test_file" "$test_name" 0
         fi
     done
-    
+
     # Error tests (should exit with 1)
-    for test_file in "$test_dir"/*_error.enki; do
+    for test_file in "$TEST_DIR"/*_error.enki; do
         if [ -f "$test_file" ]; then
             test_name=$(basename "$test_file" .enki)
             run_test "$test_file" "$test_name" 1
         fi
     done
-    
+
     # Syntax error tests (should exit with 1)
-    for test_file in "$test_dir"/syntax_error_*.enki; do
+    for test_file in "$TEST_DIR"/syntax_error_*.enki; do
         if [ -f "$test_file" ]; then
             test_name=$(basename "$test_file" .enki)
             run_test "$test_file" "$test_name" 1
         fi
     done
-    
+
     # Other .enki files that don't match the pattern
-    for test_file in "$test_dir"/*.enki; do
+    for test_file in "$TEST_DIR"/*.enki; do
         if [ -f "$test_file" ]; then
             # Skip files we already processed
             if [[ "$test_file" != *"_success.enki" && "$test_file" != *"_error.enki" && "$test_file" != *"syntax_error_"* ]]; then
@@ -156,6 +158,10 @@ run_all_tests() {
     done
 }
 
+# Re-build the compiler
+make
+mkdir -p "$TEST_OUTPUT_DIR"
+
 # Check if compiler exists
 if [ ! -f "$COMPILER" ]; then
     echo -e "${RED}Error: Compiler not found at $COMPILER${NC}"
@@ -164,7 +170,7 @@ if [ ! -f "$COMPILER" ]; then
 fi
 
 # Run tests from current directory
-run_all_tests "."
+run_all_tests
 
 # Summary
 echo -e "${BLUE}=== Test Summary ===${NC}"
@@ -188,4 +194,4 @@ if [ $FAILED_TESTS -eq 0 ]; then
 else
     echo -e "${RED}Some tests failed! 😞${NC}"
     exit 1
-fi 
+fi

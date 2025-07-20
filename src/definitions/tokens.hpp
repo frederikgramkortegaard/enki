@@ -55,6 +55,7 @@ enum class TokenType {
   EqualsEquals,
   NotEquals,
   Exclamation,
+  Ampersand,
 
   // Literal types
   Identifier,

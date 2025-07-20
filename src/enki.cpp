@@ -107,6 +107,20 @@ void print_serde_usage(const char *prog_name) {
   fmt::println("  -h: Show this help message");
 }
 
+std::string default_output_path(const std::string &input_filename) {
+  constexpr std::string_view build_dir = "./build/";
+  std::filesystem::create_directories(build_dir);
+
+  std::string output_filename = input_filename;
+  output_filename = output_filename.substr(output_filename.find_last_of("/") + 1);
+  size_t dot_pos = output_filename.find_last_of('.');
+  if (dot_pos != std::string::npos) {
+    output_filename = output_filename.substr(0, dot_pos);
+  }
+  output_filename += ".ast.json";
+  return build_dir.data() + output_filename;
+}
+
 int compile_command(int argc, char *argv[]) {
   optind = 1; // Reset getopt
   std::string output_filename;
@@ -176,14 +190,7 @@ int compile_command(int argc, char *argv[]) {
   program = compile(source, input_filename, module_context);
 
   if (output_filename.empty()) {
-    output_filename = input_filename;
-    output_filename =
-        output_filename.substr(output_filename.find_last_of("/") + 1);
-    size_t dot_pos = output_filename.find_last_of('.');
-    if (dot_pos != std::string::npos) {
-      output_filename = output_filename.substr(0, dot_pos);
-    }
-    output_filename += ".ast.json";
+    output_filename = default_output_path(input_filename);
     spdlog::info("No output file specified, using: {}", output_filename);
   }
 
@@ -245,14 +252,7 @@ int serde_command(int argc, char *argv[]) {
     program = compile(source, input_filename, module_context);
   }
 
-  std::string json_path = input_filename;
-  json_path = json_path.substr(json_path.find_last_of("/") + 1);
-  size_t dot_pos = json_path.find_last_of('.');
-  if (dot_pos != std::string::npos) {
-    json_path = json_path.substr(0, dot_pos);
-  }
-  json_path += ".ast.json";
-
+  std::string json_path = default_output_path(input_filename);
   spdlog::info("Using JSON path: {}", json_path);
   {
     std::ofstream output(json_path);

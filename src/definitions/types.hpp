@@ -33,6 +33,7 @@ enum class BaseType {
   Identifier,
   Function,
   Enum,
+  Pointer,
   Unknown, // Assigned by e.g. Parser before Typechecker, if a Type is
            // referenced by an Identifier e.g. the name of an Enum or a Struct
   Any, // Internal type for functions that accept any type (e.g., print)
@@ -47,10 +48,15 @@ struct Enum {
 
 struct Type {
   BaseType base_type;
-  std::variant<Ref<Function>, Ref<Enum>> structure;
+  std::variant<Ref<Function>, Ref<Enum>, Ref<Type>> structure;
   Span span;
   std::string_view name; // Store the type name when base_type is Unknown (e.g., "Color")
+
+  std::string to_string() const;
 };
+
+bool types_are_equal(Ref<Type> left, Ref<Type> right);
+bool can_assign_type(Ref<Type> left, Ref<Type> right);
 
 struct Variable {
   std::string_view name;

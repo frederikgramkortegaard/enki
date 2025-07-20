@@ -1,0 +1,6 @@
+define outer() -> int {
+    define inner() -> int {
+        return 42
+    };
+    let x = 1
+} 
