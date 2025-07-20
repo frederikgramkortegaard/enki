@@ -9,6 +9,44 @@ bool is_assignable(Ref<Expression> expr) {
 }
 
 Ref<Identifier> parse_identifier(ParserContext &ctx);
+Ref<Expression> parse_atom(ParserContext &ctx);
+
+Ref<Expression> parse_prefix_op(ParserContext &ctx) {
+  spdlog::debug("[parser] Entering parse_prefix_op at token {}",
+                magic_enum::enum_name(ctx.current_token().type));
+  const Token &tok = ctx.current_token();
+  switch (tok.type) {
+    case TokenType::Ampersand: {
+      spdlog::debug("[parser] Found address-of operator");
+      ctx.consume();
+      auto addr_expr = std::make_shared<AddressOf>();
+      addr_expr->expression = parse_prefix_op(ctx);
+      if (!addr_expr->expression) {
+        LOG_ERROR_EXIT("[parser] Expected expression after '&'",
+                       tok.span, *ctx.program->source_buffer);
+      }
+      addr_expr->span = tok.span;
+      return addr_expr;
+    }
+
+    case TokenType::Asterisk: {
+      spdlog::debug("[parser] Found dereference operator");
+      ctx.consume();
+      auto deref_expr = std::make_shared<Dereference>();
+      deref_expr->expression = parse_prefix_op(ctx);
+      if (!deref_expr->expression) {
+        LOG_ERROR_EXIT("[parser] Expected expression after '*'",
+                       tok.span, *ctx.program->source_buffer);
+      }
+      deref_expr->span = tok.span;
+      return deref_expr;
+    }
+
+    default:
+      return parse_atom(ctx);
+  }
+}
+
 Ref<Expression> parse_atom(ParserContext &ctx) {
   spdlog::debug("[parser] Entering parse_atom at token {}",
                 magic_enum::enum_name(ctx.current_token().type));
@@ -148,6 +186,14 @@ Ref<Type> parse_type(ParserContext &ctx) {
     type->name = ctx.current_token().value; // Store the type name
     break;
 
+  case TokenType::Ampersand: {
+    type->base_type = BaseType::Pointer;
+    ctx.consume();
+    type->structure = parse_type(ctx);
+    // Don't want to break out and over-consume the next token
+    return type;
+  }
+
   default:
     LOG_ERROR_EXIT(
         "[parser] Expected type keyword but got " +
@@ -247,7 +293,7 @@ Ref<Identifier> parse_identifier(ParserContext &ctx) {
 Ref<Expression> parse_expression(ParserContext &ctx) {
   spdlog::debug("[parser] Entering parse_expression at token {}",
                 magic_enum::enum_name(ctx.current_token().type));
-  auto left = parse_atom(ctx);
+  auto left = parse_prefix_op(ctx);
   if (!left)
     return nullptr;
 
@@ -279,7 +325,7 @@ Ref<Expression> parse_expression(ParserContext &ctx) {
       ops.pop_back();
     }
 
-    auto right = parse_atom(ctx);
+    auto right = parse_prefix_op(ctx);
     if (!right) {
       LOG_ERROR_EXIT("[parser] Expected right operand for binary operator",
                      tok.span, *ctx.program->source_buffer);

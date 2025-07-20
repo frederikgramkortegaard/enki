@@ -34,6 +34,8 @@ enum class ASTType {
   Return,
   EnumDefinition,
   Dot,
+  Dereference,
+  AddressOf,
   Unknown
 };
 
@@ -100,6 +102,16 @@ struct BinaryOp : Expression {
   Ref<Expression> right;
   BinaryOpType op;
   ASTType get_type() const override { return ASTType::BinaryOp; }
+};
+
+struct Dereference : Expression {
+  Ref<Expression> expression;
+  ASTType get_type() const override { return ASTType::Dereference; }
+};
+
+struct AddressOf : Expression {
+  Ref<Expression> expression;
+  ASTType get_type() const override { return ASTType::AddressOf; }
 };
 
 struct VarDecl : Statement {

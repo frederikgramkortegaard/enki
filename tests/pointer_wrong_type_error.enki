@@ -1,0 +1,8 @@
+
+
+define foo(bar: &int) -> int {
+    return *bar + 1
+}
+
+let x = "hello"
+foo(&x)
