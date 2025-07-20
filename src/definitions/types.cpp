@@ -5,6 +5,10 @@
 bool types_are_equal(Ref<Type> dest, Ref<Type> src) {
   if (!dest || !src)
     return false;
+
+  if (dest->base_type == BaseType::Any) {
+    return true;
+  }
   if (dest->base_type != src->base_type)
     return false;
 
@@ -21,9 +25,7 @@ bool types_are_equal(Ref<Type> dest, Ref<Type> src) {
     return types_are_equal(left_ptr, right_ptr);
   }
 
-  if (src->base_type == BaseType::Any) {
-    return true;
-  }
+
 
   return true;
 }
