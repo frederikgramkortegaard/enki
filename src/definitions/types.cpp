@@ -27,7 +27,7 @@ bool types_are_equal(Ref<Type> dest, Ref<Type> src) {
     return types_are_equal(left_ptr, right_ptr);
   }
 
-
+  //@TODO : Struct testing, probably just nominative for now
 
   return true;
 }
@@ -66,6 +66,9 @@ std::string Type::to_string() const {
     break;
   case BaseType::Enum:
     result = std::get<Ref<Enum>>(structure)->name;
+    break;
+  case BaseType::Struct:
+    result = std::get<Ref<Struct>>(structure)->name;
     break;
   case BaseType::Pointer:
     result = "&" + std::get<Ref<Type>>(structure)->to_string();

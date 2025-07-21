@@ -9,6 +9,7 @@
 
 template <typename T> using Ref = std::shared_ptr<T>;
 
+struct StructDefinition;
 struct FunctionDefinition;
 struct Type;
 struct Variable;
@@ -50,7 +51,8 @@ struct Enum {
 struct Struct {
   std::string_view name;
   Span span;
-  std::unordered_map<std::string_view, Ref<Variable>> fields;
+  Ref<StructDefinition> definition;
+  std::vector<Ref<Variable>> fields;
 };
 
 struct Type {

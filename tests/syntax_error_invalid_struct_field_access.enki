@@ -1,0 +1,10 @@
+struct Point { 
+    x: int
+    y: int
+}
+
+let point = struct Point { 1, 2 }
+
+
+// This wouldn't work, because there is no field called z
+let z = point.z

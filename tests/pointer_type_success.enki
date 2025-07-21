@@ -6,3 +6,4 @@ define foo(bar: &int) -> int {
 
 let x = 5
 x = x + foo(&x)
+

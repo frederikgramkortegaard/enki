@@ -140,6 +140,21 @@ inline void from_json(const json &j, Dot &dot) {
   j.at("span").get_to(dot.span);
 }
 
+// --- StructInstantiation ---
+inline void to_json(json &j, const StructInstantiation &struct_inst) {
+  j["struct_type"] = struct_inst.struct_type;
+  j["arguments"] = struct_inst.arguments;
+  j["type"] = "StructInstantiation";
+  if (!g_visualization_mode) {
+    j["span"] = struct_inst.span;
+  }
+}
+inline void from_json(const json &j, StructInstantiation &struct_inst) {
+  j.at("struct_type").get_to(struct_inst.struct_type);
+  j.at("arguments").get_to(struct_inst.arguments);
+  j.at("span").get_to(struct_inst.span);
+}
+
 // --- Literal ---
 inline void to_json(json &j, const Literal &lit) {
   j["value"] = lit.value;
@@ -355,6 +370,9 @@ inline void to_json(json &j, const Ref<Expression> &expr) {
   } else if (auto dot_expr = std::dynamic_pointer_cast<Dot>(expr)) {
     to_json(j, *dot_expr);
     j["type"] = "Dot";
+  } else if (auto struct_inst = std::dynamic_pointer_cast<StructInstantiation>(expr)) {
+    to_json(j, *struct_inst);
+    j["type"] = "StructInstantiation";
   } else {
     throw std::runtime_error("Unknown Expression type for to_json");
   }
@@ -393,6 +411,10 @@ inline void from_json(const json &j, Ref<Expression> &expr) {
     auto dot_expr = std::make_shared<Dot>();
     from_json(j, *dot_expr);
     expr = dot_expr;
+  } else if (type == "StructInstantiation") {
+    auto struct_inst = std::make_shared<StructInstantiation>();
+    from_json(j, *struct_inst);
+    expr = struct_inst;
   } else {
     throw std::runtime_error("Unknown Expression type for from_json: " + type);
   }
@@ -435,6 +457,23 @@ inline void from_json(const json &j, EnumDefinition &e) {
   j.at("members").get_to(e.members);
   j.at("enum_type").get_to(e.enum_type);
   j.at("span").get_to(e.span);
+}
+
+// --- StructDefinition ---
+inline void to_json(json &j, const StructDefinition &s) {
+  j = json{{"type", "StructDefinition"}};
+  j["identifier"] = s.identifier;
+  j["fields"] = s.fields;
+  j["struct_type"] = s.struct_type;
+  if (!g_visualization_mode) {
+    j["span"] = s.span;
+  }
+}
+inline void from_json(const json &j, StructDefinition &s) {
+  j.at("identifier").get_to(s.identifier);
+  j.at("fields").get_to(s.fields);
+  j.at("struct_type").get_to(s.struct_type);
+  j.at("span").get_to(s.span);
 }
 
 // --- Assignment ---
@@ -505,6 +544,9 @@ inline void to_json(json &j, const Ref<Statement> &stmt) {
   } else if (auto enum_def = std::dynamic_pointer_cast<EnumDefinition>(stmt)) {
     to_json(j, *enum_def);
     j["type"] = "EnumDefinition";
+  } else if (auto struct_def = std::dynamic_pointer_cast<StructDefinition>(stmt)) {
+    to_json(j, *struct_def);
+    j["type"] = "StructDefinition";
   } else {
     throw std::runtime_error("Unknown Statement type for to_json");
   }
@@ -559,8 +601,52 @@ inline void from_json(const json &j, Ref<Statement> &stmt) {
     auto enum_def = std::make_shared<EnumDefinition>();
     from_json(j, *enum_def);
     stmt = enum_def;
+  } else if (type == "StructDefinition") {
+    auto struct_def = std::make_shared<StructDefinition>();
+    from_json(j, *struct_def);
+    stmt = struct_def;
   } else {
     throw std::runtime_error("Unknown Statement type for from_json: " + type);
+  }
+}
+
+// --- Enum ---
+inline void to_json(json &j, const Enum &e) {
+  j = json{{"name", e.name}};
+  j["members"] = json::object();
+  for (const auto &[name, member] : e.members) {
+    j["members"][name] = *member;
+  }
+  if (!g_visualization_mode) {
+    j["span"] = e.span;
+  }
+}
+inline void from_json(const json &j, Enum &e) {
+  j.at("name").get_to(e.name);
+  j.at("span").get_to(e.span);
+  e.members.clear();
+  for (const auto &[name, member] : j.at("members").items()) {
+    e.members[name] = std::make_shared<Variable>(member.get<Variable>());
+  }
+}
+
+// --- Struct ---
+inline void to_json(json &j, const Struct &s) {
+  j = json{{"name", s.name}};
+  j["fields"] = json::array();
+  for (const auto &field : s.fields) {
+    j["fields"].push_back(*field);
+  }
+  if (!g_visualization_mode) {
+    j["span"] = s.span;
+  }
+}
+inline void from_json(const json &j, Struct &s) {
+  j.at("name").get_to(s.name);
+  j.at("span").get_to(s.span);
+  s.fields.clear();
+  for (const auto &field : j.at("fields")) {
+    s.fields.push_back(std::make_shared<Variable>(field.get<Variable>()));
   }
 }
 

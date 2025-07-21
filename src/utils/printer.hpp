@@ -49,6 +49,19 @@ inline void print_ast(const Ref<Type> &type, int depth) {
     } catch (const std::bad_variant_access &) {
       std::cout << " (enum data not available)" << std::endl;
     }
+  } else if (type->base_type == BaseType::Struct) {
+    try {
+      const auto &struct_data = std::get<Ref<Struct>>(type->structure);
+      std::cout << " (struct: " << struct_data->name << ")" << std::endl;
+      print_indent(depth + 1);
+      std::cout << "fields:" << std::endl;
+      for (const auto &field : struct_data->fields) {
+        print_indent(depth + 2);
+        std::cout << "Field: " << field->name << std::endl;
+      }
+    } catch (const std::bad_variant_access &) {
+      std::cout << " (struct data not available)" << std::endl;
+    }
   } else if (type->base_type == BaseType::Function) {
     try {
       const auto &func_data = std::get<Ref<Function>>(type->structure);
@@ -75,6 +88,23 @@ inline void print_ast(const Ref<Enum> &enum_type, int depth = 0) {
   for (const auto &[name, member] : enum_type->members) {
     print_indent(depth + 2);
     std::cout << "Member: " << name << std::endl;
+  }
+}
+
+// Print Struct
+inline void print_ast(const Ref<Struct> &struct_type, int depth = 0) {
+  if (!struct_type) {
+    print_indent(depth);
+    std::cout << "<null Struct>" << std::endl;
+    return;
+  }
+  print_indent(depth);
+  std::cout << "Struct: " << struct_type->name << std::endl;
+  print_indent(depth + 1);
+  std::cout << "fields:" << std::endl;
+  for (const auto &field : struct_type->fields) {
+    print_indent(depth + 2);
+    std::cout << "Field: " << field->name << std::endl;
   }
 }
 
@@ -135,6 +165,20 @@ inline void print_ast(const Ref<Expression> &expr, int depth, int max_depth) {
     print_indent(depth + 1);
     std::cout << "right:" << std::endl;
     print_ast(dot_expr->right, depth + 2, max_depth);
+    return;
+  }
+  // StructInstantiation
+  if (auto struct_inst = std::dynamic_pointer_cast<StructInstantiation>(expr)) {
+    print_indent(depth);
+    std::cout << "StructInstantiation:" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "struct_type:" << std::endl;
+    print_ast(struct_inst->struct_type, depth + 2);
+    print_indent(depth + 1);
+    std::cout << "arguments:" << std::endl;
+    for (const auto &arg : struct_inst->arguments) {
+      print_ast(arg, depth + 2, max_depth);
+    }
     return;
   }
   // Unknown type
@@ -282,6 +326,24 @@ inline void print_ast(const Ref<Statement> &stmt, int depth, int max_depth) {
     print_indent(depth + 1);
     std::cout << "enum_type:" << std::endl;
     print_ast(enum_def->enum_type, depth + 2);
+    return;
+  }
+  // StructDefinition
+  if (auto struct_def = std::dynamic_pointer_cast<StructDefinition>(stmt)) {
+    print_indent(depth);
+    std::cout << "StructDefinition:" << std::endl;
+    print_indent(depth + 1);
+    std::cout << "identifier:" << std::endl;
+    print_ast(struct_def->identifier, depth + 2, max_depth);
+    print_indent(depth + 1);
+    std::cout << "fields:" << std::endl;
+    for (const auto &field : struct_def->fields) {
+      print_indent(depth + 2);
+      std::cout << "Field: " << field->name << std::endl;
+    }
+    print_indent(depth + 1);
+    std::cout << "struct_type:" << std::endl;
+    print_ast(struct_def->struct_type, depth + 2);
     return;
   }
   // Assignment

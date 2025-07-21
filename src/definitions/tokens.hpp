@@ -30,6 +30,7 @@ enum class TokenType {
   VoidType,
   CharType,
   EnumType,
+  StructType,
 
   // Characters
   LParens,

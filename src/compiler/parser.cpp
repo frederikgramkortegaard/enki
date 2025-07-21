@@ -64,8 +64,47 @@ Ref<Expression> parse_atom(ParserContext &ctx) {
     ctx.consume();
     return lit;
   }
+  case TokenType::StructType: {
+    // Struct Instantiation
+    spdlog::debug("[parser] Found struct instantiation");
+  
+      ctx.consume();
+      auto ident = parse_identifier(ctx);
+      if (!ident) {
+        LOG_ERROR_EXIT("[parser] Expected identifier after 'struct' keyword in struct instantiation",
+                       tok.span, *ctx.program->source_buffer);
+      }
+
+      ctx.consume_assert(TokenType::LCurly, "Missing '{' in Struct Instantiation");
+
+
+      auto struct_inst = std::make_shared<StructInstantiation>();
+      struct_inst->identifier = ident;
+
+      while (ctx.current < ctx.tokens.size() && ctx.current_token().type != TokenType::RCurly) {
+        spdlog::debug("[parser] Parsing struct argument");
+        auto arg = parse_expression(ctx);
+        if (!arg) {
+          LOG_ERROR_EXIT("[parser] Expected expression as struct argument but found '" +
+                         std::string(ctx.current_token().value) + "' (" +
+                         std::string(magic_enum::enum_name(ctx.current_token().type)) +
+                         ")",
+                         ctx.current_token().span, *ctx.program->source_buffer);
+        }
+        struct_inst->arguments.push_back(arg);
+        ctx.consume_if(TokenType::Comma);
+      }
+      ctx.consume_assert(TokenType::RCurly, "Missing '}' in Struct Instantiation");
+      struct_inst->span = Span(struct_inst->identifier->span.start, ctx.previous_token_span().end);
+      return struct_inst;
+
+
+  }
   case TokenType::Identifier: {
     spdlog::debug("[parser] Found identifier: {}", tok.value);
+
+
+
     // Function Call
     if (!ctx.eof() && ctx.peek(1).type == TokenType::LParens) {
       auto call_expr = std::make_shared<Call>();
@@ -205,6 +244,75 @@ Ref<Type> parse_type(ParserContext &ctx) {
   return type;
 }
 
+Ref<Variable> parse_struct_field(ParserContext &ctx) {
+  spdlog::debug("[parser] Entering parse_struct_field at token {}",
+                magic_enum::enum_name(ctx.current_token().type));
+
+  auto field = std::make_shared<Variable>();
+  auto ident = parse_identifier(ctx);
+  if (!ident) {
+    LOG_ERROR_EXIT("[parser] Expected identifier after 'struct' keyword",
+                   ctx.current_token().span, *ctx.program->source_buffer);
+  }
+  field->name = ident->name;
+  field->span = ident->span;
+  ctx.consume_assert(TokenType::Colon, "Missing ':' in Struct Field");
+  std::cout << "Parsing type for struct field " << field->name << std::endl;
+  std::cout << "Current token: " << ctx.current_token().value << std::endl;
+  field->type = parse_type(ctx);
+  
+  /* @NOTE : here we'd normally check if the type is none, but we can't because consider the situation
+  
+  struct Point {
+    x:
+    y: int
+  }
+
+  when we try to parse the type for x, the current token is y, so parse_type will actually return a type (BaseType::Unknown) becuase
+  it considers that y potentially could be the name of e.g. another struct or enum etc. So what will happen now,
+  is that we will leave it until it becomes a problem, becasue the problem doesnt parse becuase parse_type consumes tokens anyways,
+  so it the application wont run anyways
+  */
+  field->span = Span(ident->span.start, field->type->span.end);
+  return field;
+}
+
+Ref<StructDefinition> parse_struct(ParserContext &ctx) {
+  spdlog::debug("[parser] Entering parse_struct at token {}",
+                magic_enum::enum_name(ctx.current_token().type));
+
+
+  ctx.consume_assert(TokenType::StructType, "Missing 'struct' keyword - this should never happen");
+  auto struct_def = std::make_shared<StructDefinition>();
+  struct_def->identifier = parse_identifier(ctx);
+  if (!struct_def->identifier) {
+    LOG_ERROR_EXIT("[parser] Expected identifier after 'struct' keyword",
+                   ctx.current_token().span, *ctx.program->source_buffer);
+  }
+  ctx.consume_assert(TokenType::LCurly, "Missing '{' in Struct Definition");
+
+
+  // Parse struct fields
+  while (ctx.current < ctx.tokens.size() &&
+         ctx.current_token().type != TokenType::RCurly) {
+    auto field = parse_struct_field(ctx);
+    if (!field) {
+      break;
+    }
+    struct_def->fields.push_back(field);
+    if (ctx.current_token().type == TokenType::Comma) {
+      ctx.consume();
+    }
+    ctx.consume_if(TokenType::Comma);
+  }
+
+  ctx.consume_assert(TokenType::RCurly, "Missing '}' in Struct Definition");
+
+  struct_def->span =
+      Span(struct_def->identifier->span.start, ctx.previous_token_span().end);
+  utils::ast::print_ast(struct_def);
+  return struct_def;
+}
 Ref<Variable> parse_enum_member(ParserContext &ctx) {
 
   spdlog::debug("[parser] Entering parse_enum_member at token {}",
@@ -415,12 +523,19 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
   const Token &tok = ctx.tokens[ctx.current];
   Span statement_start = tok.span;
 
+  
+  if (tok.type == TokenType::StructType) {
+    auto struct_def = parse_struct(ctx);
+    return struct_def;
+  }
+
   if (tok.type == TokenType::EnumType) {
     auto enum_def = parse_enum(ctx);
     return enum_def;
   }
 
   if (tok.type == TokenType::Define) {
+    //@TODO : make this into a helper function instead
     spdlog::debug("[parser] Entering function definition parsing at token {} "
                   "with value '{}'",
                   magic_enum::enum_name(ctx.current_token().type),

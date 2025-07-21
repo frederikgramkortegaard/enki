@@ -33,6 +33,8 @@ enum class ASTType {
   While,
   Return,
   EnumDefinition,
+  StructDefinition,
+  StructInstantiation,
   Dot,
   Dereference,
   AddressOf,
@@ -78,6 +80,13 @@ struct Assignment : Statement {
   Ref<Expression> assignee;
   Ref<Expression> expression;
   ASTType get_type() const override { return ASTType::Assignment; }
+};
+
+struct StructInstantiation : Expression {
+  Ref<Identifier> identifier;
+  Ref<Struct> struct_type;
+  std::vector<Ref<Expression>> arguments;
+  ASTType get_type() const override { return ASTType::StructInstantiation; }
 };
 
 enum class BinaryOpType {
@@ -152,6 +161,15 @@ struct Return : Statement {
   Ref<Type> type;
   Ref<Function> function;
   ASTType get_type() const override { return ASTType::Return; }
+};
+
+// Honestly, I'm not sure its worth it to create e..g StructDefinition, EnumDefinition etc, we can just use the AST node it starts at as a reference inside ther Structures (e.g. Function, Struct, from types.hpp)
+// but for now, we're doing it.
+struct StructDefinition : Statement {
+  Ref<Identifier> identifier;
+  std::vector<Ref<Variable>> fields;
+  Ref<Struct> struct_type;
+  ASTType get_type() const override { return ASTType::StructDefinition; }
 };
 
 struct Program {

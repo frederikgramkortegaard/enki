@@ -1,0 +1,2 @@
+
+//extern malloc(size: int) -> &void

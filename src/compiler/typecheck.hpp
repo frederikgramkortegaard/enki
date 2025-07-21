@@ -58,3 +58,10 @@ void typecheck_if(Ref<TypecheckContext> ctx, Ref<If> if_stmt);
 void typecheck_while(Ref<TypecheckContext> ctx, Ref<While> while_stmt);
 void typecheck_import(Ref<TypecheckContext> ctx, Ref<Import> import_stmt);
 void typecheck_extern(Ref<TypecheckContext> ctx, Ref<Extern> extern_stmt);
+
+// Registration function declarations
+void register_function_signature(Ref<TypecheckContext> ctx, Ref<FunctionDefinition> func_def);
+void register_enum_signature(Ref<TypecheckContext> ctx, Ref<EnumDefinition> enum_def);
+void register_struct_signature(Ref<TypecheckContext> ctx, Ref<StructDefinition> struct_def);
+void perform_first_pass_registration(Ref<TypecheckContext> ctx, const std::vector<Ref<Statement>> &statements);
+void perform_second_pass_typechecking(Ref<TypecheckContext> ctx, const std::vector<Ref<Statement>> &statements);
