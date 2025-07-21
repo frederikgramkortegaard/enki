@@ -1,0 +1,5 @@
+// this should not work, externs should only be allowed in the global scope
+define main() -> int {
+    extern malloc(int) -> &void from "libc"
+    return 0
+}

@@ -1,0 +1,7 @@
+extern malloc(int) -> &void from "libc" 
+
+define main() -> int {
+    let a = 1
+    a = malloc(10)
+    return 0
+}

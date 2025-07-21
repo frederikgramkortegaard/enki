@@ -573,6 +573,11 @@ void typecheck_extern(Ref<TypecheckContext> ctx, Ref<Extern> extern_stmt) {
                 magic_enum::enum_name(extern_stmt ? extern_stmt->get_type()
                                                   : ASTType::Unknown));
 
+  if (ctx->current_scope() != ctx->global_scope) {
+    LOG_ERROR_EXIT("[typechecker] Extern declarations must be in the global scope",
+                   extern_stmt->span, *ctx->program->source_buffer);
+  }
+
   // Register the extern function in the current scope
   auto func_symbol = std::make_shared<Symbol>();
   func_symbol->name = extern_stmt->identifier->name;
@@ -619,6 +624,9 @@ void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
       "[typechecker] typecheck_statement: stmt type = {}",
       magic_enum::enum_name(stmt ? stmt->get_type() : ASTType::Unknown));
   switch (stmt->get_type()) {
+  case ASTType::Extern:
+    typecheck_extern(ctx, std::static_pointer_cast<Extern>(stmt));
+    break;
   case ASTType::Block:
     typecheck_block(ctx, std::static_pointer_cast<Block>(stmt));
     break;
@@ -654,9 +662,6 @@ void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
     break;
   case ASTType::Import:
     typecheck_import(ctx, std::static_pointer_cast<Import>(stmt));
-    break;
-  case ASTType::Extern:
-    typecheck_extern(ctx, std::static_pointer_cast<Extern>(stmt));
     break;
   default:
     LOG_ERROR_EXIT("[typechecker] Unknown statement type: " +

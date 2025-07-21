@@ -103,52 +103,9 @@ Ref<Expression> parse_atom(ParserContext &ctx) {
   case TokenType::Identifier: {
     spdlog::debug("[parser] Found identifier: {}", tok.value);
 
-
-
-    // Function Call
-    if (!ctx.eof() && ctx.peek(1).type == TokenType::LParens) {
-      auto call_expr = std::make_shared<Call>();
-      auto ident = std::make_shared<Identifier>();
-      ident->name = tok.value;
-      ident->span = tok.span;
-      call_expr->callee = ident;
-
-      ctx.consume();
-      ctx.consume();
-
-      while (ctx.current < ctx.tokens.size() &&
-             ctx.current_token().type != TokenType::RParens) {
-        auto arg = parse_expression(ctx);
-        if (!arg) {
-          LOG_ERROR_EXIT(
-              "[parser] Expected expression as function argument but found '" +
-                  std::string(ctx.current_token().value) + "' (" +
-                  std::string(magic_enum::enum_name(ctx.current_token().type)) +
-                  ")",
-              ctx.current_token().span, *ctx.program->source_buffer);
-        }
-        call_expr->arguments.push_back(arg);
-        ctx.consume_if(TokenType::Comma);
-      }
-
-      if (ctx.eof()) {
-        LOG_ERROR_EXIT(
-            "[parser] Missing closing parenthesis ')' in function call",
-            call_expr->callee->span, *ctx.program->source_buffer);
-      }
-
-      if (ctx.current_token().type != TokenType::RParens) {
-        LOG_ERROR_EXIT(
-            "[parser] Missing closing parenthesis ')' in function call, found "
-            "'" +
-                std::string(ctx.current_token().value) + "' (" +
-                std::string(magic_enum::enum_name(ctx.current_token().type)) +
-                ") instead",
-            ctx.current_token().span, *ctx.program->source_buffer);
-      }
-
-      ctx.consume(); // consume the RParens
-      call_expr->span = tok.span;
+    // Try to parse as function call first
+    auto call_expr = parse_call(ctx);
+    if (call_expr) {
       return call_expr;
     }
 
@@ -398,6 +355,60 @@ Ref<Identifier> parse_identifier(ParserContext &ctx) {
   return ident;
 }
 
+Ref<Expression> parse_call(ParserContext &ctx) {
+  spdlog::debug("[parser] Entering parse_call at token {}",
+                magic_enum::enum_name(ctx.current_token().type));
+  
+  // Function Call
+  if (!ctx.eof() && ctx.peek(1).type == TokenType::LParens) {
+    auto call_expr = std::make_shared<Call>();
+    auto ident = std::make_shared<Identifier>();
+    ident->name = ctx.current_token().value;
+    ident->span = ctx.current_token().span;
+    call_expr->callee = ident;
+
+    ctx.consume(); // consume identifier
+    ctx.consume(); // consume LParens
+
+    while (ctx.current < ctx.tokens.size() &&
+           ctx.current_token().type != TokenType::RParens) {
+      auto arg = parse_expression(ctx);
+      if (!arg) {
+        LOG_ERROR_EXIT(
+            "[parser] Expected expression as function argument but found '" +
+                std::string(ctx.current_token().value) + "' (" +
+                std::string(magic_enum::enum_name(ctx.current_token().type)) +
+                ")",
+            ctx.current_token().span, *ctx.program->source_buffer);
+      }
+      call_expr->arguments.push_back(arg);
+      ctx.consume_if(TokenType::Comma);
+    }
+
+    if (ctx.eof()) {
+      LOG_ERROR_EXIT(
+          "[parser] Missing closing parenthesis ')' in function call",
+          call_expr->callee->span, *ctx.program->source_buffer);
+    }
+
+    if (ctx.current_token().type != TokenType::RParens) {
+      LOG_ERROR_EXIT(
+          "[parser] Missing closing parenthesis ')' in function call, found "
+          "'" +
+              std::string(ctx.current_token().value) + "' (" +
+              std::string(magic_enum::enum_name(ctx.current_token().type)) +
+              ") instead",
+          ctx.current_token().span, *ctx.program->source_buffer);
+    }
+
+    ctx.consume(); // consume the RParens
+    call_expr->span = ident->span;
+    return call_expr;
+  }
+  
+  return nullptr;
+}
+
 Ref<Expression> parse_expression(ParserContext &ctx) {
   spdlog::debug("[parser] Entering parse_expression at token {}",
                 magic_enum::enum_name(ctx.current_token().type));
@@ -473,6 +484,52 @@ Ref<VarDecl> parse_parameter(ParserContext &ctx) {
   return var_decl;
 }
 
+
+Ref<Extern> parse_extern(ParserContext &ctx) {
+  spdlog::debug("[parser] Entering parse_extern at token {}",
+                magic_enum::enum_name(ctx.current_token().type));
+  auto extern_stmt = std::make_shared<Extern>();
+  // extern malloc(int) -> &void from "libc"
+
+  ctx.consume_assert(TokenType::Extern, "Missing 'extern' keyword");
+  extern_stmt->identifier = parse_identifier(ctx);
+  if (!extern_stmt->identifier) {
+    LOG_ERROR_EXIT("[parser] Expected identifier after 'extern' keyword",
+                   ctx.current_token().span, *ctx.program->source_buffer);
+  }
+  ctx.consume_assert(TokenType::LParens, "Missing '(' in Extern Declaration");
+
+  while (ctx.current < ctx.tokens.size() &&
+         ctx.current_token().type != TokenType::RParens) {
+    auto type = parse_type(ctx);
+    extern_stmt->args.push_back(type);
+    ctx.consume_if(TokenType::Comma);
+  }
+  ctx.consume_assert(TokenType::RParens, "Missing ')' in Extern Declaration");
+
+  ctx.consume_assert(TokenType::Arrow, "Missing return type declaration arrow '->' in Extern Declaration");
+  extern_stmt->return_type = parse_type(ctx);
+  if (!extern_stmt->return_type) {
+    LOG_ERROR_EXIT("[parser] Expected return type in Extern Declaration",
+                   ctx.current_token().span, *ctx.program->source_buffer);
+  }
+  ctx.consume_assert(TokenType::From, "Missing 'from' keyword in Extern Declaration");
+  auto mpath = parse_atom(ctx);
+  if (!mpath) {
+    LOG_ERROR_EXIT("[parser] Expected module path in Extern Declaration",
+                   ctx.current_token().span, *ctx.program->source_buffer);
+  }
+  if (mpath->get_type() != ASTType::Literal || std::dynamic_pointer_cast<Literal>(mpath)->type->base_type != BaseType::String) {
+    std::cout << "mpath->get_type() = " << magic_enum::enum_name(mpath->get_type()) << std::endl;
+    LOG_ERROR_EXIT("[parser] Expected string literal for module path in Extern Declaration",
+                   mpath->span, *ctx.program->source_buffer);
+  }
+  extern_stmt->module_path = std::dynamic_pointer_cast<Literal>(mpath)->value;
+
+  extern_stmt->span = Span(extern_stmt->identifier->span.start, ctx.previous_token_span().end);
+  return extern_stmt;
+}
+
 // @NOTE DOES NOT CONSUME {}
 Ref<Block> parse_block(ParserContext &ctx) {
   spdlog::debug("[parser] Entering parse_block at token {} with value '{}'",
@@ -528,6 +585,11 @@ Ref<Statement> parse_statement(ParserContext &ctx) {
     auto struct_def = parse_struct(ctx);
     return struct_def;
   }
+
+  if (tok.type == TokenType::Extern) {
+    auto extern_stmt = parse_extern(ctx);
+    return extern_stmt;
+  } 
 
   if (tok.type == TokenType::EnumType) {
     auto enum_def = parse_enum(ctx);

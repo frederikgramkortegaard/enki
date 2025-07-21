@@ -58,4 +58,5 @@ struct ParserContext {
 
 Ref<Expression> parse_atom(ParserContext &ctx);
 Ref<Expression> parse_expression(ParserContext &ctx);
+Ref<Expression> parse_call(ParserContext &ctx);
 Ref<Statement> parse_statement(ParserContext &ctx);
