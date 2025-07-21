@@ -1,4 +1,4 @@
-extern sizeof(type) -> int from "libc"
+extern sizeof(type) -> int 
 
 struct Point {
     x: int

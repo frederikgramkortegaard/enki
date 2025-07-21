@@ -518,19 +518,21 @@ Ref<Extern> parse_extern(ParserContext &ctx) {
     LOG_ERROR_EXIT("[parser] Expected return type in Extern Declaration",
                    ctx.current_token().span, *ctx.program->source_buffer);
   }
-  ctx.consume_assert(TokenType::From, "Missing 'from' keyword in Extern Declaration");
-  auto mpath = parse_atom(ctx);
-  if (!mpath) {
-    LOG_ERROR_EXIT("[parser] Expected module path in Extern Declaration",
-                   ctx.current_token().span, *ctx.program->source_buffer);
-  }
-  if (mpath->get_type() != ASTType::Literal || std::dynamic_pointer_cast<Literal>(mpath)->type->base_type != BaseType::String) {
-    std::cout << "mpath->get_type() = " << magic_enum::enum_name(mpath->get_type()) << std::endl;
-    LOG_ERROR_EXIT("[parser] Expected string literal for module path in Extern Declaration",
-                   mpath->span, *ctx.program->source_buffer);
-  }
-  extern_stmt->module_path = std::dynamic_pointer_cast<Literal>(mpath)->value;
 
+  if (ctx.current_token().type == TokenType::From) {
+    ctx.consume();
+
+    auto mpath = parse_atom(ctx);
+    if (!mpath) {
+      LOG_ERROR_EXIT("[parser] Expected module path in Extern Declaration when using 'from' keyword",
+                    ctx.current_token().span, *ctx.program->source_buffer);
+    }
+    if (mpath->get_type() != ASTType::Literal || std::dynamic_pointer_cast<Literal>(mpath)->type->base_type != BaseType::String) {
+        LOG_ERROR_EXIT("[parser] Expected string literal for module path in Extern Declaration when using 'from' keyword",
+                    mpath->span, *ctx.program->source_buffer);
+    }
+    extern_stmt->module_path = std::dynamic_pointer_cast<Literal>(mpath)->value;
+  }
   extern_stmt->span = Span(extern_stmt->identifier->span.start, ctx.previous_token_span().end);
   return extern_stmt;
 }
