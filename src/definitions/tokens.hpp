@@ -31,6 +31,7 @@ enum class TokenType {
   CharType,
   EnumType,
   StructType,
+  TypeType,
 
   // Characters
   LParens,

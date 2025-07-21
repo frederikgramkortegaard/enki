@@ -17,7 +17,7 @@ std::unordered_map<std::string_view, TokenType> keyword_to_token_type = {
     {"float", TokenType::FloatType}, {"string", TokenType::StringType},
     {"bool", TokenType::BoolType},   {"void", TokenType::VoidType},
     {"char", TokenType::CharType},   {"enum", TokenType::EnumType},
-    {"struct", TokenType::StructType}};
+    {"struct", TokenType::StructType}, {"type", TokenType::TypeType}};
 
 TokenType get_tokentype_for_keyword_or_ident(const std::string_view &str) {
   if (keyword_to_token_type.find(str) != keyword_to_token_type.end()) {

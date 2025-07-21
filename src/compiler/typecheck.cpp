@@ -6,6 +6,8 @@
 #include <spdlog/spdlog.h>
 #include <variant>
 
+Ref<Symbol> find_symbol_in_scope_chain(const Ref<Scope> &scope, const std::string_view &name);
+
 void typecheck_struct_definition(Ref<TypecheckContext> ctx, Ref<StructDefinition> struct_def);
 void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt);
 Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx, Ref<Expression> expr);
@@ -62,6 +64,11 @@ Ref<Type> get_binary_op_result_type(BinaryOpType op, Ref<Type> left_type,
 // Helper function to check if a binary operation is valid for the given types
 bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type,
                         Ref<Type> right_type) {
+  // Type meta-types should not be used in binary operations
+  if (left_type->base_type == BaseType::Type || right_type->base_type == BaseType::Type) {
+    return false;
+  }
+
   switch (op) {
   // Arithmetic operations: require numeric types (int or float, NOT char)
   case BinaryOpType::Add:
@@ -95,6 +102,32 @@ bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type,
   default:
     return false;
   }
+}
+
+// Helper function to check if an expression represents a type reference (not a value)
+bool is_type_reference(Ref<TypecheckContext> ctx, Ref<Expression> expr) {
+  // Only identifiers can be type references
+  if (expr->get_type() != ASTType::Identifier) {
+    return false;
+  }
+  
+  auto ident = std::static_pointer_cast<Identifier>(expr);
+  auto symbol = find_symbol_in_scope_chain(ctx->current_scope(), ident->name);
+  
+  if (!symbol) {
+    return false;
+  }
+  
+  // Type references are symbols that represent types (enums, structs, or type keywords)
+  return symbol->symbol_type == SymbolType::Enum || 
+         symbol->symbol_type == SymbolType::Struct ||
+         symbol->type->base_type == BaseType::Int ||
+         symbol->type->base_type == BaseType::Float ||
+         symbol->type->base_type == BaseType::String ||
+         symbol->type->base_type == BaseType::Bool ||
+         symbol->type->base_type == BaseType::Char ||
+         symbol->type->base_type == BaseType::Void;
+         // Don't include TypeType in here, just fyi.
 }
 
 // Helper function to get the depth of a scope in the scope chain
@@ -195,6 +228,7 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
   }
 
   // Typecheck function arguments
+  spdlog::debug("[typechecker] Function symbol type: {}", function_symbol->type->to_string());
   if (function_symbol->type->base_type == BaseType::Function) {
     auto func_type = std::get<Ref<Function>>(function_symbol->type->structure);
 
@@ -212,7 +246,14 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
       auto arg_type = typecheck_expression(ctx, call->arguments[i]);
       auto param_type = func_type->parameters[i]->type;
       
-      if (!can_assign_type(param_type, arg_type)) {
+      spdlog::debug("[typechecker] Checking argument {}: param_type={}, arg_type={}", 
+                    i, param_type->to_string(), arg_type->to_string());
+      
+      // Check if this parameter expects a type reference
+      bool is_type_ref = is_type_reference(ctx, call->arguments[i]);
+      spdlog::debug("[typechecker] Argument {} is_type_reference={}", i, is_type_ref);
+      
+      if (!can_assign_type_with_context(param_type, arg_type, is_type_ref)) {
         LOG_ERROR_EXIT("[typechecker] Type mismatch in argument " +
                            std::to_string(i + 1) + ": expected " +
                            param_type->to_string() + ", got " +
@@ -226,6 +267,7 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
     return func_type->return_type;
   }
 
+  spdlog::debug("[typechecker] Function is not BaseType::Function, returning symbol type: {}", function_symbol->type->to_string());
   return function_symbol->type;
 }
 
@@ -258,15 +300,28 @@ Ref<Type> typecheck_var_decl(Ref<TypecheckContext> ctx, Ref<VarDecl> var_decl) {
   spdlog::debug("[typechecker] typecheck_var_decl: var_decl type = {}",
                 magic_enum::enum_name(var_decl ? var_decl->get_type()
                                                : ASTType::Unknown));
-  auto type = typecheck_expression(ctx, var_decl->expression);
+  
+  auto expression_type = typecheck_expression(ctx, var_decl->expression);
+  
+  // Check if the declared type matches the expression type
+  if (var_decl->type) {
+    bool is_type_ref = is_type_reference(ctx, var_decl->expression);
+    if (!can_assign_type_with_context(var_decl->type, expression_type, is_type_ref)) {
+      LOG_ERROR_EXIT("[typechecker] Variable declaration type mismatch: declared " +
+                         var_decl->type->to_string() + " but expression is " +
+                         expression_type->to_string(),
+                     var_decl->span, *ctx->program->source_buffer);
+    }
+  }
+  
   auto var_symbol = std::make_shared<Symbol>();
   var_symbol->name = var_decl->identifier->name;
-  var_symbol->type = type;
+  var_symbol->type = var_decl->type ? var_decl->type : expression_type;
   var_symbol->symbol_type = SymbolType::Variable;
   var_symbol->span = var_decl->span;
   ctx->current_scope()->symbols[var_decl->identifier->name] =
       std::static_pointer_cast<Symbol>(var_symbol);
-  return type;
+  return var_symbol->type;
 }
 
 Ref<Type> typecheck_literal(Ref<TypecheckContext> ctx, Ref<Literal> lit) {
@@ -524,6 +579,11 @@ void typecheck_if(Ref<TypecheckContext> ctx, Ref<If> if_stmt) {
 
   // Typecheck the condition - must be boolean
   auto condition_type = typecheck_expression(ctx, if_stmt->condition);
+  if (condition_type->base_type == BaseType::Type) {
+    LOG_ERROR_EXIT("[typechecker] If condition cannot be a type meta-type, got: " +
+                       condition_type->to_string(),
+                   if_stmt->condition->span, *ctx->program->source_buffer);
+  }
   if (condition_type->base_type != BaseType::Bool) {
     LOG_ERROR_EXIT("[typechecker] If condition must be boolean, got: " +
                        condition_type->to_string(),
@@ -578,10 +638,25 @@ void typecheck_extern(Ref<TypecheckContext> ctx, Ref<Extern> extern_stmt) {
                    extern_stmt->span, *ctx->program->source_buffer);
   }
 
+  // Create a proper function type for the extern function
+  auto func_type = std::make_shared<Function>();
+  for (size_t i = 0; i < extern_stmt->args.size(); ++i) {
+    auto param = std::make_shared<Variable>();
+    param->type = extern_stmt->args[i];
+    param->name = "arg_" + std::to_string(i);
+    param->span = extern_stmt->args[i]->span;
+    func_type->parameters.push_back(param);
+  }
+  func_type->return_type = extern_stmt->return_type;
+  
+  auto function_type = std::make_shared<Type>();
+  function_type->base_type = BaseType::Function;
+  function_type->structure = func_type;
+  
   // Register the extern function in the current scope
   auto func_symbol = std::make_shared<Symbol>();
   func_symbol->name = extern_stmt->identifier->name;
-  func_symbol->type = extern_stmt->return_type;
+  func_symbol->type = function_type;
   func_symbol->symbol_type = SymbolType::Function;
   func_symbol->span = extern_stmt->span;
 

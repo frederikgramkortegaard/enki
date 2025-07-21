@@ -27,13 +27,30 @@ bool types_are_equal(Ref<Type> dest, Ref<Type> src) {
     return types_are_equal(left_ptr, right_ptr);
   }
 
-  //@TODO : Struct testing, probably just nominative for now
+
+   // Struct testing, probably just nominative for now
+  if (dest->base_type == BaseType::Struct) {
+    auto left_struct = std::get<Ref<Struct>>(dest->structure);
+    auto right_struct = std::get<Ref<Struct>>(src->structure);
+    return left_struct->name == right_struct->name;
+  }
 
   return true;
 }
 
 bool can_assign_type(Ref<Type> left, Ref<Type> right) {
   // TODO: Allow some implicit conversions, helpful for pointer-types especially
+  return types_are_equal(left, right);
+}
+
+// Overloaded version that takes context about the expression
+bool can_assign_type_with_context(Ref<Type> left, Ref<Type> right, bool is_type_reference) {
+  // If left is BaseType::Type, only accept type references
+  if (left->base_type == BaseType::Type) {
+    return is_type_reference;
+  }
+  
+  // Otherwise, use normal type equality
   return types_are_equal(left, right);
 }
 
@@ -57,6 +74,9 @@ std::string Type::to_string() const {
     break;
   case BaseType::Char:
     result = "char";
+    break;
+  case BaseType::Type:
+    result = "Type";
     break;
   case BaseType::Identifier:
     result = name;

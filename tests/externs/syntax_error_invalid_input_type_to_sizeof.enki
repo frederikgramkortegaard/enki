@@ -1,0 +1,15 @@
+extern sizeof(type) -> int from "libc"
+
+struct Point {
+    x: int
+    y: int
+}
+
+let mypoint = struct Point { 1, 2 } 
+
+define main() -> int {
+
+    // This should fail because we're giving it a struct instance, not a TYPE
+    let size = sizeof(mypoint)
+    return size
+}

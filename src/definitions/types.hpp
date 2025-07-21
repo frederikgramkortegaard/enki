@@ -38,6 +38,7 @@ enum class BaseType {
   Struct,
   Unknown, // Assigned by e.g. Parser before Typechecker, if a Type is
            // referenced by an Identifier e.g. the name of an Enum or a Struct
+  Type, // This is a meta type for types, e.g. the type of a type
   Any, // Internal type for functions that accept any type (e.g., print)
 };
 enum class SymbolType { Function, Variable, Argument, Enum, Struct };
@@ -66,6 +67,7 @@ struct Type {
 
 bool types_are_equal(Ref<Type> left, Ref<Type> right);
 bool can_assign_type(Ref<Type> left, Ref<Type> right);
+bool can_assign_type_with_context(Ref<Type> left, Ref<Type> right, bool is_type_reference);
 
 struct Variable {
   std::string_view name;

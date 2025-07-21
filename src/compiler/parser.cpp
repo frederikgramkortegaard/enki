@@ -175,6 +175,11 @@ Ref<Type> parse_type(ParserContext &ctx) {
     type->base_type = BaseType::Char;
     break;
 
+  // This probably should only be used in very specific cases, like as the Parameter type of an extern function e.g. sizeof(type)
+  case TokenType::TypeType:
+    type->base_type = BaseType::Type;
+    break;
+
   //@NOTE : This could be an enum or a struct, but we don't know yet before the
   // typechecker
   case TokenType::Identifier:
