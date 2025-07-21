@@ -528,7 +528,9 @@ void typecheck_return(Ref<TypecheckContext> ctx, Ref<Return> ret) {
   }
   auto return_type = typecheck_expression(ctx, ret->expression);
 
-  if (!can_assign_type(current_func->return_type, return_type)) {
+  // Check if this return expects a type reference
+  bool is_type_ref = is_type_reference(ctx, ret->expression);
+  if (!can_assign_type_with_context(current_func->return_type, return_type, is_type_ref)) {
     LOG_ERROR_EXIT(
         "[typechecker] Return type mismatch: " + return_type->to_string() +
             " != " + current_func->return_type->to_string(),

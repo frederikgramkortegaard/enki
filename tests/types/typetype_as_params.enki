@@ -1,12 +1,17 @@
 
-
 struct Point {
     x: int
     y: int
 }
 
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
 define main(test: type) -> type {
-    return test
+    return Color
 }
 
 main(Point)
