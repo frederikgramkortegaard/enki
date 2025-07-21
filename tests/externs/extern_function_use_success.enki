@@ -1,4 +1,5 @@
 extern malloc(int) -> &void from "libc"
+//extern sizeof(type)
 
 define main() -> int {
     let ptr = malloc(10)
