@@ -1,1 +1,4 @@
 extern malloc(int) -> &void from "libc"
+
+define main() -> int {
+}

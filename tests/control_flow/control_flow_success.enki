@@ -1,11 +1,14 @@
-print("before")
-let x = false
-if x {
-    print("yes")
-} else {
-    print("no")
-}
 
-while false {
-    print("infinite loop")
+define main() -> int {
+    print("before")
+    let x = false
+    if x {
+        print("yes")
+    } else {
+        print("no")
+    }
+    
+    while false {
+        print("infinite loop")
+    }
 }

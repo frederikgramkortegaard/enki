@@ -8,3 +8,5 @@ define add(a: int, b: int) -> int {
 
 
 
+define main() -> int {
+}

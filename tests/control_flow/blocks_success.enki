@@ -1,5 +1,5 @@
 
-define test() -> int {
+define main() -> int {
 {
 
     let a = 1

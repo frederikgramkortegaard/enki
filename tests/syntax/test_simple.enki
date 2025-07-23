@@ -1,3 +1,6 @@
 define simple() -> int {
     return 42;
 } 
+
+define main() -> int {
+}

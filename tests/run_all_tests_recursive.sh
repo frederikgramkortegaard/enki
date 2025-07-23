@@ -84,10 +84,11 @@ run_test() {
     local test_name="$2"
     local expected_exit="$3"  # 0 for success, 1 for error
     local category="$4"
+    local extra_flags="$5"
 
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
     TMP_OUT_FILE="$TEST_OUTPUT_DIR/${test_name}.ast.json"
-    CMD="$COMPILER compile $test_file -o $TMP_OUT_FILE"
+    CMD="$COMPILER compile $extra_flags -o $TMP_OUT_FILE $test_file"
 
     set +e # Disable exit on error for this test
     OUTPUT=$($CMD 2>&1)
@@ -116,7 +117,7 @@ run_test() {
         echo -e "${RED}  - Logs saved to: $LOGS_FILE${NC}"
 
         FAILED_TESTS=$((FAILED_TESTS + 1))
-        FAILED_FILES+=("$test_file")  # Add failed file to array
+        FAILED_FILES+=("$test_file ($test_name)")  # Add failed file to array
 
         # Pause on error if flag is set
         if [ "$PAUSE_ON_ERROR" = true ]; then
@@ -142,11 +143,20 @@ run_tests_in_directory() {
     
     echo -e "${CYAN}=== Running $category tests ===${NC}"
     
-    # Success tests (should exit with 0)
+    # Success tests (should compile to cpp and to executable)
     for test_file in "$dir"/*_success.enki; do
         if [ -f "$test_file" ]; then
             test_name=$(basename "$test_file" .enki)
-            run_test "$test_file" "$test_name" 0 "$category"
+            run_test "$test_file" "${test_name}_ast" 0 "$category" '-a'
+            run_test "$test_file" "${test_name}_cpp" 0 "$category"
+        fi
+    done
+
+    # typecheck tests (should successfully compile / typecheck)
+    for test_file in "$dir"/*_typecheck.enki; do
+        if [ -f "$test_file" ]; then
+            test_name=$(basename "$test_file" .enki)
+            run_test "$test_file" "${test_name}_ast" 0 "$category" '-a'
         fi
     done
 
@@ -170,7 +180,7 @@ run_tests_in_directory() {
     for test_file in "$dir"/*.enki; do
         if [ -f "$test_file" ]; then
             # Skip files we already processed
-            if [[ "$test_file" != *"_success.enki" && "$test_file" != *"_error.enki" && "$test_file" != *"syntax_error_"* ]]; then
+            if [[ "$test_file" != *"_success.enki" && "$test_file" != *"_error.enki" && "$test_file" != *"_typecheck.enki" && "$test_file" != *"syntax_error_"* ]]; then
                 test_name=$(basename "$test_file" .enki)
                 # Assume success for files without explicit suffix
                 run_test "$test_file" "$test_name" 0 "$category"

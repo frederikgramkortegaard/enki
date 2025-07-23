@@ -1,4 +1,4 @@
-/* Injections into the parse_tree, e.g. enum to string. We're making a function
+ /* Injections into the parse_tree, e.g. enum to string. We're making a function
 templater here such that we for every singel enum, can inject a function that
 converts the enum to a string into the AST before typechecking, which makes
 typechecking easier and just ingrains the functioanltiy into the compiler more
@@ -46,10 +46,7 @@ void inject_builtin_print(std::vector<Ref<Statement>> &statements) {
   param->type->base_type = BaseType::Any;
   print_func_def->parameters.push_back(param);
   
-  print_func_def->body = std::make_shared<Block>();
-  print_func_def->body->scope = std::make_shared<Scope>();
-  print_func_def->body->span = Span{};
-  print_func_def->span = Span{};
+  print_func_def->body = nullptr;
   statements.insert(statements.begin(), print_func_def);
   spdlog::debug("[injections] Injected built-in print function with Any parameter");
 }
@@ -161,7 +158,17 @@ Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct) {
     auto right_ident = std::make_shared<Identifier>();
     right_ident->name = member_name;
     right_ident->span = enum_struct->span;
-    condition->right = right_ident;
+
+    auto dot = std::make_shared<Dot>();
+    auto lhs = std::make_shared<Identifier>();
+    lhs->name = enum_struct->name;
+    lhs->span = enum_struct->span;
+
+    dot->left = lhs;
+    dot->right = right_ident;
+    dot->span = enum_struct->span;
+
+    condition->right = dot;
 
     condition->op = BinaryOpType::Equals;
     condition->span = enum_struct->span;
@@ -176,7 +183,7 @@ Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct) {
     auto literal = std::make_shared<Literal>();
 
     // Create string literal for the member name - use map for stable storage
-    std::string member_str = "\"" + std::string(member_name) + "\"";
+    std::string member_str = std::string(member_name);
     auto &interned_member_str = _interned_strings_injections[member_str];
     if (interned_member_str.empty()) {
       interned_member_str = member_str;
@@ -205,7 +212,7 @@ Ref<FunctionDefinition> inject_enum_to_string(Ref<Enum> enum_struct) {
   return func_def;
 }
 
-void inject_enum_to_string_in_scope(Ref<TypecheckContext> ctx, Ref<Enum> enum_struct) {
+Ref<FunctionDefinition> inject_enum_to_string_in_scope(Ref<TypecheckContext> ctx, Ref<Enum> enum_struct) {
   auto injected_func = inject_enum_to_string(enum_struct);
   if (injected_func) {
     // Register the injected function in the current scope
@@ -242,4 +249,5 @@ void inject_enum_to_string_in_scope(Ref<TypecheckContext> ctx, Ref<Enum> enum_st
     
     spdlog::debug("[injections] Registered injected function: {} in current scope", func_name);
   }
+  return injected_func;
 }

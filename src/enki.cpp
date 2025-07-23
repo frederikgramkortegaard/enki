@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "compiler/codegen.hpp"
 #include "compiler/injections.hpp"
 #include "compiler/lexer.hpp"
 #include "compiler/parser.hpp"
@@ -96,6 +97,7 @@ void print_compile_usage(const char *prog_name) {
   fmt::println("Usage: {} compile [options] <input-file>", prog_name);
   fmt::println("Options:");
   fmt::println("  -o <file>: Output file for compiled AST");
+  fmt::println("  -a: Output AST as JSON");
   fmt::println(
       "  --vis: Output minimal AST for visualization (no spans/locations)");
   fmt::println("  -h: Show this help message");
@@ -107,17 +109,19 @@ void print_serde_usage(const char *prog_name) {
   fmt::println("  -h: Show this help message");
 }
 
-std::string default_output_path(const std::string &input_filename) {
+std::string default_output_path(const std::string &input_filename,
+                                std::string_view extension) {
   constexpr std::string_view build_dir = "./build/";
   std::filesystem::create_directories(build_dir);
 
   std::string output_filename = input_filename;
-  output_filename = output_filename.substr(output_filename.find_last_of("/") + 1);
+  output_filename =
+      output_filename.substr(output_filename.find_last_of("/") + 1);
   size_t dot_pos = output_filename.find_last_of('.');
   if (dot_pos != std::string::npos) {
     output_filename = output_filename.substr(0, dot_pos);
   }
-  output_filename += ".ast.json";
+  output_filename += extension;
   return build_dir.data() + output_filename;
 }
 
@@ -143,8 +147,9 @@ int compile_command(int argc, char *argv[]) {
 
   // Reset optind after modifying argc/argv
   optind = 1;
+  bool output_ast_json = false;
 
-  while ((opt = getopt(argc, argv, "o:h")) != -1) {
+  while ((opt = getopt(argc, argv, "o:ha")) != -1) {
     switch (opt) {
     case 'o':
       output_filename = optarg;
@@ -152,6 +157,9 @@ int compile_command(int argc, char *argv[]) {
     case 'h':
       print_compile_usage(argv[0]);
       return 0;
+    case 'a':
+      output_ast_json = true;
+      break;
     default: /* '?' */
       print_compile_usage(argv[0]);
       return 1;
@@ -190,23 +198,46 @@ int compile_command(int argc, char *argv[]) {
   program = compile(source, input_filename, module_context);
 
   if (output_filename.empty()) {
-    output_filename = default_output_path(input_filename);
+    output_filename =
+        default_output_path(input_filename, output_ast_json ? ".ast.json" : "");
     spdlog::info("No output file specified, using: {}", output_filename);
-  }
-
-  std::ofstream output(output_filename);
-  if (!output.is_open()) {
-    spdlog::error("Could not open output file: {}", output_filename);
-    return 1;
   }
 
   // Set visualization mode if requested
   g_visualization_mode = visualization_mode;
 
-  debug_print_ast_string_views(program);
-  nlohmann::json j = *program;
-  output << j.dump(2) << std::endl;
-  spdlog::info("Wrote AST to {}", output_filename);
+  if (output_ast_json) {
+    std::ofstream output(output_filename);
+    if (!output.is_open()) {
+      spdlog::error("Could not open output file: {}", output_filename);
+      return 1;
+    }
+    debug_print_ast_string_views(program);
+    nlohmann::json j = *program;
+    output << j.dump(2) << std::endl;
+    spdlog::info("Wrote AST to {}", output_filename);
+  } else {
+    auto temp_cpp_file = output_filename + ".cpp";
+    std::ofstream cpp_output(temp_cpp_file);
+    if (!cpp_output.is_open()) {
+      spdlog::error("Could not open temporary C++ output file: {}",
+                    temp_cpp_file);
+      return 1;
+    }
+    cpp_output << codegen(program);
+    cpp_output.close();
+    spdlog::info("Wrote CPP code to {}", temp_cpp_file);
+
+    // compile the generated C++ code
+    std::string compile_cmd = "g++ -std=c++17 -o " +
+                             output_filename + " " + temp_cpp_file;
+    spdlog::info("Compiling generated C++ code with command: {}", compile_cmd);
+    int compile_result = system(compile_cmd.c_str());
+    if (compile_result != 0) {
+      spdlog::error("Failed to compile generated C++ code");
+      return 1;
+    }
+  }
 
   return 0;
 }
@@ -252,7 +283,7 @@ int serde_command(int argc, char *argv[]) {
     program = compile(source, input_filename, module_context);
   }
 
-  std::string json_path = default_output_path(input_filename);
+  std::string json_path = default_output_path(input_filename, ".ast.json");
   spdlog::info("Using JSON path: {}", json_path);
   {
     std::ofstream output(json_path);

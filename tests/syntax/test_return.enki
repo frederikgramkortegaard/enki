@@ -1,1 +1,4 @@
 define test() -> int { return 42 }
+
+define main() -> int {
+}

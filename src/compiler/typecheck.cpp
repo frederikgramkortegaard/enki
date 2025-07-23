@@ -6,9 +6,11 @@
 #include <spdlog/spdlog.h>
 #include <variant>
 
-Ref<Symbol> find_symbol_in_scope_chain(const Ref<Scope> &scope, const std::string_view &name);
+Ref<Symbol> find_symbol_in_scope_chain(const Ref<Scope> &scope,
+                                       const std::string_view &name);
 
-void typecheck_struct_definition(Ref<TypecheckContext> ctx, Ref<StructDefinition> struct_def);
+void typecheck_struct_definition(Ref<TypecheckContext> ctx,
+                                 Ref<StructDefinition> struct_def);
 void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt);
 Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx, Ref<Expression> expr);
 void typecheck_function_definition(Ref<TypecheckContext> ctx,
@@ -65,7 +67,8 @@ Ref<Type> get_binary_op_result_type(BinaryOpType op, Ref<Type> left_type,
 bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type,
                         Ref<Type> right_type) {
   // Type meta-types should not be used in binary operations
-  if (left_type->base_type == BaseType::Type || right_type->base_type == BaseType::Type) {
+  if (left_type->base_type == BaseType::Type ||
+      right_type->base_type == BaseType::Type) {
     return false;
   }
 
@@ -104,22 +107,24 @@ bool is_valid_binary_op(BinaryOpType op, Ref<Type> left_type,
   }
 }
 
-// Helper function to check if an expression represents a type reference (not a value)
+// Helper function to check if an expression represents a type reference (not a
+// value)
 bool is_type_reference(Ref<TypecheckContext> ctx, Ref<Expression> expr) {
   // Only identifiers can be type references
   if (expr->get_type() != ASTType::Identifier) {
     return false;
   }
-  
+
   auto ident = std::static_pointer_cast<Identifier>(expr);
   auto symbol = find_symbol_in_scope_chain(ctx->current_scope(), ident->name);
-  
+
   if (!symbol) {
     return false;
   }
-  
-  // Type references are symbols that represent types (enums, structs, or type keywords)
-  return symbol->symbol_type == SymbolType::Enum || 
+
+  // Type references are symbols that represent types (enums, structs, or type
+  // keywords)
+  return symbol->symbol_type == SymbolType::Enum ||
          symbol->symbol_type == SymbolType::Struct ||
          symbol->type->base_type == BaseType::Int ||
          symbol->type->base_type == BaseType::Float ||
@@ -127,7 +132,7 @@ bool is_type_reference(Ref<TypecheckContext> ctx, Ref<Expression> expr) {
          symbol->type->base_type == BaseType::Bool ||
          symbol->type->base_type == BaseType::Char ||
          symbol->type->base_type == BaseType::Void;
-         // Don't include TypeType in here, just fyi.
+  // Don't include TypeType in here, just fyi.
 }
 
 // Helper function to get the depth of a scope in the scope chain
@@ -228,7 +233,8 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
   }
 
   // Typecheck function arguments
-  spdlog::debug("[typechecker] Function symbol type: {}", function_symbol->type->to_string());
+  spdlog::debug("[typechecker] Function symbol type: {}",
+                function_symbol->type->to_string());
   if (function_symbol->type->base_type == BaseType::Function) {
     auto func_type = std::get<Ref<Function>>(function_symbol->type->structure);
 
@@ -245,14 +251,16 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
     for (size_t i = 0; i < call->arguments.size(); ++i) {
       auto arg_type = typecheck_expression(ctx, call->arguments[i]);
       auto param_type = func_type->parameters[i]->type;
-      
-      spdlog::debug("[typechecker] Checking argument {}: param_type={}, arg_type={}", 
-                    i, param_type->to_string(), arg_type->to_string());
-      
+
+      spdlog::debug(
+          "[typechecker] Checking argument {}: param_type={}, arg_type={}", i,
+          param_type->to_string(), arg_type->to_string());
+
       // Check if this parameter expects a type reference
       bool is_type_ref = is_type_reference(ctx, call->arguments[i]);
-      spdlog::debug("[typechecker] Argument {} is_type_reference={}", i, is_type_ref);
-      
+      spdlog::debug("[typechecker] Argument {} is_type_reference={}", i,
+                    is_type_ref);
+
       if (!can_assign_type_with_context(param_type, arg_type, is_type_ref)) {
         LOG_ERROR_EXIT("[typechecker] Type mismatch in argument " +
                            std::to_string(i + 1) + ": expected " +
@@ -267,7 +275,9 @@ Ref<Type> typecheck_function_call(Ref<TypecheckContext> ctx, Ref<Call> call) {
     return func_type->return_type;
   }
 
-  spdlog::debug("[typechecker] Function is not BaseType::Function, returning symbol type: {}", function_symbol->type->to_string());
+  spdlog::debug("[typechecker] Function is not BaseType::Function, returning "
+                "symbol type: {}",
+                function_symbol->type->to_string());
   return function_symbol->type;
 }
 
@@ -300,20 +310,22 @@ Ref<Type> typecheck_var_decl(Ref<TypecheckContext> ctx, Ref<VarDecl> var_decl) {
   spdlog::debug("[typechecker] typecheck_var_decl: var_decl type = {}",
                 magic_enum::enum_name(var_decl ? var_decl->get_type()
                                                : ASTType::Unknown));
-  
+
   auto expression_type = typecheck_expression(ctx, var_decl->expression);
-  
+
   // Check if the declared type matches the expression type
   if (var_decl->type) {
     bool is_type_ref = is_type_reference(ctx, var_decl->expression);
-    if (!can_assign_type_with_context(var_decl->type, expression_type, is_type_ref)) {
-      LOG_ERROR_EXIT("[typechecker] Variable declaration type mismatch: declared " +
-                         var_decl->type->to_string() + " but expression is " +
-                         expression_type->to_string(),
-                     var_decl->span, *ctx->program->source_buffer);
+    if (!can_assign_type_with_context(var_decl->type, expression_type,
+                                      is_type_ref)) {
+      LOG_ERROR_EXIT(
+          "[typechecker] Variable declaration type mismatch: declared " +
+              var_decl->type->to_string() + " but expression is " +
+              expression_type->to_string(),
+          var_decl->span, *ctx->program->source_buffer);
     }
   }
-  
+
   auto var_symbol = std::make_shared<Symbol>();
   var_symbol->name = var_decl->identifier->name;
   var_symbol->type = var_decl->type ? var_decl->type : expression_type;
@@ -321,6 +333,7 @@ Ref<Type> typecheck_var_decl(Ref<TypecheckContext> ctx, Ref<VarDecl> var_decl) {
   var_symbol->span = var_decl->span;
   ctx->current_scope()->symbols[var_decl->identifier->name] =
       std::static_pointer_cast<Symbol>(var_symbol);
+  var_decl->type = var_symbol->type; // Ensure the VarDecl has the correct type
   return var_symbol->type;
 }
 
@@ -328,28 +341,36 @@ Ref<Type> typecheck_literal(Ref<TypecheckContext> ctx, Ref<Literal> lit) {
   return lit->type;
 }
 
+Ref<Type> typecheck_type(Ref<TypecheckContext> ctx, Ref<Type> typ) {
+  spdlog::debug("[typechecker] typecheck_type: base = {}",
+                magic_enum::enum_name(typ->base_type));
+
+  // If the parameter type is Unknown, try to resolve it as an enum type
+  if (typ->base_type == BaseType::Unknown) {
+    // Look up the type name in the scope chain
+    auto type_symbol =
+        find_symbol_in_scope_chain(ctx->current_scope(), typ->name);
+    if (type_symbol && type_symbol->symbol_type == SymbolType::Enum) {
+      spdlog::debug(
+          "[typechecker] Resolved unknown parameter type '{}' to enum",
+          typ->to_string());
+      return type_symbol->type;
+    } else {
+      spdlog::error(
+          "[typechecker] Could not resolve unknown parameter type '{}'",
+          typ->to_string());
+    }
+  }
+
+  return typ;
+}
+
 Ref<Type> typecheck_parameter(Ref<TypecheckContext> ctx, Ref<Parameter> param) {
   spdlog::debug(
       "[typechecker] typecheck_parameter: param type = {}",
       magic_enum::enum_name(param ? param->get_type() : ASTType::Unknown));
 
-  // If the parameter type is Unknown, try to resolve it as an enum type
-  if (param->type->base_type == BaseType::Unknown) {
-    // Look up the type name in the scope chain
-    auto type_symbol =
-        find_symbol_in_scope_chain(ctx->current_scope(), param->type->name);
-    if (type_symbol && type_symbol->symbol_type == SymbolType::Enum) {
-      spdlog::debug(
-          "[typechecker] Resolved unknown parameter type '{}' to enum",
-          param->type->to_string());
-      return type_symbol->type;
-    } else {
-      spdlog::error(
-          "[typechecker] Could not resolve unknown parameter type '{}'",
-          param->type->to_string());
-    }
-  }
-
+  param->type = typecheck_type(ctx, param->type);
   return param->type;
 }
 
@@ -368,7 +389,7 @@ Ref<Type> typecheck_dot_expression(Ref<TypecheckContext> ctx,
       dot_expr->right->get_type() == ASTType::Identifier) {
     auto right = std::static_pointer_cast<Identifier>(dot_expr->right);
     auto struct_type = std::get<Ref<Struct>>(left_type->structure);
-    
+
     // its a vector
     for (const auto &field : struct_type->fields) {
       if (field->name == right->name) {
@@ -376,8 +397,8 @@ Ref<Type> typecheck_dot_expression(Ref<TypecheckContext> ctx,
       }
     }
     LOG_ERROR_EXIT("[typechecker] Struct member not found: " +
-                         std::string(right->name),
-                     right->span, *ctx->program->source_buffer);
+                       std::string(right->name),
+                   right->span, *ctx->program->source_buffer);
   }
 
   // Enum Member Access
@@ -403,10 +424,12 @@ Ref<Type> typecheck_dot_expression(Ref<TypecheckContext> ctx,
   return nullptr;
 }
 
-Ref<Type> typecheck_struct_instantiation(Ref<TypecheckContext> ctx, Ref<StructInstantiation> struct_inst) {
-  spdlog::debug("[typechecker] typecheck_struct_instantiation: struct_inst type = {}",
-                magic_enum::enum_name(struct_inst ? struct_inst->get_type()
-                                                   : ASTType::Unknown));
+Ref<Type> typecheck_struct_instantiation(Ref<TypecheckContext> ctx,
+                                         Ref<StructInstantiation> struct_inst) {
+  spdlog::debug(
+      "[typechecker] typecheck_struct_instantiation: struct_inst type = {}",
+      magic_enum::enum_name(struct_inst ? struct_inst->get_type()
+                                        : ASTType::Unknown));
 
   // We want to make sure the struct type is valid
   auto struct_type = typecheck_identifier(ctx, struct_inst->identifier);
@@ -417,7 +440,8 @@ Ref<Type> typecheck_struct_instantiation(Ref<TypecheckContext> ctx, Ref<StructIn
 
   struct_inst->struct_type = std::get<Ref<Struct>>(struct_type->structure);
 
-  if (struct_inst->struct_type->fields.size() != struct_inst->arguments.size()) {
+  if (struct_inst->struct_type->fields.size() !=
+      struct_inst->arguments.size()) {
     LOG_ERROR_EXIT("[typechecker] Struct has " +
                        std::to_string(struct_inst->struct_type->fields.size()) +
                        " fields but " +
@@ -431,19 +455,18 @@ Ref<Type> typecheck_struct_instantiation(Ref<TypecheckContext> ctx, Ref<StructIn
     auto arg = struct_inst->arguments[i];
     auto arg_type = typecheck_expression(ctx, arg);
     if (!can_assign_type(struct_inst->struct_type->fields[i]->type, arg_type)) {
-      LOG_ERROR_EXIT("[typechecker] Argument type mismatch: " +
-                     arg_type->to_string() + " != " +
-                     struct_inst->struct_type->fields[i]->type->to_string(),
-                     arg->span, *ctx->program->source_buffer);
+      LOG_ERROR_EXIT(
+          "[typechecker] Argument type mismatch: " + arg_type->to_string() +
+              " != " + struct_inst->struct_type->fields[i]->type->to_string(),
+          arg->span, *ctx->program->source_buffer);
     }
   }
-  
 
   return struct_type;
 }
 
-Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx,
-                               Ref<Expression> expr) {
+Ref<Type> _typecheck_expression(Ref<TypecheckContext> ctx,
+                                Ref<Expression> expr) {
   spdlog::debug(
       "[typechecker] typecheck_expression: expr type = {}",
       magic_enum::enum_name(expr ? expr->get_type() : ASTType::Unknown));
@@ -465,7 +488,8 @@ Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx,
   case ASTType::Dot:
     return typecheck_dot_expression(ctx, std::static_pointer_cast<Dot>(expr));
   case ASTType::StructInstantiation:
-    return typecheck_struct_instantiation(ctx, std::static_pointer_cast<StructInstantiation>(expr));
+    return typecheck_struct_instantiation(
+        ctx, std::static_pointer_cast<StructInstantiation>(expr));
   default:
     LOG_ERROR_EXIT("[typechecker] Unknown expression type: " +
                        std::string(magic_enum::enum_name(expr->get_type())),
@@ -473,6 +497,13 @@ Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx,
   }
 
   return nullptr;
+}
+
+Ref<Type> typecheck_expression(Ref<TypecheckContext> ctx,
+                               Ref<Expression> expr) {
+  auto type = _typecheck_expression(ctx, expr);
+  expr->etype = type; // Set the type on the expression for later use
+  return type;
 }
 
 void typecheck_block(Ref<TypecheckContext> ctx, Ref<Block> block) {
@@ -485,9 +516,10 @@ void typecheck_block(Ref<TypecheckContext> ctx, Ref<Block> block) {
 
   ctx->push_scope(block->scope);
 
-
-    //@NOTE TO READER: I know this is incredibly inefficient, but this is for now the solution to having definition invariant code. e.g. use-before-define 
-    // There are better ways to do this, e.g. partial registration during parsing, but this will have to do for now
+  //@NOTE TO READER: I know this is incredibly inefficient, but this is for now
+  // the solution to having definition invariant code. e.g. use-before-define
+  // There are better ways to do this, e.g. partial registration during parsing,
+  // but this will have to do for now
 
   // First pass: Register all types and functions
   perform_first_pass_registration(ctx, block->statements);
@@ -530,7 +562,8 @@ void typecheck_return(Ref<TypecheckContext> ctx, Ref<Return> ret) {
 
   // Check if this return expects a type reference
   bool is_type_ref = is_type_reference(ctx, ret->expression);
-  if (!can_assign_type_with_context(current_func->return_type, return_type, is_type_ref)) {
+  if (!can_assign_type_with_context(current_func->return_type, return_type,
+                                    is_type_ref)) {
     LOG_ERROR_EXIT(
         "[typechecker] Return type mismatch: " + return_type->to_string() +
             " != " + current_func->return_type->to_string(),
@@ -582,9 +615,10 @@ void typecheck_if(Ref<TypecheckContext> ctx, Ref<If> if_stmt) {
   // Typecheck the condition - must be boolean
   auto condition_type = typecheck_expression(ctx, if_stmt->condition);
   if (condition_type->base_type == BaseType::Type) {
-    LOG_ERROR_EXIT("[typechecker] If condition cannot be a type meta-type, got: " +
-                       condition_type->to_string(),
-                   if_stmt->condition->span, *ctx->program->source_buffer);
+    LOG_ERROR_EXIT(
+        "[typechecker] If condition cannot be a type meta-type, got: " +
+            condition_type->to_string(),
+        if_stmt->condition->span, *ctx->program->source_buffer);
   }
   if (condition_type->base_type != BaseType::Bool) {
     LOG_ERROR_EXIT("[typechecker] If condition must be boolean, got: " +
@@ -636,8 +670,9 @@ void typecheck_extern(Ref<TypecheckContext> ctx, Ref<Extern> extern_stmt) {
                                                   : ASTType::Unknown));
 
   if (ctx->current_scope() != ctx->global_scope) {
-    LOG_ERROR_EXIT("[typechecker] Extern declarations must be in the global scope",
-                   extern_stmt->span, *ctx->program->source_buffer);
+    LOG_ERROR_EXIT(
+        "[typechecker] Extern declarations must be in the global scope",
+        extern_stmt->span, *ctx->program->source_buffer);
   }
 
   // Create a proper function type for the extern function
@@ -650,11 +685,11 @@ void typecheck_extern(Ref<TypecheckContext> ctx, Ref<Extern> extern_stmt) {
     func_type->parameters.push_back(param);
   }
   func_type->return_type = extern_stmt->return_type;
-  
+
   auto function_type = std::make_shared<Type>();
   function_type->base_type = BaseType::Function;
   function_type->structure = func_type;
-  
+
   // Register the extern function in the current scope
   auto func_symbol = std::make_shared<Symbol>();
   func_symbol->name = extern_stmt->identifier->name;
@@ -693,7 +728,13 @@ void typecheck_enum_definition(Ref<TypecheckContext> ctx,
   }
 
   // Inject the enum-to-string function into the current scope
-  inject_enum_to_string_in_scope(ctx, enum_type);
+  auto to_string_func = inject_enum_to_string_in_scope(ctx, enum_type);
+  spdlog::debug(
+      "[typechecker] Injected enum-to-string function for enum '{}' :: {}",
+      enum_name, to_string_func->identifier->name);
+  enum_def->to_string_function = to_string_func;
+  register_function_signature(ctx, enum_def->to_string_function);
+  typecheck_function_definition(ctx, enum_def->to_string_function);
 }
 
 void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
@@ -715,7 +756,8 @@ void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
     typecheck_var_decl(ctx, std::static_pointer_cast<VarDecl>(stmt));
     break;
   case ASTType::StructDefinition:
-    typecheck_struct_definition(ctx, std::static_pointer_cast<StructDefinition>(stmt));
+    typecheck_struct_definition(
+        ctx, std::static_pointer_cast<StructDefinition>(stmt));
     break;
   case ASTType::FunctionDefinition:
     typecheck_function_definition(
@@ -724,6 +766,9 @@ void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
   case ASTType::EnumDefinition:
     typecheck_enum_definition(ctx,
                               std::static_pointer_cast<EnumDefinition>(stmt));
+    typecheck_function_definition(
+        ctx,
+        std::static_pointer_cast<EnumDefinition>(stmt)->to_string_function);
     break;
   case ASTType::Return:
     typecheck_return(ctx, std::static_pointer_cast<Return>(stmt));
@@ -748,17 +793,16 @@ void typecheck_statement(Ref<TypecheckContext> ctx, Ref<Statement> stmt) {
   return;
 }
 
+void typecheck_struct_definition(Ref<TypecheckContext> ctx,
+                                 Ref<StructDefinition> struct_def) {
+  spdlog::debug(
+      "[typechecker] typecheck_struct_definition: struct_def type = {}",
+      magic_enum::enum_name(struct_def ? struct_def->get_type()
+                                       : ASTType::Unknown));
 
-void typecheck_struct_definition(Ref<TypecheckContext> ctx, Ref<StructDefinition> struct_def) {
-  spdlog::debug("[typechecker] typecheck_struct_definition: struct_def type = {}",
-                magic_enum::enum_name(struct_def ? struct_def->get_type()
-                                                  : ASTType::Unknown));
-
-  // The struct was already registered in the first pass, for now there isn't actually anything to do in here. At some point when we change the fields to be able
-  // to have default values, we'll need to do something here.
-
-
-
+  // The struct was already registered in the first pass, for now there isn't
+  // actually anything to do in here. At some point when we change the fields to
+  // be able to have default values, we'll need to do something here.
 }
 void typecheck_function_definition(Ref<TypecheckContext> ctx,
                                    Ref<FunctionDefinition> func_def) {
@@ -773,8 +817,6 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
   } else {
     spdlog::debug("[typecheck]   No parameters");
   }
-
-  
 
   // Get the function from the symbol table (registered in first pass)
   auto func_symbol =
@@ -793,8 +835,16 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
                 func_type->return_type->to_string());
 
   // Set up function scope and metadata
-  func_def->function->scope = func_def->body->scope;
+  if (func_def->body) {
+    func_def->function->scope = func_def->body->scope;
+  } else {
+    func_def->function->scope = std::make_shared<Scope>();
+  }
   func_def->function->definition = func_def;
+
+  if (func_def->return_type) {
+    func_def->return_type = typecheck_type(ctx, func_def->return_type);
+  }
 
   // Ensure the function scope has the current scope as its parent
   func_def->function->scope->parent = ctx->current_scope();
@@ -835,7 +885,9 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
 
   // Use typecheck_block to process the function body (handles nested functions
   // automatically)
-  typecheck_block(ctx, func_def->body);
+  if (func_def->body) {
+    typecheck_block(ctx, func_def->body);
+  }
 
   ctx->pop_function();
   ctx->pop_scope();
@@ -848,9 +900,10 @@ void typecheck_function_definition(Ref<TypecheckContext> ctx,
   spdlog::debug("[typecheck] Finished function definition: {}", func_name);
 }
 
-
-void register_struct_signature(Ref<TypecheckContext> ctx, Ref<StructDefinition> struct_def) {
-  spdlog::debug("[typechecker] Registering struct signature: {}", struct_def->identifier->name);
+void register_struct_signature(Ref<TypecheckContext> ctx,
+                               Ref<StructDefinition> struct_def) {
+  spdlog::debug("[typechecker] Registering struct signature: {}",
+                struct_def->identifier->name);
 
   auto struct_name = struct_def->identifier->name;
 
@@ -861,7 +914,8 @@ void register_struct_signature(Ref<TypecheckContext> ctx, Ref<StructDefinition> 
   struct_type->definition = struct_def;
   struct_type->fields = struct_def->fields;
 
-  // Register symbol @NOTE its definitely possible to cut down on a lot of this code by making better Constructors
+  // Register symbol @NOTE its definitely possible to cut down on a lot of this
+  // code by making better Constructors
   auto struct_symbol = std::make_shared<Symbol>();
   struct_symbol->name = struct_name;
   struct_symbol->type = std::make_shared<Type>();
@@ -952,51 +1006,58 @@ void register_enum_signature(Ref<TypecheckContext> ctx,
   spdlog::debug("[typechecker] Registered enum signature: {}", enum_name);
 }
 
-  // Helper function to perform first pass registration of types and functions in a scope
-  void perform_first_pass_registration(Ref<TypecheckContext> ctx, const std::vector<Ref<Statement>> &statements) {
-    // First pass: Register all enum definitions first
-    spdlog::debug("[typechecker] First pass: Registering enums");
-    for (auto &stmt : statements) {
-      auto stmt_type = stmt->get_type();
-      if (stmt_type == ASTType::EnumDefinition) {
-        spdlog::debug("[typechecker] First pass: Registering enum");
-        register_enum_signature(ctx, std::static_pointer_cast<EnumDefinition>(stmt));
-      }
-    }
-
-    // First pass: Register struct definitions
-    spdlog::debug("[typechecker] First pass: Registering structs");
-    for (auto &stmt : statements) {
-      auto stmt_type = stmt->get_type();
-      if (stmt_type == ASTType::StructDefinition) {
-        spdlog::debug("[typechecker] First pass: Registering struct");
-        register_struct_signature(ctx, std::static_pointer_cast<StructDefinition>(stmt));
-      }
-    }
-
-    // First pass: Register function definitions
-    spdlog::debug("[typechecker] First pass: Registering functions");
-    for (auto &stmt : statements) {
-      auto stmt_type = stmt->get_type();
-      if (stmt_type == ASTType::FunctionDefinition) {
-        spdlog::debug("[typechecker] First pass: Registering function");
-        register_function_signature(ctx, std::static_pointer_cast<FunctionDefinition>(stmt));
-      }
+// Helper function to perform first pass registration of types and functions in
+// a scope
+void perform_first_pass_registration(
+    Ref<TypecheckContext> ctx, const std::vector<Ref<Statement>> &statements) {
+  // First pass: Register all enum definitions first
+  spdlog::debug("[typechecker] First pass: Registering enums");
+  for (auto &stmt : statements) {
+    auto stmt_type = stmt->get_type();
+    if (stmt_type == ASTType::EnumDefinition) {
+      spdlog::debug("[typechecker] First pass: Registering enum");
+      register_enum_signature(ctx,
+                              std::static_pointer_cast<EnumDefinition>(stmt));
     }
   }
 
-  // Helper function to perform second pass typechecking of all statements in a scope
-  void perform_second_pass_typechecking(Ref<TypecheckContext> ctx, const std::vector<Ref<Statement>> &statements) {
-    spdlog::debug("[typechecker] Second pass: Typechecking all statements");
-    for (auto &stmt : statements) {
-      spdlog::debug(
-          "[typechecker] Second pass: Processing statement at address: {}",
-          (void *)stmt.get());
-      spdlog::debug("[typechecker] Second pass: Statement type: {}",
-                    magic_enum::enum_name(stmt->get_type()));
-      typecheck_statement(ctx, std::static_pointer_cast<Statement>(stmt));
+  // First pass: Register struct definitions
+  spdlog::debug("[typechecker] First pass: Registering structs");
+  for (auto &stmt : statements) {
+    auto stmt_type = stmt->get_type();
+    if (stmt_type == ASTType::StructDefinition) {
+      spdlog::debug("[typechecker] First pass: Registering struct");
+      register_struct_signature(
+          ctx, std::static_pointer_cast<StructDefinition>(stmt));
     }
   }
+
+  // First pass: Register function definitions
+  spdlog::debug("[typechecker] First pass: Registering functions");
+  for (auto &stmt : statements) {
+    auto stmt_type = stmt->get_type();
+    if (stmt_type == ASTType::FunctionDefinition) {
+      spdlog::debug("[typechecker] First pass: Registering function");
+      register_function_signature(
+          ctx, std::static_pointer_cast<FunctionDefinition>(stmt));
+    }
+  }
+}
+
+// Helper function to perform second pass typechecking of all statements in a
+// scope
+void perform_second_pass_typechecking(
+    Ref<TypecheckContext> ctx, const std::vector<Ref<Statement>> &statements) {
+  spdlog::debug("[typechecker] Second pass: Typechecking all statements");
+  for (auto &stmt : statements) {
+    spdlog::debug(
+        "[typechecker] Second pass: Processing statement at address: {}",
+        (void *)stmt.get());
+    spdlog::debug("[typechecker] Second pass: Statement type: {}",
+                  magic_enum::enum_name(stmt->get_type()));
+    typecheck_statement(ctx, std::static_pointer_cast<Statement>(stmt));
+  }
+}
 
 void typecheck(Ref<Program> program) {
   spdlog::debug("[typechecker] program at {}", fmt::ptr(program.get()));

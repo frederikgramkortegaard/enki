@@ -2,3 +2,6 @@ define outer() -> int {
     let x = 1
     return x
 } 
+
+define main() -> int {
+}

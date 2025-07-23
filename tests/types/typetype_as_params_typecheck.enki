@@ -10,8 +10,9 @@ enum Color {
     Blue
 }
 
-define main(test: type) -> type {
+define foo(test: type) -> type {
     return Color
 }
 
-main(Point)
+define main() -> int {
+}

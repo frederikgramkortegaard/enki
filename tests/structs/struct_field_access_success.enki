@@ -3,10 +3,12 @@ struct Point {
     y: int
 }
 
-let point = struct Point { 1, 2 }
-
-// This works
-let x = point.x
+define main() -> int {
+    let point = struct Point { 1, 2 }
+    
+    // This works
+    let x = point.x
+}
 
 // This wouldn't work
 //let z = point.z

@@ -6,12 +6,6 @@ enum Color {
     Blue,
 }
 
-let color = Color
-
-if color == Color.Red {
-    print(Color_to_string(color))
-}
-
 define ret(color: Color) -> Color {
     return color
 }
@@ -21,5 +15,13 @@ define print_color(color: Color) -> void {
     print(Color_to_string(color))
 }
 
-print_color(ret(Color.Red))
+
+define main() -> int {
+    let color = Color.Green
+    
+    if color == Color.Red {
+        print(Color_to_string(color))
+    }
+    print_color(ret(Color.Red))
+}
 

@@ -18,20 +18,22 @@ define test_tree(tree: Tree) -> void {
     print("Tree function called")
 }
 
-// This should work - same enum type
-let color = Color.Red
-test_color(color)
-
-// This should work - same enum type
-let tree = Tree.Oak
-test_tree(tree)
-
-// This should work - comparing same enum types
-if color == Color.Red {
-    print("Color is red")
-}
-
-// This should work - comparing same enum types
-if tree == Tree.Oak {
-    print("Tree is oak")
+define main() -> int {
+    // This should work - same enum type
+    let color = Color.Red
+    test_color(color)
+    
+    // This should work - same enum type
+    let tree = Tree.Oak
+    test_tree(tree)
+    
+    // This should work - comparing same enum types
+    if color == Color.Red {
+        print("Color is red")
+    }
+    
+    // This should work - comparing same enum types
+    if tree == Tree.Oak {
+        print("Tree is oak")
+    }
 } 

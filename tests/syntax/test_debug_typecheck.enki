@@ -3,4 +3,7 @@ define outer() -> int {
         return 42;
     }
     return 1;
-} 
+}
+
+define main() -> int {
+}

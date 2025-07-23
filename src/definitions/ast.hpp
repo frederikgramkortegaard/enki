@@ -2,6 +2,7 @@
 #include "position.hpp"
 #include "tokens.hpp"
 #include <string_view>
+#include <spdlog/spdlog.h>
 
 struct ModuleContext; // Forward declaration for module context
 struct Block;         // Forward declaration for Block
@@ -45,9 +46,20 @@ struct ASTNode {
   Span span;
   virtual ~ASTNode() = default;
   virtual ASTType get_type() const = 0;
+  virtual bool is_global_decl() const {
+    // NOTE: VarDecl isn't a global decl for now, this is a hack for cpp codegen
+    auto res = get_type() == ASTType::FunctionDefinition ||
+           get_type() == ASTType::Extern ||
+           get_type() == ASTType::EnumDefinition ||
+           get_type() == ASTType::StructDefinition;
+    spdlog::debug("[ASTNode] is_global_decl: {} for type {}",
+                res, magic_enum::enum_name(get_type()));
+    return res;
+  }
 };
 
 struct Expression : ASTNode {
+  Ref<Type> etype; // Type of the expression, set during type checking
   virtual ~Expression() = default;
   virtual ASTType get_type() const = 0;
 };
@@ -132,14 +144,14 @@ struct VarDecl : Statement {
 
 struct If : Statement {
   Ref<Expression> condition;
-  Ref<Block> then_branch;
-  Ref<Block> else_branch;
+  Ref<Statement> then_branch;
+  Ref<Statement> else_branch;
   ASTType get_type() const override { return ASTType::If; }
 };
 
 struct While : Statement {
   Ref<Expression> condition;
-  Ref<Block> body;
+  Ref<Statement> body;
   ASTType get_type() const override { return ASTType::While; }
 };
 
@@ -163,8 +175,10 @@ struct Return : Statement {
   ASTType get_type() const override { return ASTType::Return; }
 };
 
-// Honestly, I'm not sure its worth it to create e..g StructDefinition, EnumDefinition etc, we can just use the AST node it starts at as a reference inside ther Structures (e.g. Function, Struct, from types.hpp)
-// but for now, we're doing it.
+// Honestly, I'm not sure its worth it to create e..g StructDefinition,
+// EnumDefinition etc, we can just use the AST node it starts at as a reference
+// inside ther Structures (e.g. Function, Struct, from types.hpp) but for now,
+// we're doing it.
 struct StructDefinition : Statement {
   Ref<Identifier> identifier;
   std::vector<Ref<Variable>> fields;
@@ -208,6 +222,7 @@ struct EnumDefinition : Statement {
   Ref<Identifier> identifier;
   std::vector<Ref<Variable>> members;
   Ref<Type> enum_type;
+  Ref<FunctionDefinition> to_string_function; // Optional, for enum-to-string
 
   ASTType get_type() const override { return ASTType::EnumDefinition; }
 };

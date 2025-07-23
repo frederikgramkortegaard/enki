@@ -4,6 +4,8 @@ define foo(bar: &int) -> int {
     return *bar + 1
 }
 
-let x = 5
-x = x + foo(&x)
+define main() -> int {
+    let x = 5
+    x = x + foo(&x)
+}
 
