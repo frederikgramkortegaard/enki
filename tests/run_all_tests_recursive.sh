@@ -88,7 +88,9 @@ run_test() {
 
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
     TMP_OUT_FILE="$TEST_OUTPUT_DIR/${test_name}.ast.json"
-    CMD="$COMPILER compile $extra_flags -o $TMP_OUT_FILE $test_file"
+
+    # NOTE: We always want to output the AST JSON for tests
+    CMD="$COMPILER compile -a $extra_flags -o $TMP_OUT_FILE $test_file"
 
     set +e # Disable exit on error for this test
     OUTPUT=$($CMD 2>&1)
@@ -147,8 +149,7 @@ run_tests_in_directory() {
     for test_file in "$dir"/*_success.enki; do
         if [ -f "$test_file" ]; then
             test_name=$(basename "$test_file" .enki)
-            run_test "$test_file" "${test_name}_ast" 0 "$category" '-a'
-            run_test "$test_file" "${test_name}_cpp" 0 "$category"
+            run_test "$test_file" "${test_name}" 0 "$category"
         fi
     done
 
@@ -156,7 +157,7 @@ run_tests_in_directory() {
     for test_file in "$dir"/*_typecheck.enki; do
         if [ -f "$test_file" ]; then
             test_name=$(basename "$test_file" .enki)
-            run_test "$test_file" "${test_name}_ast" 0 "$category" '-a'
+            run_test "$test_file" "${test_name}_ast" 0 "$category" '-t'
         fi
     done
 

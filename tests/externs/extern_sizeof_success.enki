@@ -4,7 +4,7 @@ struct Point {
     x: int
     y: int
 }
+
 define main() -> int {
     let size = sizeof(Point)
-    return size
 }

@@ -1,5 +1,5 @@
 
-define main() -> int {
+define foo() -> int {
 {
 
     let a = 1
@@ -14,4 +14,7 @@ define main() -> int {
     }
 
 }
+}
+
+define main() -> int {
 }
